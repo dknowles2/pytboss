@@ -5,9 +5,9 @@ import json
 from bleak import BLEDevice, BleakClient, BleakGATTCharacteristic
 
 # fmt: off
-SERVICE_SUBSCRIBE  = '5f6d4f53-5f44-4247-5f53-56435f49445f'
-SERVICE_RPC        = '5f6d4f53-5f52-5043-5f53-56435f49445f'
-CHAR_SUBSCRIBE_RW  = "306d4f53-5f44-4247-5f6c-6f675f5f5f30"
+SERVICE_SUBSCRIBE  = '5f6d4f53-5f44-4247-5f53-56435f49445f'  # noqa: E221
+SERVICE_RPC        = '5f6d4f53-5f52-5043-5f53-56435f49445f'  # noqa: E221
+CHAR_SUBSCRIBE_RW  = "306d4f53-5f44-4247-5f6c-6f675f5f5f30"  # noqa: E221
 CHAR_RPC_WRITE_CMD = "5f6d4f53-5f52-5043-5f64-6174615f5f5f"
 CHAR_RPC_WRITE_LEN = "5f6d4f53-5f52-5043-5f74-785f63746c5f"
 CHAR_RPC_SUBSCRIBE = "5f6d4f53-5f52-5043-5f72-785f63746c5f"
@@ -82,13 +82,13 @@ class BleConnection:
 
     async def _send_prepared_command(self, cmd: str):
         payload = bytearray([0, 0, 0, 0])
-        l = len(cmd)
+        n = len(cmd)
         for i in range(0, 4):
-            payload[3 - i] = 255 & l
-            l >>= 8
+            payload[3 - i] = 255 & n
+            n >>= 8
         await self._ble_client.write_gatt_char(CHAR_RPC_WRITE_LEN, payload)
         for i in range(0, len(cmd), 20):
-            chunk = bytearray(cmd[i : i + 20].encode("utf-8"))
+            chunk = bytearray(cmd[i : i + 20].encode("utf-8"))  # noqa: E203
             await self._ble_client.write_gatt_char(CHAR_RPC_WRITE_CMD, chunk)
 
     async def _on_std_data_received(
@@ -100,7 +100,7 @@ class BleConnection:
             return
 
         head, payload, tail = parts
-        checksum = int(tail[1 : len(tail) - 1])
+        checksum = int(tail[1 : len(tail) - 1])  # noqa: E203
         if len(payload) != checksum:
             # Bad payload; ignore.
             return
