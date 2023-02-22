@@ -4,7 +4,7 @@ import asyncio
 from base64 import b64decode
 from math import floor
 
-from bleak import BleakClient, BleakScanner, BLEDevice
+from bleak import BleakScanner
 
 from .ble import BleConnection
 
@@ -58,7 +58,7 @@ class PitBoss:
         async with self._lock:
             # TODO: Run callbacks concurrently
             for cb in self._vdata_callbacks:
-                await cb(status)
+                await cb(payload)
 
     async def _send_command(self, method: str, params: dict) -> dict:
         return await self._conn.send_command(method, params)
@@ -133,7 +133,7 @@ class PitBoss:
         return await self._send_command("PBL.LoadFirmwareStatus", {})
 
     async def verify_firmware_download(self, offset, r=True):
-        params = {"filename": "temp.js", "offset": n, "len": 8 if r else 12}
+        params = {"filename": "temp.js", "offset": offset, "len": 8 if r else 12}
         return await self._send_command("FS.Get", params)
 
     async def perform_ota_update(self, url, commit_timeout=300):
@@ -205,7 +205,7 @@ def _wifi_params(ssid: str | None = None, password: str | None = None) -> dict:
 
 
 def hex_to_array(data: str) -> list[int]:
-    return [int(data[i : i + 2], 16) for i in range(0, len(data), 2)]
+    return [int(data[i : i + 2], 16) for i in range(0, len(data), 2)]  # noqa: E203
 
 
 def encode_temp(temp: int) -> str:
