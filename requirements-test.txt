@@ -1,1 +1,2 @@
-bleak==0.19.5
+-r requirements.txt
+pytest-asyncio==0.20.3
