@@ -221,7 +221,6 @@ def decode_temp(hundreds: int, tens: int, ones: int) -> int:
 
 def decode_state(data: str) -> dict:
     arr = hex_to_array(data)
-    print(arr)
     assert arr.pop(0) == 254
     msg_type = arr.pop(0)
     handlers = {
@@ -230,8 +229,6 @@ def decode_state(data: str) -> dict:
         13: decode_set_temps,
     }
     if msg_type not in handlers:
-        print(f"E: Unknown message type: {msg_type}")
-        print(f"E: Payload: {arr}")
         return None
     return handlers[msg_type](arr)
 
