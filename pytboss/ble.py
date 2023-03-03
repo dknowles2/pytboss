@@ -2,7 +2,8 @@
 
 import asyncio
 import json
-from bleak import BLEDevice, BleakClient, BleakGATTCharacteristic
+
+from bleak import BleakClient, BleakGATTCharacteristic, BLEDevice
 
 # fmt: off
 SERVICE_SUBSCRIBE  = '5f6d4f53-5f44-4247-5f53-56435f49445f'  # noqa: E221
@@ -71,9 +72,8 @@ class BleConnection:
         future = self._loop.create_future()
         async with self._lock:
             self._rpc_futures[command_id] = future
-        async with asyncio.timeout(timeout):
-            await self._send_prepared_command(cmd)
-            return await future
+        await asyncio.wait_for(self._send_prepared_command(cmd), timeout=timeout)
+        return await future
 
     async def send_command_without_answer(self, method: str, params: dict):
         command_id = await self._next_command_id()
