@@ -92,7 +92,7 @@ class BleConnection:
             await self._ble_client.write_gatt_char(CHAR_RPC_WRITE_CMD, chunk)
 
     async def _on_std_data_received(
-        self, char: BleakGATTCharacteristic, data: bytearray
+        self, unused_char: BleakGATTCharacteristic, data: bytearray
     ):
         parts = data.decode("utf-8").split()
         if len(parts) != 3:
