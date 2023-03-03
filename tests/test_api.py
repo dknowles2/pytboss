@@ -51,7 +51,7 @@ class TestDecode:
             "motorState":    True,
             "lightState":    False,
             "primeState":    True,
-            "isFarenheit":   True,
+            "isFahrenheit":   True,
             "recipeStep":    4,
             "time_H":        12,
             "time_M":        59,
@@ -89,7 +89,7 @@ class TestDecode:
             "motorState":    True,
             "lightState":    False,
             "primeState":    True,
-            "isFarenheit":   True,
+            "isFahrenheit":   True,
             "recipeStep":    4,
             "time_H":        12,
             "time_M":        59,
@@ -113,7 +113,7 @@ class TestDecode:
             "smokerActTemp": 220,
             "grillSetTemp":  225,
             "grillTemp":     220,
-            "isFarenheit":   True,
+            "isFahrenheit":   True,
             # fmt: on
         }
 

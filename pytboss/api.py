@@ -36,29 +36,29 @@ class PitBoss:
             self._on_state_received, self._on_vdata_received
         )
 
-    async def subscribe_state(self, cb):
+    async def subscribe_state(self, callback):
         # TODO: Return a handle for unsubscribe.
         async with self._lock:
-            self._state_callbacks.append(cb)
+            self._state_callbacks.append(callback)
 
-    async def subscribe_vdata(self, cb):
+    async def subscribe_vdata(self, callback):
         # TODO: Return a handle for unsubscribe.
         async with self._lock:
-            self._vdata_callbacks.append(cb)
+            self._vdata_callbacks.append(callback)
 
     async def _on_state_received(self, payload: bytearray):
         state = decode_state(payload)
         async with self._lock:
             self._state.update(state)
             # TODO: Run callbacks concurrently
-            for cb in self._state_callbacks:
-                await cb(self._state)
+            for callback in self._state_callbacks:
+                await callback(self._state)
 
     async def _on_vdata_received(self, payload: dict):
         async with self._lock:
             # TODO: Run callbacks concurrently
-            for cb in self._vdata_callbacks:
-                await cb(payload)
+            for callback in self._vdata_callbacks:
+                await callback(payload)
 
     async def _send_command(self, method: str, params: dict) -> dict:
         return await self._conn.send_command(method, params)
@@ -221,7 +221,6 @@ def decode_temp(hundreds: int, tens: int, ones: int) -> int:
 
 def decode_state(data: str) -> dict:
     arr = hex_to_array(data)
-    print(arr)
     assert arr.pop(0) == 254
     msg_type = arr.pop(0)
     handlers = {
@@ -230,8 +229,6 @@ def decode_state(data: str) -> dict:
         13: decode_set_temps,
     }
     if msg_type not in handlers:
-        print(f"E: Unknown message type: {msg_type}")
-        print(f"E: Payload: {arr}")
         return None
     return handlers[msg_type](arr)
 
@@ -262,7 +259,7 @@ def decode_status(arr: list[int]) -> dict:
         "motorState":    arr[0x22] == 1,
         "lightState":    arr[0x23] == 1,
         "primeState":    arr[0x24] == 1,
-        "isFarenheit":   arr[0x25] == 1,
+        "isFahrenheit":   arr[0x25] == 1,
         "recipeStep":    arr[0x26],
         "time_H":        arr[0x27],
         "time_M":        arr[0x28],
@@ -282,7 +279,7 @@ def decode_all_temps(arr: list[int]) -> dict:
         "smokerActTemp": decode_temp(arr[0x0f], arr[0x10], arr[0x11]),
         "grillSetTemp":  decode_temp(arr[0x12], arr[0x13], arr[0x14]),
         "grillTemp":     decode_temp(arr[0x15], arr[0x16], arr[0x17]),
-        "isFarenheit":   arr[0x18] == 1,
+        "isFahrenheit":   arr[0x18] == 1,
         # fmt: on
     }
 
