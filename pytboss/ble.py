@@ -1,7 +1,10 @@
 """Bluetooth LE connection support for PitBoss grills."""
 
+from __future__ import annotations
+
 import asyncio
 import json
+from typing import Callable
 
 from bleak import BleakClient, BleakGATTCharacteristic, BLEDevice
 
@@ -19,12 +22,26 @@ SERVICE_TO_CHARS = {
 }
 
 
+StateCallback = Callable[[str], None]
+"""A callback function that receives updated grill state."""
+
+VDataCallback = Callable[[dict], None]
+"""A callback function that receives updated VData."""
+
+
 class BleConnection:
     """Bluetooth LE protocol transport for PitBoss grills."""
 
     def __init__(
         self, ble_client: BleakClient, loop: asyncio.AbstractEventLoop | None = None
     ) -> None:
+        """Initializes a BleConnection.
+
+        :param ble_client: Bluetooth client to use for transport.
+        :type ble_client: bleak.BleakClient
+        :param loop: An asyncio loop to use. If `None`, the default loop will be used.
+        :type loop: asyncio.AbstractEventLoop
+        """
         self._ble_client = ble_client
         if loop is None:
             loop = asyncio.get_running_loop()
@@ -33,10 +50,17 @@ class BleConnection:
         self._lock = asyncio.Lock()  # Protects items below.
         self._last_command_id = 0
         self._rpc_futures = {}
-        self._state_callback = None
-        self._vdata_callback = None
+        self._state_callback: StateCallback | None = None
+        self._vdata_callback: VDataCallback | None = None
 
-    async def start_subscriptions(self, state_callback, vdata_callback):
+    async def start_subscriptions(
+        self, state_callback: StateCallback | None, vdata_callback: VDataCallback | None
+    ):
+        """Registers subscription callbacks and starts subscriptions.
+
+        :param state_callback:
+        :param vdata_callback:
+        """
         self._state_callback = state_callback
         self._vdata_callback = vdata_callback
         await self._ble_client.start_notify(
@@ -67,6 +91,16 @@ class BleConnection:
             return self._last_command_id
 
     async def send_command(self, method: str, params: dict, timeout: int = 60) -> dict:
+        """Sends a command to the grill.
+
+        :param method: The method to call.
+        :type method: str
+        :param params: Parameters to send with the command.
+        :type params: dict
+        :param timeout: Time (in seconds) after which to abort the command.
+        :type timeout: int
+        :rtype: dict
+        """
         command_id = await self._next_command_id()
         cmd = json.dumps({"id": command_id, "method": method, "params": params})
         future = self._loop.create_future()
@@ -76,6 +110,13 @@ class BleConnection:
         return await future
 
     async def send_command_without_answer(self, method: str, params: dict):
+        """Sends a command to the grill and doesn't wait for the response.
+
+        :param method: The method to call.
+        :type method: str
+        :param params: Parameters to send with the command.
+        :type params: dict
+        """
         command_id = await self._next_command_id()
         cmd = json.dumps({"id": command_id, "method": method, "params": params})
         await self._send_prepared_command(cmd)
@@ -112,7 +153,7 @@ class BleConnection:
                 await self._vdata_callback(json.loads(payload))
 
     async def _on_rpc_data_received(
-        self, char: BleakGATTCharacteristic, data: bytearray
+        self, unused_char: BleakGATTCharacteristic, data: bytearray
     ):
         resp_len = data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3]
         resp = bytearray()
