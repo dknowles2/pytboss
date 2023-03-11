@@ -92,14 +92,8 @@ class PitBoss:
             for callback in self._vdata_callbacks:
                 await callback(payload)
 
-    async def _send_command(self, method: str, params: dict) -> dict:
-        return await self._conn.send_command(method, params)
-
-    async def _send_command_without_answer(self, method: str, params: dict):
-        return await self._conn.send_command_without_answer(method, params)
-
     async def _send_hex_command(self, cmd: str) -> dict:
-        return await self._send_command("PB.SendMCUCommand", {"command": cmd})
+        return await self._conn.send_command("PB.SendMCUCommand", {"command": cmd})
 
     async def set_grill_temperature(self, temp: int) -> dict:
         """Sets the target grill temperature.
@@ -125,7 +119,7 @@ class PitBoss:
 
     async def get_file_list(self) -> list[str]:
         """:meta private:"""
-        return await self._send_command("FS.List", {})
+        return await self._conn.send_command("FS.List", {})
 
     async def get_file_content(self, filename) -> str:
         """:meta private:"""
@@ -133,7 +127,7 @@ class PitBoss:
         offset = 0
         content = ""
         while True:
-            resp = await self._send_command(
+            resp = await self._conn.send_command(
                 "FS.Get", {"filename": filename, "offset": offset, "len": length}
             )
             content += str(b64decode(resp["data"]))
@@ -143,22 +137,22 @@ class PitBoss:
 
     async def set_file_content(self, filename, data, append) -> dict:
         """:meta private:"""
-        return await self._send_command(
+        return await self._conn.send_command(
             "FS.Put",
             {"filename": filename, "data": data, "append": append},
         )
 
     async def rename_file(self, src, dst) -> dict:
         """:meta private:"""
-        return await self._send_command("FS.Rename", {"src": src, "dst": dst})
+        return await self._conn.send_command("FS.Rename", {"src": src, "dst": dst})
 
     async def copy_file(self, src, dst) -> dict:
         """:meta private:"""
-        return await self._send_command("PBL.CopyFile", {"src": src, "dst": dst})
+        return await self._conn.send_command("PBL.CopyFile", {"src": src, "dst": dst})
 
     async def delete_file(self, filename) -> dict:
         """:meta private:"""
-        return await self._send_command("FS.Remove", {"filename": filename})
+        return await self._conn.send_command("FS.Remove", {"filename": filename})
 
     #
     # System settings
@@ -166,35 +160,35 @@ class PitBoss:
 
     async def get_command_list(self) -> list:
         """:meta private:"""
-        return await self._send_command("RPC.List", {})
+        return await self._conn.send_command("RPC.List", {})
 
     async def get_loader_version(self):
         """:meta private:"""
-        return await self._send_command("PBL.GetLoaderVersion", {})
+        return await self._conn.send_command("PBL.GetLoaderVersion", {})
 
     async def get_firmware_version(self) -> str:
         """Returns the firmware version installed on the grill."""
-        return await self._send_command("PB.GetFirmwareVersion", {})
+        return await self._conn.send_command("PB.GetFirmwareVersion", {})
 
     async def load_firmware(self, base_url, filename):
         """:meta private:"""
-        return await self._send_command(
+        return await self._conn.send_command(
             "PBL.LoadFirmware",
             {"baseurl": base_url, "filename": filename},
         )
 
     async def load_firmware_status(self):
         """:meta private:"""
-        return await self._send_command("PBL.LoadFirmwareStatus", {})
+        return await self._conn.send_command("PBL.LoadFirmwareStatus", {})
 
     async def verify_firmware_download(self, offset, r=True):
         """:meta private:"""
         params = {"filename": "temp.js", "offset": offset, "len": 8 if r else 12}
-        return await self._send_command("FS.Get", params)
+        return await self._conn.send_command("FS.Get", params)
 
     async def perform_ota_update(self, url, commit_timeout=300):
         """:meta private:"""
-        return await self._send_command(
+        return await self._conn.send_command(
             "OTA.Update", {"url": url, "commit_timeout": commit_timeout}
         )
 
@@ -207,7 +201,7 @@ class PitBoss:
         :type password: str
         :rtype: dict
         """
-        return await self._send_command("Config.Set", _wifi_params(ssid, password))
+        return await self._conn.send_command("Config.Set", _wifi_params(ssid, password))
 
     async def set_wifi_ssid(self, ssid):
         """Sets the WiFi SSID.
@@ -216,7 +210,7 @@ class PitBoss:
         :type ssid: str
         :rtype: dict
         """
-        return await self._send_command("Config.Set", _wifi_params(ssid=ssid))
+        return await self._conn.send_command("Config.Set", _wifi_params(ssid=ssid))
 
     async def set_wifi_password(self, password):
         """Sets the WiFi password.
@@ -225,30 +219,36 @@ class PitBoss:
         :type password: str
         :rtype: dict
         """
-        return await self._send_command("Config.Set", _wifi_params(password=password))
+        return await self._conn.send_command(
+            "Config.Set", _wifi_params(password=password)
+        )
 
     async def reboot_system(self):
         """Reboots the grill."""
-        return await self._send_command_without_answer("Sys.Reboot", {})
+        return await self._conn.send_command_without_answer("Sys.Reboot", {})
 
     async def get_config(self, key, level):
         """:meta private:"""
-        return await self._send_command("Config.Get", {"key": key, "level": level})
+        return await self._conn.send_command("Config.Get", {"key": key, "level": level})
 
     async def save_config(self, reboot=True):
         """:meta private:"""
-        fn = self._send_command_without_answer if reboot else self._send_command
+        fn = (
+            self._conn.send_command_without_answer
+            if reboot
+            else self._conn.send_command
+        )
         return await fn("Config.Save", {"reboot": reboot})
 
     async def set_mcu_update_timer(self, frequency=2):
         """:meta private:"""
-        return await self._send_command(
+        return await self._conn.send_command(
             "PB.SetMCU_UpdateFrequency", {"frequency": frequency}
         )
 
     async def set_wifi_update_frequency(self, fast=5, slow=60):
         """:meta private:"""
-        return await self._send_command(
+        return await self._conn.send_command(
             "PB.SetWifiUpdateFrequency", {"slow": slow, "fast": fast}
         )
 
@@ -257,33 +257,33 @@ class PitBoss:
 
         :rtype: dict
         """
-        resp = await self._send_command("Sys.GetInfo", {})
+        resp = await self._conn.send_command("Sys.GetInfo", {})
         return resp.get("wifi", {})
 
     async def get_state(self) -> tuple[dict, dict]:
         """Retrieves the current grill state."""
-        state = await self._send_command("PB.GetState", {})
+        state = await self._conn.send_command("PB.GetState", {})
         status = decode_status(hex_to_array(state["sc_11"]))
         temps = decode_all_temps(hex_to_array(state["sc_12"]))
         return status, temps
 
     async def ping(self) -> dict:
         """Pings the grill."""
-        return await self._send_command("RPC.Ping", {})
+        return await self._conn.send_command("RPC.Ping", {})
 
     async def update_mqtt_server(self, server="mqtt.dansonscorp.com", enable=False):
         """:meta private:"""
-        return await self._send_command(
+        return await self._conn.send_command(
             "Config.Set", {"config": {"mqtt": {"enable": enable, "server": server}}}
         )
 
     async def set_virtual_data(self, data):
         """:meta private:"""
-        return await self._send_command("PB.SetVirtualData", data)
+        return await self._conn.send_command("PB.SetVirtualData", data)
 
     async def get_virtual_data(self):
         """:meta private:"""
-        return await self._send_command("PB.GetVirtualData", {})
+        return await self._conn.send_command("PB.GetVirtualData", {})
 
 
 def _wifi_params(ssid: str | None = None, password: str | None = None) -> dict:
