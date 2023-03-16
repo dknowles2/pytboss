@@ -14,6 +14,8 @@ from uuid import UUID
 
 from bleak import BleakClient, BleakGATTCharacteristic
 
+from .exceptions import RPCError
+
 
 def _uuid(s: str) -> str:
     return str(UUID(bytes=s.encode()))
@@ -158,4 +160,8 @@ class BleConnection:
             fut = self._rpc_futures.pop(payload["id"], None)
 
         if fut and not fut.cancelled():
+            if "error" in payload:
+                fut.set_exception(RPCError(payload.get("message", "Unknown error")))
+                return
+
             fut.set_result(payload["result"])
