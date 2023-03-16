@@ -19,6 +19,12 @@ VDataCallback = Callable[[dict], None]
 class PitBoss:
     """API for interacting with PitBoss grills over Bluetooth LE."""
 
+    fs: FileSystem
+    """Filesystem operations."""
+
+    config: Config
+    """Configuration operations."""
+
     def __init__(self, conn: BleConnection) -> None:
         """Initializes the class.
 
