@@ -1,0 +1,43 @@
+author: dknowles2@
+description: Fake PitBoss firmware
+version: 2023.3.0
+manifest_version: 2017-09-29
+libs_version: ${mos.version}
+modules_version: ${mos.version}
+mongoose_os_version: ${mos.version}
+
+config_schema:
+  - ["i2c.enable", true]
+  - ["device.id", "PBL-FAKEFW"]
+  - ["device.sn", "xx-fake-sn-xx"]
+  - ["app", "o", {title: "Application settings"}]
+  - ["app.wsFastInterval", "i", {title: "WebSocket fast interval"}]
+  - ["app.wsSlowInterval", "i", {title: "WebSocket slow interval"}]
+
+tags:
+  - js
+
+filesystem:
+  - fake_firmware
+
+libs:
+  - origin: https://github.com/mongoose-os-libs/boards
+  - origin: https://github.com/mongoose-os-libs/bt-service-debug
+  - origin: https://github.com/mongoose-os-libs/mjs
+  - origin: https://github.com/mongoose-os-libs/mqtt
+  - origin: https://github.com/mongoose-os-libs/rpc-common
+  - origin: https://github.com/mongoose-os-libs/rpc-gatts
+  - origin: https://github.com/mongoose-os-libs/rpc-loopback
+  - origin: https://github.com/mongoose-os-libs/rpc-service-config
+  - origin: https://github.com/mongoose-os-libs/rpc-service-fs
+  - origin: https://github.com/mongoose-os-libs/rpc-service-ota
+  - origin: https://github.com/mongoose-os-libs/rpc-service-wifi
+  - origin: https://github.com/mongoose-os-libs/rpc-uart
+  - origin: https://github.com/mongoose-os-libs/wifi
+
+conds:
+  - when: mos.platform == "esp32"
+    apply:
+      build_vars:
+        # Increase app szie for ESP32
+        APP_SLOT_SIZE: 0x190000
