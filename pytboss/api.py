@@ -1,11 +1,10 @@
 """Client library for interacting with PitBoss grills over Bluetooth LE."""
 
 import asyncio
+import json
 from base64 import b64decode
 from math import floor
 from typing import Callable
-
-from bleak import BleakScanner
 
 from .ble import BleConnection
 
@@ -31,32 +30,14 @@ class PitBoss:
         self._vdata_callbacks = []
         self._state = {}
 
-    @classmethod
-    async def discover(cls, scanner: BleakScanner | None = None) -> list["PitBoss"]:
-        """Uses the given scanner to find grills.
-
-        :param scanner: The BLE scanner to use. If None, one will be created automatically.
-        :type scanner: bleak.BleakScanner | None
-        :rtype: list[pytboss.PitBoss]
-        """
-        if scanner is None:
-            devices = await BleakScanner.discover()
-        else:
-            devices = scanner.discovered_devices
-        discovered = []
-        for device in devices:
-            if await BleConnection.is_grill(device):
-                discovered.append(device)
-        return discovered
-
     async def start(self):
         """Sets up the API for use.
 
         Required to be called before the API can be used.
         """
-        await self._conn.start_subscriptions(
-            self._on_state_received, self._on_vdata_received
-        )
+        # TODO: Add support for stop()
+        await self._conn.start()
+        await self._conn.subscribe_debug_logs(self._on_debug_log_received)
 
     async def subscribe_state(self, callback: StateCallback):
         """Registers a callback to receive grill state updates.
@@ -78,19 +59,38 @@ class PitBoss:
         async with self._lock:
             self._vdata_callbacks.append(callback)
 
+    async def _on_debug_log_received(self, data: bytearray):
+        parts = data.decode("utf-8").split()
+        if len(parts) != 3:
+            # Unknown payload; ignore.
+            return
+
+        head, payload, tail = parts
+        checksum = int(tail[1 : len(tail) - 1])  # noqa: E203
+        if len(payload) != checksum:
+            # Bad payload; ignore.
+            return
+        if head == "<==PB:":
+            await self._on_state_received(payload)
+        elif head == "<==PBD:":
+            await self._on_vdata_received(payload)
+
     async def _on_state_received(self, payload: bytearray):
         state = decode_state(payload)
         async with self._lock:
             self._state.update(state)
             # TODO: Run callbacks concurrently
+            # TODO: Send copies of state so subscribers can't modify it
             for callback in self._state_callbacks:
                 await callback(self._state)
 
-    async def _on_vdata_received(self, payload: dict):
+    async def _on_vdata_received(self, payload: bytearray):
+        vdata = json.loads(payload)
         async with self._lock:
             # TODO: Run callbacks concurrently
+            # TODO: Send copies of state so subscribers can't modify it
             for callback in self._vdata_callbacks:
-                await callback(payload)
+                await callback(vdata)
 
     async def _send_hex_command(self, cmd: str) -> dict:
         return await self._conn.send_command("PB.SendMCUCommand", {"command": cmd})
