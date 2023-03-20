@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from pytboss import api
 
 
@@ -28,35 +30,35 @@ class TestDecode:
         )
         status = api.decode_state("".join(data.split()))
         assert status == {
-            # fmt: off
-            "p_1_Set_Temp":  165,
-            "p_1_Temp":      191,
-            "p_2_Temp":      192,
-            "p_3_Temp":      960,
-            "p_4_Temp":      960,
-            "smokerActTemp": 220,
-            "grillSetTemp":  225,
-            "moduleIsOn":    True,
-            "err_1":         False,
-            "err_2":         False,
-            "err_3":         False,
-            "tempHighErr":   False,
-            "fanErr":        False,
-            "hotErr":        False,
-            "motorErr":      False,
-            "noPellets":     False,
-            "erL":           False,
-            "fanState":      True,
-            "hotState":      True,
-            "motorState":    True,
-            "lightState":    False,
-            "primeState":    True,
-            "isFahrenheit":   True,
-            "recipeStep":    4,
-            "time_H":        12,
-            "time_M":        59,
-            "time_S":        31,
-            # fmt: on
+            "temperatures": {
+                "probe_1_target": 165,
+                "probe_1_actual": 191,
+                "probe_2_actual": 192,
+                "probe_3_actual": 960,
+                "probe_4_actual": 960,
+                "smoker_actual": 220,
+                "grill_target": 225,
+                "is_fahrenheit": True,
+            },
+            "is_on": True,
+            "error_1": False,
+            "error_2": False,
+            "error_3": False,
+            "temp_high_error": False,
+            "fan_error": False,
+            "igniter_error": False,
+            "auger_error": False,
+            "no_pellets": False,
+            "error_l": False,
+            "fan_is_on": True,
+            "igniter_is_on": True,
+            "auger_is_on": True,
+            "light_is_on": False,
+            "prime_is_on": True,
+            "recipe_step": {
+                "step_number": 4,
+                "time_remaining": timedelta(hours=12, minutes=59, seconds=31),
+            },
         }
 
     def test_decode_status_grill_temp(self):
@@ -66,35 +68,35 @@ class TestDecode:
         )
         status = api.decode_state("".join(data.split()))
         assert status == {
-            # fmt: off
-            "p_1_Set_Temp":  165,
-            "p_1_Temp":      191,
-            "p_2_Temp":      192,
-            "p_3_Temp":      960,
-            "p_4_Temp":      960,
-            "smokerActTemp": 220,
-            "grillTemp":     225,
-            "moduleIsOn":    True,
-            "err_1":         False,
-            "err_2":         False,
-            "err_3":         False,
-            "tempHighErr":   False,
-            "fanErr":        False,
-            "hotErr":        False,
-            "motorErr":      False,
-            "noPellets":     False,
-            "erL":           False,
-            "fanState":      True,
-            "hotState":      True,
-            "motorState":    True,
-            "lightState":    False,
-            "primeState":    True,
-            "isFahrenheit":   True,
-            "recipeStep":    4,
-            "time_H":        12,
-            "time_M":        59,
-            "time_S":        31,
-            # fmt: on
+            "temperatures": {
+                "probe_1_target": 165,
+                "probe_1_actual": 191,
+                "probe_2_actual": 192,
+                "probe_3_actual": 960,
+                "probe_4_actual": 960,
+                "smoker_actual": 220,
+                "grill_actual": 225,
+                "is_fahrenheit": True,
+            },
+            "is_on": True,
+            "error_1": False,
+            "error_2": False,
+            "error_3": False,
+            "temp_high_error": False,
+            "fan_error": False,
+            "igniter_error": False,
+            "auger_error": False,
+            "no_pellets": False,
+            "error_l": False,
+            "fan_is_on": True,
+            "igniter_is_on": True,
+            "auger_is_on": True,
+            "light_is_on": False,
+            "prime_is_on": True,
+            "recipe_step": {
+                "step_number": 4,
+                "time_remaining": timedelta(hours=12, minutes=59, seconds=31),
+            },
         }
 
     def test_decode_all_temps(self):
@@ -104,24 +106,21 @@ class TestDecode:
         )
         status = api.decode_state("".join(data.split()))
         assert status == {
-            # fmt: off
-            "p_1_Set_Temp":  170,
-            "p_1_Temp":      150,
-            "p_2_Temp":      165,
-            "p_3_Temp":      960,
-            "p_4_Temp":      960,
-            "smokerActTemp": 220,
-            "grillSetTemp":  225,
-            "grillTemp":     220,
-            "isFahrenheit":   True,
-            # fmt: on
+            "probe_1_target": 170,
+            "probe_1_actual": 150,
+            "probe_2_actual": 165,
+            "probe_3_actual": 960,
+            "probe_4_actual": 960,
+            "smoker_actual": 220,
+            "grill_target": 225,
+            "grill_actual": 220,
+            "is_fahrenheit": True,
         }
 
-    def test_decode_set_temps(self):
+    def test_decode_target_temps(self):
         data = "".join("FE 0D 02 02 05 01 07 00".split())
-        print(data)
         status = api.decode_state(data)
         assert status == {
-            "grillSetTemp": 225,
-            "p_1_Set_Temp": 170,
+            "grill_target": 225,
+            "probe_1_target": 170,
         }
