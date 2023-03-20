@@ -2,14 +2,15 @@
 
 import asyncio
 import json
+from datetime import timedelta
 from math import floor
-from typing import Callable
+from typing import Callable, TypedDict
 
 from .ble import BleConnection
 from .config import Config
 from .fs import FileSystem
 
-StateCallback = Callable[[dict], None]
+StateCallback = Callable[["StateDict"], None]
 """A callback function that receives updated grill state."""
 
 VDataCallback = Callable[[dict], None]
@@ -37,7 +38,7 @@ class PitBoss:
         self._lock = asyncio.Lock()  # protects callbacks and state.
         self._state_callbacks = []
         self._vdata_callbacks = []
-        self._state = {}
+        self._state: "StateDict" = {}
 
     async def start(self):
         """Sets up the API for use.
@@ -124,6 +125,7 @@ class PitBoss:
 
     async def get_state(self) -> tuple[dict, dict]:
         """Retrieves the current grill state."""
+        # TODO: This return type should match the argument to StateCallback.
         state = await self._conn.send_command("PB.GetState", {})
         status = decode_status(hex_to_array(state["sc_11"]))
         temps = decode_all_temps(hex_to_array(state["sc_12"]))
@@ -172,7 +174,103 @@ def decode_temp(hundreds: int, tens: int, ones: int) -> int:
     return hundreds * 100 + tens * 10 + ones
 
 
-def decode_state(data: str) -> dict:
+class TemperaturesDict(TypedDict, total=False):
+    """All temperatures."""
+
+    grill_target: int
+    """Target temperature for the grill."""
+
+    smoker_actual: int | None
+    """Current temperature of the smoker."""
+
+    grill_actual: int | None
+    """Current temperature of the grill."""
+
+    probe_1_target: int
+    """Target temperature for meat probe 1."""
+
+    probe_1_actual: int | None
+    """Current temperature of meat probe 1 (if present)."""
+
+    probe_2_actual: int | None
+    """Current temperature of meat probe 2 (if present)."""
+
+    probe_3_actual: int | None
+    """Current temperature of meat probe 3 (if present)."""
+
+    probe_4_actual: int | None
+    """Current temperature of meat probe 4 (is present)."""
+
+    is_fahrenheit: bool
+    """Whether temperature readings are in Fahrenheit."""
+
+
+class RecipeStepDict(TypedDict):
+    """Information about the current recipe step."""
+
+    step_number: int
+    """The current recipe step number."""
+
+    time_remaining: timedelta
+    """The time remaining for this recipe step."""
+
+
+class StateDict(TypedDict, total=False):
+    """Overall state of the grill or smoker."""
+
+    temperatures: TemperaturesDict
+    """Temperature readings and targets."""
+
+    is_on: bool
+    """Whether the device is turned on."""
+
+    error_1: bool
+    """Error state 1."""
+
+    error_2: bool
+    """Error state 2."""
+
+    error_3: bool
+    """Error state 3."""
+
+    error_l: bool
+    """Error state L."""
+
+    temp_high_error: bool
+    """Whether the temperature is too high."""
+
+    no_pellets: bool
+    """Whether the pellet hopper is empty."""
+
+    fan_is_on: bool
+    """Whether the fan is currently on."""
+
+    fan_error: bool
+    """Whether there was an error with the fan."""
+
+    igniter_is_on: bool
+    """Whether the igniter is currently on."""
+
+    igniter_error: bool
+    """Whether there was an error with the igniter."""
+
+    auger_is_on: bool
+    """Whether the auger is currently on."""
+
+    auger_error: bool
+    """Whether there was an error with the auger."""
+
+    light_is_on: bool
+    """Whether the light is on."""
+
+    prime_is_on: bool
+    """Whether the prime mode is on."""
+
+    recipe_step: RecipeStepDict
+    """The current recipe step."""
+
+
+def decode_state(data: str) -> TemperaturesDict | StateDict:
     """:meta private:"""
     arr = hex_to_array(data)
     assert arr.pop(0) == 254
@@ -180,69 +278,71 @@ def decode_state(data: str) -> dict:
     handlers = {
         11: decode_status,
         12: decode_all_temps,
-        13: decode_set_temps,
+        13: decode_target_temps,
     }
     if msg_type not in handlers:
         return None
     return handlers[msg_type](arr)
 
 
-def decode_status(arr: list[int]) -> dict:
+def decode_status(arr: list[int]) -> StateDict:
     """:meta private:"""
-    cond_grill_temp = {1: "grillSetTemp", 2: "grillTemp"}[arr[0x15]]
+    cond_grill_temp = {1: "grill_target", 2: "grill_actual"}[arr[0x15]]
     return {
-        # fmt: off
-        "p_1_Set_Temp":  decode_temp(arr[0x00], arr[0x01], arr[0x02]),
-        "p_1_Temp":      decode_temp(arr[0x03], arr[0x04], arr[0x05]),
-        "p_2_Temp":      decode_temp(arr[0x06], arr[0x07], arr[0x08]),
-        "p_3_Temp":      decode_temp(arr[0x09], arr[0x0a], arr[0x0b]),
-        "p_4_Temp":      decode_temp(arr[0x0c], arr[0x0d], arr[0x0e]),
-        "smokerActTemp": decode_temp(arr[0x0f], arr[0x10], arr[0x11]),
-        cond_grill_temp: decode_temp(arr[0x12], arr[0x13], arr[0x14]),
-        "moduleIsOn":    arr[0x16] == 1,
-        "err_1":         arr[0x17] == 1,
-        "err_2":         arr[0x18] == 1,
-        "err_3":         arr[0x19] == 1,
-        "tempHighErr":   arr[0x1a] == 1,
-        "fanErr":        arr[0x1b] == 1,
-        "hotErr":        arr[0x1c] == 1,
-        "motorErr":      arr[0x1d] == 1,
-        "noPellets":     arr[0x1e] == 1,
-        "erL":           arr[0x1f] == 1,
-        "fanState":      arr[0x20] == 1,
-        "hotState":      arr[0x21] == 1,
-        "motorState":    arr[0x22] == 1,
-        "lightState":    arr[0x23] == 1,
-        "primeState":    arr[0x24] == 1,
-        "isFahrenheit":   arr[0x25] == 1,
-        "recipeStep":    arr[0x26],
-        "time_H":        arr[0x27],
-        "time_M":        arr[0x28],
-        "time_S":        arr[0x29],
-        # fmt: on
+        "temperatures": {
+            "probe_1_target": decode_temp(arr[0x00], arr[0x01], arr[0x02]),
+            "probe_1_actual": decode_temp(arr[0x03], arr[0x04], arr[0x05]),
+            "probe_2_actual": decode_temp(arr[0x06], arr[0x07], arr[0x08]),
+            "probe_3_actual": decode_temp(arr[0x09], arr[0x0A], arr[0x0B]),
+            "probe_4_actual": decode_temp(arr[0x0C], arr[0x0D], arr[0x0E]),
+            "smoker_actual": decode_temp(arr[0x0F], arr[0x10], arr[0x11]),
+            cond_grill_temp: decode_temp(arr[0x12], arr[0x13], arr[0x14]),
+            "is_fahrenheit": arr[0x25] == 1,
+        },
+        "is_on": arr[0x16] == 1,
+        "error_1": arr[0x17] == 1,
+        "error_2": arr[0x18] == 1,
+        "error_3": arr[0x19] == 1,
+        "error_l": arr[0x1F] == 1,
+        "temp_high_error": arr[0x1A] == 1,
+        "no_pellets": arr[0x1E] == 1,
+        "fan_is_on": arr[0x20] == 1,
+        "fan_error": arr[0x1B] == 1,
+        "igniter_is_on": arr[0x21] == 1,
+        "igniter_error": arr[0x1C] == 1,
+        "auger_is_on": arr[0x22] == 1,
+        "auger_error": arr[0x1D] == 1,
+        "light_is_on": arr[0x23] == 1,
+        "prime_is_on": arr[0x24] == 1,
+        "recipe_step": {
+            "step_number": arr[0x26],
+            "time_remaining": timedelta(
+                hours=arr[0x27],
+                minutes=arr[0x28],
+                seconds=arr[0x29],
+            ),
+        },
     }
 
 
-def decode_all_temps(arr: list[int]) -> dict:
+def decode_all_temps(arr: list[int]) -> TemperaturesDict:
     """:meta private:"""
     return {
-        # fmt: off
-        "p_1_Set_Temp":  decode_temp(arr[0x00], arr[0x01], arr[0x02]),
-        "p_1_Temp":      decode_temp(arr[0x03], arr[0x04], arr[0x05]),
-        "p_2_Temp":      decode_temp(arr[0x06], arr[0x07], arr[0x08]),
-        "p_3_Temp":      decode_temp(arr[0x09], arr[0x0a], arr[0x0b]),
-        "p_4_Temp":      decode_temp(arr[0x0c], arr[0x0d], arr[0x0e]),
-        "smokerActTemp": decode_temp(arr[0x0f], arr[0x10], arr[0x11]),
-        "grillSetTemp":  decode_temp(arr[0x12], arr[0x13], arr[0x14]),
-        "grillTemp":     decode_temp(arr[0x15], arr[0x16], arr[0x17]),
-        "isFahrenheit":   arr[0x18] == 1,
-        # fmt: on
+        "probe_1_target": decode_temp(arr[0x00], arr[0x01], arr[0x02]),
+        "probe_1_actual": decode_temp(arr[0x03], arr[0x04], arr[0x05]),
+        "probe_2_actual": decode_temp(arr[0x06], arr[0x07], arr[0x08]),
+        "probe_3_actual": decode_temp(arr[0x09], arr[0x0A], arr[0x0B]),
+        "probe_4_actual": decode_temp(arr[0x0C], arr[0x0D], arr[0x0E]),
+        "smoker_actual": decode_temp(arr[0x0F], arr[0x10], arr[0x11]),
+        "grill_target": decode_temp(arr[0x12], arr[0x13], arr[0x14]),
+        "grill_actual": decode_temp(arr[0x15], arr[0x16], arr[0x17]),
+        "is_fahrenheit": arr[0x18] == 1,
     }
 
 
-def decode_set_temps(arr: list[int]) -> dict:
+def decode_target_temps(arr: list[int]) -> TemperaturesDict:
     """:meta private:"""
     return {
-        "grillSetTemp": decode_temp(arr[0x00], arr[0x01], arr[0x02]),
-        "p_1_Set_Temp": decode_temp(arr[0x03], arr[0x04], arr[0x05]),
+        "grill_target": decode_temp(arr[0x00], arr[0x01], arr[0x02]),
+        "probe_1_target": decode_temp(arr[0x03], arr[0x04], arr[0x05]),
     }
