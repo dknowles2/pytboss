@@ -8,7 +8,7 @@ Python 3 library for interacting with Pitboss grills and smokers.
 
 ```python
 import asyncio
-from bleak import BleakClient
+from bleak import BleakScanner
 from pytboss import BleConnection, PitBoss
 
 
@@ -17,13 +17,13 @@ async def state_callback(data):
 
 
 async def main():
-    async with BleakClient(device_address) as ble_client:
-        grill = PitBoss(BleConnection(ble_client))
-        # Subscribe to updates from the grill.
-        await grill.subscribe_state(state_callback)
-        await grill.start()
-        while True:
-            asyncio.sleep(0.1)
+    ble_device = await BleakScanner.find_device_by_address(device_address)
+    boss = PitBoss(BleConnection(ble_device))
+    # Subscribe to updates from the smoker.
+    await boss.subscribe_state(state_callback)
+    await boss.start()
+    while True:
+        asyncio.sleep(0.1)
 
 
 asyncio.run(main())
