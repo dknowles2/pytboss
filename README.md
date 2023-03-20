@@ -17,10 +17,7 @@ async def state_callback(data):
 
 
 async def main():
-    # Perform a BLE scan for available grills.
-    # Assume we only have one.
-    [device] = await PitBoss.discover()
-    async with BleakClient(device) as ble_client:
+    async with BleakClient(device_address) as ble_client:
         grill = PitBoss(BleConnection(ble_client))
         # Subscribe to updates from the grill.
         await grill.subscribe_state(state_callback)
