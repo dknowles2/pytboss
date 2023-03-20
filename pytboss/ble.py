@@ -12,7 +12,8 @@ import json
 from typing import Callable
 from uuid import UUID
 
-from bleak import BleakClient, BleakGATTCharacteristic
+from bleak import BleakClient, BleakGATTCharacteristic, BLEDevice
+from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
 
 from .exceptions import RPCError
 
@@ -38,35 +39,55 @@ DebugLogCallback = Callable[[bytearray], None]
 class BleConnection:
     """Bluetooth LE protocol transport for Mongoose OS devices."""
 
+    _ble_device: BLEDevice | None = None
+    _ble_client: BleakClient | None = None
+
     def __init__(
-        self, ble_client: BleakClient, loop: asyncio.AbstractEventLoop | None = None
+        self, ble_device: BLEDevice, loop: asyncio.AbstractEventLoop | None = None
     ) -> None:
         """Initializes a BleConnection.
 
-        :param ble_client: Bluetooth client to use for transport.
-        :type ble_client: bleak.BleakClient
+        :param ble_device: BLE device to use for transport.
+        :type ble_device: bleak.BLEDevice
         :param loop: An asyncio loop to use. If `None`, the default loop will be used.
         :type loop: asyncio.AbstractEventLoop
         """
-        self._ble_client = ble_client
         if loop is None:
             loop = asyncio.get_running_loop()
         self._loop = loop
 
         self._lock = asyncio.Lock()  # Protects items below.
+        self._ble_device: BLEDevice = ble_device
         self._last_command_id = 0
         self._rpc_futures = {}
         self._debug_log_callback: DebugLogCallback | None = None
 
     async def start(self):
         """Starts the connection to the device."""
-        await self._ble_client.start_notify(CHAR_RPC_RX_CTL, self._on_rpc_data_received)
+        with self._lock:
+            self._ble_client = await establish_connection(
+                BleakClientWithServiceCache, self._ble_device, self._ble_device.name
+            )
+            await self._ble_client.start_notify(
+                CHAR_RPC_RX_CTL, self._on_rpc_data_received
+            )
 
     async def stop(self):
         """Stops the connection to the device."""
-        await self._ble_client.stop_notify(CHAR_RPC_RX_CTL)
-        if self._debug_log_callback:
-            await self._ble_client.stop_notify(CHAR_DEBUG_LOG)
+        with self._lock:
+            await self._ble_client.disconnect()
+            self._ble_client = None
+
+    async def reset_device(self, ble_device: BLEDevice):
+        """Resets the BLE device used for transport.
+
+        :param ble_device: BLE device to use for transport.
+        :type ble_device: bleak.BLEDevice
+        """
+        await self.stop()
+        with self._lock:
+            self._ble_device = ble_device
+        await self.start()
 
     async def subscribe_debug_logs(
         self, callback: DebugLogCallback
@@ -78,16 +99,22 @@ class BleConnection:
         :param callback: Function to call when debug logs are output by the device.
         :type callback: DebugLogCallback
         """
-        assert self._debug_log_callback is None, "Only one subscription is supported"
-        self._debug_log_callback = callback
-        self._ble_client.start_notify(CHAR_DEBUG_LOG, self._on_debug_log_received)
+        with self._lock:
+            assert (
+                self._debug_log_callback is None
+            ), "Only one subscription is supported"
+            self._debug_log_callback = callback
+            self._ble_client.start_notify(CHAR_DEBUG_LOG, self._on_debug_log_received)
 
         def cancel():
-            if not self._debug_log_callback:
-                # Assume we've already cancelled the subscription.
-                return
-            self._loop.run_until_complete(self._ble_client.stop_notify(CHAR_DEBUG_LOG))
-            self._debug_log_callback = None
+            with self._lock:
+                if not self._debug_log_callback:
+                    # Assume we've already cancelled the subscription.
+                    return
+                self._loop.run_until_complete(
+                    self._ble_client.stop_notify(CHAR_DEBUG_LOG)
+                )
+                self._debug_log_callback = None
 
         return cancel
 
@@ -133,26 +160,29 @@ class BleConnection:
         for i in range(0, 4):
             payload[3 - i] = 255 & n
             n >>= 8
-        await self._ble_client.write_gatt_char(CHAR_RPC_TX_CTL, payload)
-        for i in range(0, len(cmd), 20):
-            chunk = bytearray(cmd[i : i + 20].encode("utf-8"))  # noqa: E203
-            await self._ble_client.write_gatt_char(CHAR_RPC_DATA, chunk)
+        with self._lock:
+            await self._ble_client.write_gatt_char(CHAR_RPC_TX_CTL, payload)
+            for i in range(0, len(cmd), 20):
+                chunk = bytearray(cmd[i : i + 20].encode("utf-8"))  # noqa: E203
+                await self._ble_client.write_gatt_char(CHAR_RPC_DATA, chunk)
 
     async def _on_debug_log_received(
         self, unused_char: BleakGATTCharacteristic, data: bytearray
     ):
-        if not self._debug_log_callback:
-            # This shouldn't happen, but protect against it anyway.
-            return
-        self._debug_log_callback(data)
+        with self._lock:
+            if not self._debug_log_callback:
+                # This shouldn't happen, but protect against it anyway.
+                return
+            self._debug_log_callback(data)
 
     async def _on_rpc_data_received(
         self, unused_char: BleakGATTCharacteristic, data: bytearray
     ):
         resp_len = data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3]
         resp = bytearray()
-        while len(resp) < resp_len:
-            resp += await self._ble_client.read_gatt_char(CHAR_RPC_DATA)
+        with self._lock:
+            while len(resp) < resp_len:
+                resp += await self._ble_client.read_gatt_char(CHAR_RPC_DATA)
 
         payload = json.loads(resp.decode("utf-8"))
 

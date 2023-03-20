@@ -1,1 +1,2 @@
 bleak==0.19.5
+bleak_retry_connector==3.0.1
