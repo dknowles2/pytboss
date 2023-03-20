@@ -1,5 +1,6 @@
 from pathlib import Path
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 
 VERSION = "2023.2.1"
 
@@ -24,7 +25,7 @@ setup(
     url="https://github.com/dknowles2/pytboss",
     license="Apache License 2.0",
     install_requires=[
-        "bleak==0.19.5",
+        "bleak",
     ],
     include_package_data=True,
     zip_safe=True,
