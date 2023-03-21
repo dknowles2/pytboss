@@ -2,7 +2,7 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-VERSION = "2023.3.0"
+VERSION = "2023.3.1"
 
 setup(
     name="pytboss",
