@@ -7,6 +7,7 @@
             "extensions": [
                 "streetsidesoftware.code-spell-checker",
                 "github.vscode-pull-request-github",
+                "mongoose-os.mongoose-os-ide",
                 "ms-python.python",
                 "ms-python.vscode-pylance"
             ],
@@ -26,5 +27,17 @@
             }
         }
     },
-    "remoteUser": "vscode"
+    "mounts": [
+        "type=bind,source=/dev/bus/usb,target=/dev/bus/usb",
+        "type=bind,source=/dev/ttyUSB0,target=/dev/ttyUSB0"
+    ],
+    "privileged": true,
+    "remoteUser": "vscode",
+    "runArgs": [
+        "--group-add",
+        "dialout"
+    ],
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    }
 }

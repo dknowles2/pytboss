@@ -11,4 +11,7 @@ python3 -m pip install -r requirements.txt
 python3 -m pip install -r requirements-dev.txt
 python3 -m pip install -r requirements-test.txt
 
+curl -fsSL https://mongoose-os.com/downloads/mos/install.sh | /bin/bash
+sudo ln -s ~/.mos/bin/mos /usr/bin/mos
+
 pre-commit install

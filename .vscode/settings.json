@@ -4,6 +4,6 @@
     "python.linting.enabled": true,
     "python.pythonPath": "/usr/local/bin/python",
     "python.testing.pytestEnabled": true,
-    "mos.board": "ESP32",
-    "mos.port": "/dev/ttyUSB0"
+    "mos.port": "/dev/ttyUSB0",
+    "mos.board": "ESP32"
 }
