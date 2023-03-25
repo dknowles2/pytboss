@@ -46,7 +46,7 @@ class PitBoss:
         Required to be called before the API can be used.
         """
         # TODO: Add support for stop()
-        await self._conn.start()
+        await self._conn.connect()
         await self._conn.subscribe_debug_logs(self._on_debug_log_received)
 
     async def subscribe_state(self, callback: StateCallback):
