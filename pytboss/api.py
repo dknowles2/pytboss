@@ -1,19 +1,20 @@
 """Client library for interacting with PitBoss grills over Bluetooth LE."""
 
 import asyncio
+import inspect
 import json
 from datetime import timedelta
 from math import floor
-from typing import Callable, TypedDict
+from typing import Awaitable, Callable, TypedDict
 
 from .ble import BleConnection
 from .config import Config
 from .fs import FileSystem
 
-StateCallback = Callable[["StateDict"], None]
+StateCallback = Callable[["StateDict"], Awaitable[None] | None]
 """A callback function that receives updated grill state."""
 
-VDataCallback = Callable[[dict], None]
+VDataCallback = Callable[[dict], Awaitable[None] | None]
 """A callback function that receives updated VData."""
 
 
@@ -92,7 +93,10 @@ class PitBoss:
             # TODO: Run callbacks concurrently
             # TODO: Send copies of state so subscribers can't modify it
             for callback in self._state_callbacks:
-                await callback(self._state)
+                if inspect.iscoroutinefunction(callback):
+                    await callback(self._state)
+                else:
+                    callback(self._state)
 
     async def _on_vdata_received(self, payload: bytearray):
         vdata = json.loads(payload)
@@ -100,7 +104,10 @@ class PitBoss:
             # TODO: Run callbacks concurrently
             # TODO: Send copies of state so subscribers can't modify it
             for callback in self._vdata_callbacks:
-                await callback(vdata)
+                if inspect.iscoroutinefunction(callback):
+                    await callback(vdata)
+                else:
+                    callback(vdata)
 
     async def _send_hex_command(self, cmd: str) -> dict:
         return await self._conn.send_command("PB.SendMCUCommand", {"command": cmd})
