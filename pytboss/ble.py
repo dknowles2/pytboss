@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Callable
+from typing import Awaitable, Callable
 from uuid import UUID
 
 import bleak_retry_connector
@@ -33,7 +33,7 @@ CHAR_RPC_DATA = _uuid("_mOS_RPC_data___")
 CHAR_RPC_TX_CTL = _uuid("_mOS_RPC_tx_ctl_")
 CHAR_RPC_RX_CTL = _uuid("_mOS_RPC_rx_ctl_")
 
-DebugLogCallback = Callable[[bytearray], None]
+DebugLogCallback = Callable[[bytearray], Awaitable[None]]
 """A callback function that receives debug logs output from the device."""
 
 
@@ -181,7 +181,7 @@ class BleConnection:
             if not self._debug_log_callback:
                 # This shouldn't happen, but protect against it anyway.
                 return
-            self._debug_log_callback(data)
+            await self._debug_log_callback(data)
 
     async def _on_rpc_data_received(
         self, unused_char: BleakGATTCharacteristic, data: bytearray
