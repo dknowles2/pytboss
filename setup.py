@@ -11,8 +11,6 @@ setup(
     long_description=Path("README.md").read_text(),
     long_description_content_type="text/markdown",
     classifiers=[
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
@@ -21,7 +19,7 @@ setup(
     author="David Knowles",
     author_email="dknowles2@gmail.com",
     packages=find_packages(),
-    python_requires=">=3.8",
+    python_requires=">=3.10",
     url="https://github.com/dknowles2/pytboss",
     license="Apache License 2.0",
     install_requires=[
