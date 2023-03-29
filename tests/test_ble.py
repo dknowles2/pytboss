@@ -104,7 +104,7 @@ async def test_reset_device_with_debug_log_subscription(
     mock_old_bleak_client.start_notify.assert_awaited_with(
         ble.CHAR_RPC_RX_CTL, conn._on_rpc_data_received
     )
-    cb = mock.Mock()
+    cb = mock.AsyncMock()
     await conn.subscribe_debug_logs(cb)
     mock_old_bleak_client.start_notify.assert_awaited_with(
         ble.CHAR_DEBUG_LOG, conn._on_debug_log_received
@@ -138,7 +138,7 @@ async def test_subscribe_debug_logs(
 
     conn = ble.BleConnection(mock_device)
     await conn.connect()
-    cb = mock.Mock()
+    cb = mock.AsyncMock()
     await conn.subscribe_debug_logs(cb)
 
     mock_bleak_client.start_notify.assert_awaited_with(
