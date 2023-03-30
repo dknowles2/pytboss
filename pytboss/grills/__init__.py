@@ -1,7 +1,6 @@
 """Routines for accessing grill metadata."""
 
 import json
-import sys
 from collections.abc import Iterable
 from functools import cache
 from importlib import resources
