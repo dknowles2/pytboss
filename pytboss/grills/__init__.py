@@ -184,7 +184,7 @@ def _read_grills() -> dict:
     return json.loads(grills_json)
 
 
-def get_grills(control_board: str | None = None) -> Iterable[dict]:
+def get_grills(control_board: str | None = None) -> Iterable[Grill]:
     """Retrieves grill definitions.
 
     :param control_board: If specified, returns only grills with this control board.
@@ -195,7 +195,7 @@ def get_grills(control_board: str | None = None) -> Iterable[dict]:
             yield Grill.from_dict(grill)
 
 
-def get_grill(grill_name: str) -> dict:
+def get_grill(grill_name: str) -> Grill:
     """Retrieves a grill definition.
 
     :param grill_name: The name of the grill definition to retrieve.
