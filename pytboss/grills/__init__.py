@@ -2,8 +2,175 @@
 
 import json
 from collections.abc import Iterable
+from dataclasses import dataclass
 from functools import cache
 from importlib import resources
+
+import js2py
+
+_COMMAND_JS_TMPL = """\
+function() {
+    let formatHex = function(n) {
+        let t = '0' + parseInt(n).toString(16);
+        return t.substring(t.length - 2)
+    };
+    let formatDecimal = function(n) {
+        let t = '000' + parseInt(n).toString(10);
+        return t.substring(t.length - 3);
+    };
+    %s
+}
+"""
+
+_CONTROLLER_JS_TMPL = """\
+function(message) {
+    let convertTemperature = function(parts, startIndex) {
+        return (
+            parts[startIndex] * 100 +
+            parts[startIndex + 1] * 10 +
+            parts[startIndex + 2]
+        );
+    };
+    let parseHexMessage = function(_data) {
+        const parsed = [];
+        for (let i = 0; i < _data.length; i+=2) {
+            parsed.push(parseInt(_data.substring(i, i+2), 16));
+        }
+        return parsed;
+    };
+    %s
+}
+"""
+
+
+@dataclass
+class Command:
+    """A control board command."""
+
+    name: str
+    """Human readable name of the command."""
+
+    slug: str
+    """Serialized name of the command."""
+
+    _hex: str | None
+    """Hexadecimal command."""
+
+    _js_func: str | None
+    """JavaScript function body that creates the hexadecimal command."""
+
+    @classmethod
+    def from_dict(cls, cmd_dict) -> "Command":
+        """Creates a Command from a JSON dict."""
+        return cls(
+            name=cmd_dict["name"],
+            slug=cmd_dict["slug"],
+            _hex=cmd_dict["hexadecimal"],
+            _js_func=cmd_dict["function"],
+        )
+
+    def __call__(self, *args) -> str:
+        """Returns a hexadecimal command string."""
+        if self._hex:
+            return self._hex
+
+        if self._js_func is None:
+            raise NotImplementedError
+
+        return js2py.eval_js(_COMMAND_JS_TMPL % self._js_func)(*args)
+
+
+@dataclass
+class ControlBoard:
+    name: str
+    """Name of the control board."""
+
+    commands: dict[str, Command]
+    """Controller commands indexed by their slug."""
+
+    _status_js_func: str | None
+    """JavaScript function body that parses a status reply."""
+
+    _temperatures_js_func: str | None
+    """JavaScript function body that parses a temperatures reply."""
+
+    @classmethod
+    def from_dict(cls, ctrl_dict) -> "ControlBoard":
+        """Creates a ControlBoard from a JSON dict."""
+        return cls(
+            name=ctrl_dict["name"],
+            commands={
+                c["slug"]: Command.from_dict(c)
+                for c in ctrl_dict["control_board_commands"]
+            },
+            _status_js_func=ctrl_dict["status_function"],
+            _temperatures_js_func=ctrl_dict["temperature_function"],
+        )
+
+    def parse_status(self, message) -> dict | None:
+        """Parses a status message."""
+        if not self._status_js_func:
+            raise NotImplementedError
+        return js2py.eval_js(_CONTROLLER_JS_TMPL % self._status_js_func)(message)
+
+    def parse_temperatures(self, message) -> dict | None:
+        """Parses a temperatures message."""
+        if not self._temperatures_js_func:
+            raise NotImplementedError
+        return js2py.eval_js(_CONTROLLER_JS_TMPL % self._temperatures_js_func)(message)
+
+
+@dataclass
+class Grill:
+    name: str
+    """Human-readable name of the grill."""
+
+    has_lights: bool
+    """Whether the grill has lights."""
+
+    min_temp: int | None
+    """Minimum grill temperature supported."""
+
+    max_temp: int | None
+    """Maximum grill temperature supported."""
+
+    meat_probes: int
+    """The number of meat probes available on the grill."""
+
+    temp_increments: list[int] | None
+    """Supported temperature increments."""
+
+    control_board: ControlBoard
+    """Information about the grill control board."""
+
+    @classmethod
+    def from_dict(cls, grill_dict) -> "Grill":
+        """Creates a Grill from a JSON dict."""
+        min_temp = None
+        try:
+            min_temp = int(grill_dict["min_temp"])
+        except ValueError:
+            # Likely a string like "Smoke"
+            pass
+
+        max_temp = None
+        try:
+            max_temp = int(grill_dict["max_temp"])
+        except ValueError:
+            # Likely a string like "High"
+            pass
+
+        return cls(
+            name=grill_dict["name"],
+            has_lights=grill_dict["lights"] > 0,
+            min_temp=min_temp,
+            max_temp=max_temp,
+            meat_probes=grill_dict["meat_probes"],
+            temp_increments=list(
+                int(t) for t in grill_dict["temp_increment"].split("/")
+            ),
+            control_board=ControlBoard.from_dict(grill_dict["control_board"]),
+        )
 
 
 @cache
@@ -21,7 +188,7 @@ def get_grills(control_board: str | None = None) -> Iterable[dict]:
     """
     for grill in _read_grills().values():
         if control_board is None or grill["control_board"]["name"] == control_board:
-            yield grill
+            yield Grill.from_dict(grill)
 
 
 def get_grill(grill_name: str) -> dict:

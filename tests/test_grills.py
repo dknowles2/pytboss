@@ -1,14 +1,36 @@
 from pytboss import grills as grills_lib
 
 
-def test_get_grills():
-    grills = list(grills_lib.get_grills())
-    assert len(grills) > 0
+class TestCommand:
+    def test_call_func(self):
+        cmd = grills_lib.Command(
+            "My Command", "my-command", None, "return formatHex(arguments[0]);"
+        )
+        assert cmd(11) == "0b"
+
+    def test_call_hex(self):
+        cmd = grills_lib.Command("My Command", "my-command", "0C", None)
+        assert cmd() == "0C"
 
 
-def test_get_grills_with_control_board():
-    grills = list(grills_lib.get_grills("PBL"))
-    assert len(grills) > 0
+class TestController:
+    def parse_status(self):
+        ctrl = grills_lib.ControlBoard("PBx", [], "return {'foo': message}", None)
+        assert ctrl.parse_status("bar") == {"foo": "bar"}
+
+    def parse_temperatures(self):
+        ctrl = grills_lib.ControlBoard("PBx", [], "", "return {'foo': message}")
+        assert ctrl.parse_temperatures("bar") == {"foo": "bar"}
+
+
+class TestGetGrills:
+    def test_plain(self):
+        grills = list(grills_lib.get_grills())
+        assert len(grills) > 0
+
+    def test_with_control_board(self):
+        grills = list(grills_lib.get_grills("PBL"))
+        assert len(grills) > 0
 
 
 def test_get_grill():
