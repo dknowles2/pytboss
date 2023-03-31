@@ -23,6 +23,10 @@ function() {
 """
 
 _CONTROLLER_JS_TMPL = """\
+// Basic polyfill for String.startsWith.
+String.prototype.startsWith = function(search, pos){
+    return this.slice(pos || 0, search.length) === search;
+};
 function(message) {
     let convertTemperature = function(parts, startIndex) {
         return (

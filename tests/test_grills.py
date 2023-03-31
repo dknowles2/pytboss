@@ -32,6 +32,14 @@ class TestGetGrills:
         grills = list(grills_lib.get_grills("PBL"))
         assert len(grills) > 0
 
+    def test_js_functions(self):
+        for grill in grills_lib.get_grills():
+            ctrl = grill.control_board
+            ctrl.parse_status("XXX")
+            ctrl.parse_temperatures("XXX")
+            for cmd in ctrl.commands.values():
+                cmd(11)
+
 
 def test_get_grill():
     grill = grills_lib.get_grill("PBV4PS2")
