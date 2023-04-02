@@ -1,3 +1,5 @@
+import pytest
+
 from pytboss import grills as grills_lib
 
 
@@ -32,13 +34,13 @@ class TestGetGrills:
         grills = list(grills_lib.get_grills("PBL"))
         assert len(grills) > 0
 
-    def test_js_functions(self):
-        for grill in grills_lib.get_grills():
-            ctrl = grill.control_board
-            ctrl.parse_status("XXX")
-            ctrl.parse_temperatures("XXX")
-            for cmd in ctrl.commands.values():
-                cmd(11)
+    @pytest.mark.parametrize("grill", grills_lib.get_grills())
+    def test_js_functions(self, grill):
+        ctrl = grill.control_board
+        ctrl.parse_status("XXX")
+        ctrl.parse_temperatures("XXX")
+        for cmd in ctrl.commands.values():
+            cmd(11)
 
 
 def test_get_grill():
