@@ -1,6 +1,7 @@
 import pytest
 
 from pytboss import grills as grills_lib
+from pytboss.exceptions import InvalidGrill
 
 
 class TestCommand:
@@ -43,7 +44,12 @@ class TestGetGrills:
             cmd(11)
 
 
-def test_get_grill():
-    grill = grills_lib.get_grill("PBV4PS2")
-    assert grill != {}
-    assert grill["name"] == "PBV4PS2"
+class TestGetGrill:
+    def test_valid(self):
+        grill = grills_lib.get_grill("PBV4PS2")
+        assert grill != {}
+        assert grill["name"] == "PBV4PS2"
+
+    def test_invalid(self):
+        with pytest.raises(InvalidGrill):
+            grills_lib.get_grill("unknown-grill")

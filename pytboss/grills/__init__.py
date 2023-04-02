@@ -8,6 +8,8 @@ from importlib import resources
 
 import js2py
 
+from ..exceptions import InvalidGrill
+
 _COMMAND_JS_TMPL = """\
 function() {
     let formatHex = function(n) {
@@ -205,4 +207,6 @@ def get_grill(grill_name: str) -> Grill:
     :param grill_name: The name of the grill specification to retrieve.
     :type grill_name: str
     """
-    return _read_grills().get(grill_name, {})
+    if (grill := _read_grills().get(grill_name, None)) is None:
+        raise InvalidGrill(f"Unknown grill name: {grill_name}")
+    return grill

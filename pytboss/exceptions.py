@@ -7,3 +7,7 @@ class Error(Exception):
 
 class RPCError(Error):
     """Raised when an RPC returns an error."""
+
+
+class InvalidGrill(Error):
+    """Raised when an unknown or unsupported grill is requested."""
