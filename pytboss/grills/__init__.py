@@ -86,6 +86,8 @@ class Command:
 
 @dataclass
 class ControlBoard:
+    """Specifications for a control board connected via UART."""
+
     name: str
     """Name of the control board."""
 
@@ -126,6 +128,8 @@ class ControlBoard:
 
 @dataclass
 class Grill:
+    """Specifications for a particular grill model."""
+
     name: str
     """Human-readable name of the grill."""
 
@@ -179,13 +183,13 @@ class Grill:
 
 @cache
 def _read_grills() -> dict:
-    """Reads all known grill definitions."""
+    """Reads all known grill specifications."""
     grills_json = resources.files(__package__).joinpath("grills.json").read_text()
     return json.loads(grills_json)
 
 
 def get_grills(control_board: str | None = None) -> Iterable[Grill]:
-    """Retrieves grill definitions.
+    """Retrieves grill specifications.
 
     :param control_board: If specified, returns only grills with this control board.
     :type control_board: str or None
@@ -196,9 +200,9 @@ def get_grills(control_board: str | None = None) -> Iterable[Grill]:
 
 
 def get_grill(grill_name: str) -> Grill:
-    """Retrieves a grill definition.
+    """Retrieves a grill specification.
 
-    :param grill_name: The name of the grill definition to retrieve.
+    :param grill_name: The name of the grill specification to retrieve.
     :type grill_name: str
     """
     return _read_grills().get(grill_name, {})
