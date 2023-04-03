@@ -31,11 +31,12 @@ String.prototype.startsWith = function(search, pos){
 };
 function(message) {
     let convertTemperature = function(parts, startIndex) {
-        return (
+        let temp = (
             parts[startIndex] * 100 +
             parts[startIndex + 1] * 10 +
             parts[startIndex + 2]
         );
+        return temp === 960 ? null : temp;
     };
     let parseHexMessage = function(_data) {
         const parsed = [];
@@ -135,23 +136,23 @@ class Grill:
     name: str
     """Human-readable name of the grill."""
 
-    has_lights: bool
-    """Whether the grill has lights."""
-
-    min_temp: int | None
-    """Minimum grill temperature supported."""
-
-    max_temp: int | None
-    """Maximum grill temperature supported."""
-
-    meat_probes: int
-    """The number of meat probes available on the grill."""
-
-    temp_increments: list[int] | None
-    """Supported temperature increments."""
-
     control_board: ControlBoard
     """Information about the grill control board."""
+
+    has_lights: bool = False
+    """Whether the grill has lights."""
+
+    min_temp: int | None = None
+    """Minimum grill temperature supported."""
+
+    max_temp: int | None = None
+    """Maximum grill temperature supported."""
+
+    meat_probes: int = 0
+    """The number of meat probes available on the grill."""
+
+    temp_increments: list[int] | None = 0
+    """Supported temperature increments."""
 
     @classmethod
     def from_dict(cls, grill_dict) -> "Grill":
@@ -209,4 +210,4 @@ def get_grill(grill_name: str) -> Grill:
     """
     if (grill := _read_grills().get(grill_name, None)) is None:
         raise InvalidGrill(f"Unknown grill name: {grill_name}")
-    return grill
+    return Grill.from_dict(grill)

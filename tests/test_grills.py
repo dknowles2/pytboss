@@ -47,8 +47,8 @@ class TestGetGrills:
 class TestGetGrill:
     def test_valid(self):
         grill = grills_lib.get_grill("PBV4PS2")
-        assert grill != {}
-        assert grill["name"] == "PBV4PS2"
+        assert grill is not None
+        assert grill.name == "PBV4PS2"
 
     def test_invalid(self):
         with pytest.raises(InvalidGrill):
