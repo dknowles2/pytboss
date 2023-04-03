@@ -24,6 +24,8 @@ setup(
     license="Apache License 2.0",
     install_requires=[
         "bleak",
+        "bleak_retry_connector",
+        "js2py",
     ],
     include_package_data=True,
     zip_safe=True,

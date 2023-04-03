@@ -55,19 +55,20 @@ let UART = {
     write: function(uartNo, data) {
         this._data[uartNo] = "";
         if (data === "\xFE\x0c\x01\xFF") {
+            // get-temperatures
             let s = this._status;
             this._data[uartNo] = (
                 "\xFE\x0B" +
-                s.p_1_Set_Temp + 
+                s.p_1_Set_Temp +
                 s.p_1_Temp +
                 s.p_2_Temp +
                 s.p_3_Temp +
-                s.p_4_Temp + 
+                s.p_4_Temp +
                 s.smokerActTemp +
                 s.grillSetTemp +
                 "\x01" +  // condGrillTemp
                 s.moduleIsOn +
-                s.err_1 + 
+                s.err_1 +
                 s.err_2 +
                 s.err_3 +
                 s.tempHighErr +
@@ -88,20 +89,22 @@ let UART = {
                 s.time_S +
                 "\xFF");
         } else if (data === "\xFE\x0B\x01\xFF") {
+            // get-status
             let s = this._status;
             this._data[uartNo] = (
                 "\xFE\x0C" +
-                s.p_1_Set_Temp + 
+                s.p_1_Set_Temp +
                 s.p_1_Temp +
                 s.p_2_Temp +
                 s.p_3_Temp +
-                s.p_4_Temp + 
+                s.p_4_Temp +
                 s.smokerActTemp +
                 s.grillSetTemp +
                 s.grillTemp +
                 s.isFahrenheit +
                 "\xFF");
         } else if (data.indexOf("\xFE\x05\x01") === 0) {
+            // set-grill-temperature
             this._status.grillSetTemp = data.slice(3, 6);
             let s = this._status;
             this._data[uartNo] = (
@@ -111,6 +114,7 @@ let UART = {
                 "\xFF");
             Timer.set(100, 0, function() { UART.flush(uartNo); }, null);
         } else if (data.indexOf("\xFE\x05\x02") === 0) {
+            // set-probe-1-temperature
             this._status.p_1_Set_Temp = data.slice(3, 6);
             let s = this._status;
             this._data[uartNo] = (
@@ -119,6 +123,37 @@ let UART = {
                 s.p_1_Set_Temp +
                 "\xFF");
             Timer.set(100, 0, function() { UART.flush(uartNo); }, null);
+        } else if (data === "\xFE\x09\x01\xFF") {
+            // set-fahrenheit
+            this._status.isFahrenheit = true;
+            // TODO: Convert all temps to fahrenheit.
+            // TODO: Does this return anything?
+        } else if (data === "\xFE\x09\x02\xFF") {
+            // set-celsius
+            this._status.isFahrenheit = false;
+            // TODO: Convert all temps to celsius.
+            // TODO: Does this return anything?
+        } else if (data === "\xFE\x02\x02\xFF") {
+            // turn-light-off
+            this._status.lightState = false;
+            // TODO: Does this return anything?
+        } else if (data === "\xFE\x02\x01\xFF") {
+            // turn-light-on
+            this._status.lightState = true;
+            // TODO: Does this return anything?
+        } else if (data === "\xFE\x01\x02\xFF") {
+            // turn-off
+            this._status.moduleIsOn = false;
+            // TODO: Should this do anything else?
+            // TODO: Does this return anything?
+        } else if (data === "\xFE\x80\x00\xFF") {
+            // turn-primer-motor-off
+            this._status.primeState = false;
+            // TODO: Does this return anything?
+        } else if (data === "\xFE\x80\x01\xFF") {
+            // turn-primer-motor-on
+            this._status.primeState = true;
+            // TODO: Does this return anything?
         } else {
             Log.warn("Ignoring unknown command:" + JSON.stringify(data));
         }
