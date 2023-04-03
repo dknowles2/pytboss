@@ -3,15 +3,97 @@
 import asyncio
 import inspect
 import json
-from datetime import timedelta
-from math import floor
 from typing import Awaitable, Callable, TypedDict
 
+from . import grills
 from .ble import BleConnection
 from .config import Config
 from .fs import FileSystem
 
-StateCallback = Callable[["StateDict"], Awaitable[None] | None]
+
+class StateDict(TypedDict, total=False):
+    """State of the grill."""
+
+    p1Target: int
+    """Target temperature for meat probe 1."""
+
+    p1Temp: int | None
+    """Current temperature of meat probe 1 (if present)."""
+
+    p2Temp: int | None
+    """Current temperature of meat probe 2 (if present)."""
+
+    p3Temp: int
+    """Current temperature of meat probe 3 (if present)."""
+
+    p4Temp: int
+    """Current temperature of meat probe 4 (if present)."""
+
+    smokerActTemp: int
+    """Current temperature of the smoker."""
+
+    grillSetTemp: int
+    """Target temperature for the grill."""
+
+    grillTemp: int
+    """Current temperature of the grill."""
+
+    moduleIsOn: bool
+    """Whether the control module is powered on."""
+
+    err1: bool
+    """Error state 1."""
+
+    err2: bool
+    """Error state 2."""
+
+    err3: bool
+    """Error state 3."""
+
+    highTempErr: bool
+    """Whether the temperature is too high."""
+
+    fanErr: bool
+    """WHether there was an error with the fan."""
+
+    hotErr: bool
+    """Whether there was an error with the igniter."""
+
+    motorErr: bool
+    """Whether there was an error with the auger."""
+
+    noPellets: bool
+    """Whether the pellet hopper is empty."""
+
+    erL: bool
+    """Undocumented."""
+
+    fanState: bool
+    """Whether the fan is currently on."""
+
+    hotState: bool
+    """Whether the igniter is currently on."""
+
+    motorState: bool
+    """Whether the auger is currently on."""
+
+    lightState: bool
+    """Whether the light is currently on."""
+
+    primeState: bool
+    """Whether the prime mode is on."""
+
+    isFahrenheit: bool
+    """Whether the temperature readings are in Fahrenheit."""
+
+    recipeStep: bool
+    """The current recipe step number."""
+
+    recipeTime: int
+    """The time remaining for this recipe step (in seconds)."""
+
+
+StateCallback = Callable[[StateDict], Awaitable[None] | None]
 """A callback function that receives updated grill state."""
 
 VDataCallback = Callable[[dict], Awaitable[None] | None]
@@ -27,19 +109,23 @@ class PitBoss:
     config: Config
     """Configuration operations."""
 
-    def __init__(self, conn: BleConnection) -> None:
+    def __init__(self, conn: BleConnection, grill_model: str) -> None:
         """Initializes the class.
 
         :param conn: BLE transport for the grill.
         :type conn: pytboss.ble.BleConnection
+        :param grill_model: The grill model. This is necessary to determine all
+            supported commands and cannot be determined automatically.
+        :type grill_model: str
         """
         self.fs = FileSystem(conn)
         self.config = Config(conn)
+        self._spec: grills.Grill = grills.get_grill(grill_model)
         self._conn = conn
         self._lock = asyncio.Lock()  # protects callbacks and state.
         self._state_callbacks = []
         self._vdata_callbacks = []
-        self._state: "StateDict" = {}
+        self._state = StateDict()
 
     async def start(self):
         """Sets up the API for use.
@@ -87,9 +173,20 @@ class PitBoss:
             await self._on_vdata_received(payload)
 
     async def _on_state_received(self, payload: bytearray):
-        state = decode_state(payload)
+        payload_str = payload.decode()
+        state = None
+        match payload_str[:4]:
+            case "FE0B":
+                state = self._spec.control_board.parse_status(payload_str)
+            case "FE0C":
+                state = self._spec.control_board.parse_temperatures(payload_str)
+
+        if not state:
+            # Unknown or invalid payload; ignore.
+            return
+
         async with self._lock:
-            self._state.update(state)
+            self._state.update(state.to_dict())
             # TODO: Run callbacks concurrently
             # TODO: Send copies of state so subscribers can't modify it
             for callback in self._state_callbacks:
@@ -112,6 +209,10 @@ class PitBoss:
     async def _send_hex_command(self, cmd: str) -> dict:
         return await self._conn.send_command("PB.SendMCUCommand", {"command": cmd})
 
+    async def _send_command(self, slug: str, *args) -> dict:
+        cmd = self._spec.control_board.commands[slug]
+        return await self._send_hex_command(cmd(*args))
+
     async def set_grill_temperature(self, temp: int) -> dict:
         """Sets the target grill temperature.
 
@@ -119,7 +220,12 @@ class PitBoss:
         :type temp: int
         :rtype: dict
         """
-        return await self._send_hex_command(f"FE0501{encode_temp(temp)}FF")
+        # TODO: Clamp to a value from self._spec.temp_increments.
+        if self._spec.max_temp:
+            temp = min(temp, self._spec.max_temp)
+        if self._spec.min_temp:
+            temp = max(temp, self._spec.min_temp)
+        return await self._send_command("set-temperature", temp)
 
     async def set_probe_temperature(self, temp: int) -> dict:
         """Sets the target temperature for probe 1.
@@ -128,15 +234,38 @@ class PitBoss:
         :type temp: int
         :rtype: dict
         """
-        return await self._send_hex_command(f"FE0502{encode_temp(temp)}FF")
+        return await self._send_command("set-probe-1-temperature", temp)
 
-    async def get_state(self) -> tuple[dict, dict]:
+    async def turn_light_on(self) -> dict:
+        """Turns the light on if the grill has a light."""
+        if not self._spec.has_lights:
+            return {}
+        return await self._send_command("turn-light-on")
+
+    async def turn_light_off(self) -> dict:
+        """Turns the light off if the grill has a light."""
+        if not self._spec.has_lights:
+            return {}
+        return await self._send_command("turn-light-off")
+
+    async def turn_grill_off(self) -> dict:
+        """Turns the grill off."""
+        return await self._send_command("turn-off")
+
+    async def turn_primer_motor_on(self) -> dict:
+        """Turns the primer motor on."""
+        return await self._send_command("turn-primer-motor-on")
+
+    async def turn_primer_motor_off(self) -> dict:
+        """Turns the primer motor off."""
+        return await self._send_command("turn-primer-motor-off")
+
+    async def get_state(self) -> StateDict:
         """Retrieves the current grill state."""
-        # TODO: This return type should match the argument to StateCallback.
-        state = await self._conn.send_command("PB.GetState", {})
-        status = decode_status(hex_to_array(state["sc_11"]))
-        temps = decode_all_temps(hex_to_array(state["sc_12"]))
-        return status, temps
+        resp = await self._conn.send_command("PB.GetState", {})
+        status = self._spec.control_board.parse_status(resp["sc_11"])
+        status.update(self._spec.control_board.parse_temperatures(resp["sc_12"]))
+        return status
 
     async def get_firmware_version(self) -> str:
         """Returns the firmware version installed on the grill."""
@@ -161,195 +290,3 @@ class PitBoss:
     async def get_virtual_data(self):
         """:meta private:"""
         return await self._conn.send_command("PB.GetVirtualData", {})
-
-
-def hex_to_array(data: str) -> list[int]:
-    """:meta private:"""
-    return [int(data[i : i + 2], 16) for i in range(0, len(data), 2)]  # noqa: E203
-
-
-def encode_temp(temp: int) -> str:
-    """:meta private:"""
-    hundreds = floor(temp / 100)
-    tens = floor((temp % 100) / 10)
-    ones = floor(temp % 10)
-    return f"{hundreds:02x}{tens:02x}{ones:02x}"
-
-
-def decode_temp(hundreds: int, tens: int, ones: int) -> int:
-    """:meta private:"""
-    return hundreds * 100 + tens * 10 + ones
-
-
-class TemperaturesDict(TypedDict, total=False):
-    """All temperatures."""
-
-    grill_target: int
-    """Target temperature for the grill."""
-
-    smoker_actual: int | None
-    """Current temperature of the smoker."""
-
-    grill_actual: int | None
-    """Current temperature of the grill."""
-
-    probe_1_target: int
-    """Target temperature for meat probe 1."""
-
-    probe_1_actual: int | None
-    """Current temperature of meat probe 1 (if present)."""
-
-    probe_2_actual: int | None
-    """Current temperature of meat probe 2 (if present)."""
-
-    probe_3_actual: int | None
-    """Current temperature of meat probe 3 (if present)."""
-
-    probe_4_actual: int | None
-    """Current temperature of meat probe 4 (is present)."""
-
-    is_fahrenheit: bool
-    """Whether temperature readings are in Fahrenheit."""
-
-
-class RecipeStepDict(TypedDict):
-    """Information about the current recipe step."""
-
-    step_number: int
-    """The current recipe step number."""
-
-    time_remaining: timedelta
-    """The time remaining for this recipe step."""
-
-
-class StateDict(TypedDict, total=False):
-    """Overall state of the grill or smoker."""
-
-    temperatures: TemperaturesDict
-    """Temperature readings and targets."""
-
-    is_on: bool
-    """Whether the device is turned on."""
-
-    error_1: bool
-    """Error state 1."""
-
-    error_2: bool
-    """Error state 2."""
-
-    error_3: bool
-    """Error state 3."""
-
-    error_l: bool
-    """Error state L."""
-
-    temp_high_error: bool
-    """Whether the temperature is too high."""
-
-    no_pellets: bool
-    """Whether the pellet hopper is empty."""
-
-    fan_is_on: bool
-    """Whether the fan is currently on."""
-
-    fan_error: bool
-    """Whether there was an error with the fan."""
-
-    igniter_is_on: bool
-    """Whether the igniter is currently on."""
-
-    igniter_error: bool
-    """Whether there was an error with the igniter."""
-
-    auger_is_on: bool
-    """Whether the auger is currently on."""
-
-    auger_error: bool
-    """Whether there was an error with the auger."""
-
-    light_is_on: bool
-    """Whether the light is on."""
-
-    prime_is_on: bool
-    """Whether the prime mode is on."""
-
-    recipe_step: RecipeStepDict
-    """The current recipe step."""
-
-
-def decode_state(data: str) -> TemperaturesDict | StateDict:
-    """:meta private:"""
-    arr = hex_to_array(data)
-    assert arr.pop(0) == 254
-    msg_type = arr.pop(0)
-    handlers = {
-        11: decode_status,
-        12: decode_all_temps,
-        13: decode_target_temps,
-    }
-    if msg_type not in handlers:
-        return None
-    return handlers[msg_type](arr)
-
-
-def decode_status(arr: list[int]) -> StateDict:
-    """:meta private:"""
-    cond_grill_temp = {1: "grill_target", 2: "grill_actual"}[arr[0x15]]
-    return {
-        "temperatures": {
-            "probe_1_target": decode_temp(arr[0x00], arr[0x01], arr[0x02]),
-            "probe_1_actual": decode_temp(arr[0x03], arr[0x04], arr[0x05]),
-            "probe_2_actual": decode_temp(arr[0x06], arr[0x07], arr[0x08]),
-            "probe_3_actual": decode_temp(arr[0x09], arr[0x0A], arr[0x0B]),
-            "probe_4_actual": decode_temp(arr[0x0C], arr[0x0D], arr[0x0E]),
-            "smoker_actual": decode_temp(arr[0x0F], arr[0x10], arr[0x11]),
-            cond_grill_temp: decode_temp(arr[0x12], arr[0x13], arr[0x14]),
-            "is_fahrenheit": arr[0x25] == 1,
-        },
-        "is_on": arr[0x16] == 1,
-        "error_1": arr[0x17] == 1,
-        "error_2": arr[0x18] == 1,
-        "error_3": arr[0x19] == 1,
-        "error_l": arr[0x1F] == 1,
-        "temp_high_error": arr[0x1A] == 1,
-        "no_pellets": arr[0x1E] == 1,
-        "fan_is_on": arr[0x20] == 1,
-        "fan_error": arr[0x1B] == 1,
-        "igniter_is_on": arr[0x21] == 1,
-        "igniter_error": arr[0x1C] == 1,
-        "auger_is_on": arr[0x22] == 1,
-        "auger_error": arr[0x1D] == 1,
-        "light_is_on": arr[0x23] == 1,
-        "prime_is_on": arr[0x24] == 1,
-        "recipe_step": {
-            "step_number": arr[0x26],
-            "time_remaining": timedelta(
-                hours=arr[0x27],
-                minutes=arr[0x28],
-                seconds=arr[0x29],
-            ),
-        },
-    }
-
-
-def decode_all_temps(arr: list[int]) -> TemperaturesDict:
-    """:meta private:"""
-    return {
-        "probe_1_target": decode_temp(arr[0x00], arr[0x01], arr[0x02]),
-        "probe_1_actual": decode_temp(arr[0x03], arr[0x04], arr[0x05]),
-        "probe_2_actual": decode_temp(arr[0x06], arr[0x07], arr[0x08]),
-        "probe_3_actual": decode_temp(arr[0x09], arr[0x0A], arr[0x0B]),
-        "probe_4_actual": decode_temp(arr[0x0C], arr[0x0D], arr[0x0E]),
-        "smoker_actual": decode_temp(arr[0x0F], arr[0x10], arr[0x11]),
-        "grill_target": decode_temp(arr[0x12], arr[0x13], arr[0x14]),
-        "grill_actual": decode_temp(arr[0x15], arr[0x16], arr[0x17]),
-        "is_fahrenheit": arr[0x18] == 1,
-    }
-
-
-def decode_target_temps(arr: list[int]) -> TemperaturesDict:
-    """:meta private:"""
-    return {
-        "grill_target": decode_temp(arr[0x00], arr[0x01], arr[0x02]),
-        "probe_1_target": decode_temp(arr[0x03], arr[0x04], arr[0x05]),
-    }
