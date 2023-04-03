@@ -1,7 +1,7 @@
 #!/usr/bin/python3
-"""Script that dumps all grill definitions as JSON to stdout.
+"""Script that dumps all grill specifications as JSON to stdout.
 
-Application credentails should be stored in a file called ".pitboss" in your
+Application credentials should be stored in a file called ".pitboss" in your
 home directory. The format is an INI style like this:
 
 [pitboss]
