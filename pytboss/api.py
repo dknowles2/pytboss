@@ -172,14 +172,13 @@ class PitBoss:
         elif head == "<==PBD:":
             await self._on_vdata_received(payload)
 
-    async def _on_state_received(self, payload: bytearray):
-        payload_str = payload.decode()
+    async def _on_state_received(self, payload: str):
         state = None
-        match payload_str[:4]:
+        match payload[:4]:
             case "FE0B":
-                state = self._spec.control_board.parse_status(payload_str)
+                state = self._spec.control_board.parse_status(payload)
             case "FE0C":
-                state = self._spec.control_board.parse_temperatures(payload_str)
+                state = self._spec.control_board.parse_temperatures(payload)
 
         if not state:
             # Unknown or invalid payload; ignore.
