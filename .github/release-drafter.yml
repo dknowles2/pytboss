@@ -1,4 +1,4 @@
-name-template: $RESOLVED_VERSION **UPDATE setup.py BEFORE PUBLISHING**
+name-template: $RESOLVED_VERSION
 tag-template: $RESOLVED_VERSION
 template: |
   ## What’s Changed
