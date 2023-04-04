@@ -8,7 +8,7 @@ from importlib import resources
 
 import js2py
 
-from ..exceptions import InvalidGrill
+from .exceptions import InvalidGrill
 
 _COMMAND_JS_TMPL = """\
 function() {
