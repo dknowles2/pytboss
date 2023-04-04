@@ -1,0 +1,13 @@
+exclude .devcontainer.json
+exclude .gitignore
+exclude .pre-commit-config.yaml
+exclude mos.yml
+exclude pytest.ini
+
+include LICENSE
+
+prune .github
+prune .vscode
+prune fake_firmware
+prune scripts
+prune tests
