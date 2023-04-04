@@ -1,0 +1,47 @@
+[build-system]
+requires      = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name            = "pytboss"
+# version         = "2023.4.0"
+description     = "Python library for interacting with Pitboss grills and smokers."
+authors         = [
+    {name = "David Knowles", email = "dknowles2@gmail.com"},
+]
+dependencies    = ["bleak", "bleak_retry_connector", "js2py"]
+requires-python = ">=3.10"
+dynamic         = ["readme", "version"]
+license         = {text = "Apache License 2.0"}
+keywords        = ["pitboss", "api", "iot", "ble"]
+classifiers     = [
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+"Homepage"      = "https://github.com/dknowles2/pyschlage"
+"Source Code"   = "https://github.com/dknowles2/pyschlage"
+"Bug Reports"   = "https://github.com/dknowles2/pyschlage/issues"
+
+[tool.setuptools]
+platforms            = ["any"]
+zip-safe             = true
+include-package-data = true
+
+[tool.setuptools.dynamic]
+readme          = { file = ["README.md"], content-type = "text/markdown" }
+
+[tool.setuptools.packages.find]
+# where = ["."]
+# include = ["pytboss"]
+exclude = ["fake_firmware"]
+
+[tool.setuptools_scm]
+write_to = "pytboss/_version.py"
+
+[tool.isort]
+profile                    = "black"
+combine_as_imports         = true
+force_sort_within_sections = true
+forced_separate            = ["tests"]
