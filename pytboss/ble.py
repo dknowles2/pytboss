@@ -85,7 +85,11 @@ class BleConnection:
     async def disconnect(self) -> None:
         """Stops the connection to the device."""
         if self._ble_client:
-            await self._ble_client.disconnect()
+            try:
+                await self._ble_client.disconnect()
+            except:
+                # Bluetooth is awful. Sometimes even disconnects fail.
+                pass
         self._is_connected = False
 
     async def reset_device(self, ble_device: BLEDevice):
