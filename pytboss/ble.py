@@ -12,8 +12,8 @@ import json
 from typing import Awaitable, Callable
 from uuid import UUID
 
-import bleak_retry_connector
 from bleak import BleakClient, BleakGATTCharacteristic, BLEDevice
+import bleak_retry_connector
 from bleak_retry_connector import BleakClientWithServiceCache
 
 from .exceptions import RPCError
@@ -84,7 +84,8 @@ class BleConnection:
 
     async def disconnect(self) -> None:
         """Stops the connection to the device."""
-        await self._ble_client.disconnect()
+        if self._ble_client:
+            await self._ble_client.disconnect()
         self._is_connected = False
 
     async def reset_device(self, ble_device: BLEDevice):
