@@ -89,7 +89,7 @@ class BleConnection:
 
     async def disconnect(self) -> None:
         """Stops the connection to the device."""
-        _LOGGER.deug("Disconnecting from device.")
+        _LOGGER.debug("Disconnecting from device.")
         if self._ble_client:
             try:
                 await self._ble_client.disconnect()
