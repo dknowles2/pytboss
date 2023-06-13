@@ -130,6 +130,10 @@ class PitBoss:
         self._vdata_callbacks = []
         self._state = StateDict()
 
+    def is_connected(self) -> bool:
+        """Returns whether we are actively connected to the grill."""
+        return self._conn.is_connected()
+
     async def start(self):
         """Sets up the API for use.
 
