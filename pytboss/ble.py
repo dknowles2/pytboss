@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 from typing import Awaitable, Callable
 from uuid import UUID
 
@@ -17,6 +18,8 @@ import bleak_retry_connector
 from bleak_retry_connector import BleakClientWithServiceCache
 
 from .exceptions import RPCError
+
+_LOGGER = logging.getLogger("pytboss")
 
 
 def _uuid(s: str) -> str:
@@ -68,6 +71,7 @@ class BleConnection:
     async def connect(self) -> None:
         """Starts the connection to the device."""
         if self._is_connected:
+            _LOGGER.warning("Already connected. Ignoring call to connect().")
             return
         self._ble_client = await bleak_retry_connector.establish_connection(
             client_class=BleakClientWithServiceCache,
@@ -80,10 +84,12 @@ class BleConnection:
 
     def _on_disconnected(self, unused_client):
         """Called when our Bluetooth client is disconnected."""
+        _LOGGER.debug("Bluetooth disconnected.")
         self._is_connected = False
 
     async def disconnect(self) -> None:
         """Stops the connection to the device."""
+        _LOGGER.debug("Disconnecting from device.")
         if self._ble_client:
             try:
                 await self._ble_client.disconnect()
@@ -98,6 +104,7 @@ class BleConnection:
         :param ble_device: BLE device to use for transport.
         :type ble_device: bleak.BLEDevice
         """
+        _LOGGER.debug("Resetting device to: %s", ble_device)
         await self.disconnect()
         self._is_connected = False
         self._ble_device = ble_device

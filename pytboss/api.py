@@ -3,12 +3,15 @@
 import asyncio
 import inspect
 import json
+import logging
 from typing import Awaitable, Callable, TypedDict
 
 from . import grills
 from .ble import BleConnection
 from .config import Config
 from .fs import FileSystem
+
+_LOGGER = logging.getLogger("pytboss")
 
 
 class StateDict(TypedDict, total=False):
@@ -157,6 +160,7 @@ class PitBoss:
             self._vdata_callbacks.append(callback)
 
     async def _on_debug_log_received(self, data: bytearray):
+        _LOGGER.debug("Debug log received: %s", data)
         parts = data.decode("utf-8").split()
         if len(parts) != 3:
             # Unknown payload; ignore.
@@ -173,6 +177,7 @@ class PitBoss:
             await self._on_vdata_received(payload)
 
     async def _on_state_received(self, payload: str):
+        _LOGGER.debug("State received: %s", payload)
         state = None
         match payload[:4]:
             case "FE0B":
@@ -196,6 +201,7 @@ class PitBoss:
 
     async def _on_vdata_received(self, payload: bytearray):
         vdata = json.loads(payload)
+        _LOGGER.debug("VData received: %s", vdata)
         async with self._lock:
             # TODO: Run callbacks concurrently
             # TODO: Send copies of state so subscribers can't modify it
