@@ -146,11 +146,11 @@ let UART = {
             this._status.moduleIsOn = "\x00";
             // TODO: Should this do anything else?
             // TODO: Does this return anything?
-        } else if (data === "\xFE\x80\x00\xFF") {
+        } else if (data === "\xFE\x08\x00\xFF") {
             // turn-primer-motor-off
             this._status.primeState = "\x00";
             // TODO: Does this return anything?
-        } else if (data === "\xFE\x80\x01\xFF") {
+        } else if (data === "\xFE\x08\x01\xFF") {
             // turn-primer-motor-on
             this._status.primeState = "\x01";
             // TODO: Does this return anything?
