@@ -40,6 +40,10 @@ DebugLogCallback = Callable[[bytearray], Awaitable[None]]
 """A callback function that receives debug logs output from the device."""
 
 
+DisconnectCallback = Callable[[BleakClient], None]
+"""A callback function called when the BLE connection is disconnected."""
+
+
 class BleConnection:
     """Bluetooth LE protocol transport for Mongoose OS devices."""
 
@@ -47,12 +51,17 @@ class BleConnection:
     _ble_client: BleakClient | None = None
 
     def __init__(
-        self, ble_device: BLEDevice, loop: asyncio.AbstractEventLoop | None = None
+        self,
+        ble_device: BLEDevice,
+        disconnect_callback: DisconnectCallback | None = None,
+        loop: asyncio.AbstractEventLoop | None = None,
     ) -> None:
         """Initializes a BleConnection.
 
         :param ble_device: BLE device to use for transport.
         :type ble_device: bleak.BLEDevice
+        :param disconnect_callback: Function to call when the BLE connection is disconnected.
+        :type disconnect_callback: DisconnectCallback or None
         :param loop: An asyncio loop to use. If `None`, the default loop will be used.
         :type loop: asyncio.AbstractEventLoop
         """
@@ -61,6 +70,7 @@ class BleConnection:
         self._loop = loop
 
         self._ble_device: BLEDevice = ble_device
+        self._disconnect_callback = disconnect_callback
         self._is_connected = False
 
         self._lock = asyncio.Lock()  # Protects items below.
@@ -82,10 +92,12 @@ class BleConnection:
         self._is_connected = True
         await self._ble_client.start_notify(CHAR_RPC_RX_CTL, self._on_rpc_data_received)
 
-    def _on_disconnected(self, unused_client):
+    def _on_disconnected(self, client: BleakClient) -> None:
         """Called when our Bluetooth client is disconnected."""
         _LOGGER.debug("Bluetooth disconnected.")
         self._is_connected = False
+        if self._disconnect_callback is not None:
+            self._disconnect_callback(client)
 
     async def disconnect(self) -> None:
         """Stops the connection to the device."""
@@ -93,9 +105,9 @@ class BleConnection:
         if self._ble_client:
             try:
                 await self._ble_client.disconnect()
-            except:
+            except Exception as ex:  # pylint: disable=broad-exception-caught
                 # Bluetooth is awful. Sometimes even disconnects fail.
-                pass
+                _LOGGER.debug("Failed to disconnect: %s", ex)
         self._is_connected = False
 
     async def reset_device(self, ble_device: BLEDevice):
