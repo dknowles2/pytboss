@@ -130,29 +130,29 @@ let UART = {
             // TODO: Does this return anything?
         } else if (data === "\xFE\x09\x02\xFF") {
             // set-celsius
-            this._status.isFahrenheit = false;
+            this._status.isFahrenheit = "\x00";
             // TODO: Convert all temps to celsius.
             // TODO: Does this return anything?
         } else if (data === "\xFE\x02\x02\xFF") {
             // turn-light-off
-            this._status.lightState = false;
+            this._status.lightState = "\x00";
             // TODO: Does this return anything?
         } else if (data === "\xFE\x02\x01\xFF") {
             // turn-light-on
-            this._status.lightState = true;
+            this._status.lightState = "\x01";
             // TODO: Does this return anything?
         } else if (data === "\xFE\x01\x02\xFF") {
             // turn-off
-            this._status.moduleIsOn = false;
+            this._status.moduleIsOn = "\x00";
             // TODO: Should this do anything else?
             // TODO: Does this return anything?
-        } else if (data === "\xFE\x80\x00\xFF") {
+        } else if (data === "\xFE\x08\x00\xFF") {
             // turn-primer-motor-off
-            this._status.primeState = false;
+            this._status.primeState = "\x00";
             // TODO: Does this return anything?
-        } else if (data === "\xFE\x80\x01\xFF") {
+        } else if (data === "\xFE\x08\x01\xFF") {
             // turn-primer-motor-on
-            this._status.primeState = true;
+            this._status.primeState = "\x01";
             // TODO: Does this return anything?
         } else {
             Log.warn("Ignoring unknown command:" + JSON.stringify(data));
