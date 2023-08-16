@@ -18,12 +18,24 @@ import requests
 
 logging.basicConfig(level=logging.DEBUG)  # Log all HTTP requests to stderr.
 API_URL = "https://api-prod.dansonscorp.com/api/v1"
-CONTROL_BOARDS = ("LBL", "LFS", "PBL", "PBP", "PBC", "PBM", "PBV", "PBG")
+CONTROL_BOARDS = (
+    "LBL",
+    "LFS",
+    "PBA",
+    "PBC",
+    "PBG",
+    "PBL",
+    "PBM",
+    "PBP",
+    "PBT",
+    "PBV",
+)
 
 
 def login(username, password):
     params = {"email": username, "password": password}
     resp = requests.post(API_URL + "/login/app", params=params)
+    resp.raise_for_status()
     token = resp.json()["data"]["token"]
     return {
         "Accept": "application/json",
@@ -35,6 +47,7 @@ def login(username, password):
 def get_grill_details(grill_id, auth):
     logging.info("Fetching grill details for grill_id: %s", grill_id)
     resp = requests.get(API_URL + f"/grills/{grill_id}", headers=auth)
+    resp.raise_for_status()
     return resp.json()["data"]["grill"]
 
 
@@ -43,6 +56,7 @@ def get_control_board_grills(control_board, auth):
     resp = requests.get(
         API_URL + f"/grills?control_board={control_board}", headers=auth
     )
+    resp.raise_for_status()
     for grill in resp.json()["data"]["grills"]:
         yield get_grill_details(grill["id"], auth)
 
@@ -53,9 +67,12 @@ def main():
     cfg.read(str(Path.home() / ".pitboss"))
     auth = login(cfg["pitboss"]["username"], cfg["pitboss"]["password"])
     grills = {}
-    for control_board in CONTROL_BOARDS:
-        for grill in get_control_board_grills(control_board, auth):
-            grills[grill["name"]] = grill
+    for i in range(1, 101):
+        try:
+            grill = get_grill_details(i, auth)
+        except requests.HTTPError:
+            continue
+        grills[grill["name"]] = grill
 
     print(json.dumps(grills, indent=2, sort_keys=True))
 
