@@ -72,6 +72,7 @@ class BleConnection:
         self._ble_device: BLEDevice = ble_device
         self._disconnect_callback = disconnect_callback
         self._is_connected = False
+        self._reconnecting = False
 
         self._lock = asyncio.Lock()  # Protects items below.
         self._last_command_id = 0
@@ -96,7 +97,7 @@ class BleConnection:
         """Called when our Bluetooth client is disconnected."""
         _LOGGER.debug("Bluetooth disconnected.")
         self._is_connected = False
-        if self._disconnect_callback is not None:
+        if not self._reconnecting and self._disconnect_callback is not None:
             self._disconnect_callback(client)
 
     async def disconnect(self) -> None:
@@ -116,6 +117,7 @@ class BleConnection:
         :param ble_device: BLE device to use for transport.
         :type ble_device: bleak.BLEDevice
         """
+        self._reconnecting = True
         _LOGGER.debug("Resetting device to: %s", ble_device)
         await self.disconnect()
         self._is_connected = False
@@ -126,6 +128,7 @@ class BleConnection:
                 await self._ble_client.start_notify(
                     CHAR_DEBUG_LOG, self._on_debug_log_received
                 )
+        self._reconnecting = False
 
     def is_connected(self) -> bool:
         """Whether the device is currently connected."""
