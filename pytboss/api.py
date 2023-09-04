@@ -45,19 +45,19 @@ class StateDict(TypedDict, total=False):
     """Whether the control module is powered on."""
 
     err1: bool
-    """Error state 1."""
+    """Whether there is an error with meat probe 1."""
 
     err2: bool
-    """Error state 2."""
+    """Whether there is an error with meat probe 2."""
 
     err3: bool
-    """Error state 3."""
+    """Whether there is an error with meat probe 3."""
 
     highTempErr: bool
     """Whether the temperature is too high."""
 
     fanErr: bool
-    """WHether there was an error with the fan."""
+    """Whether there was an error with the fan."""
 
     hotErr: bool
     """Whether there was an error with the igniter."""
@@ -69,7 +69,7 @@ class StateDict(TypedDict, total=False):
     """Whether the pellet hopper is empty."""
 
     erL: bool
-    """Undocumented."""
+    """Whether there was an error in the start-up cycle."""
 
     fanState: bool
     """Whether the fan is currently on."""
