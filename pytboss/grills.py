@@ -1,10 +1,11 @@
 """Routines for accessing grill metadata."""
 
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cache
 from importlib import resources
 import json
+from typing import Any
 
 import js2py
 
@@ -154,6 +155,9 @@ class Grill:
     temp_increments: list[int] | None = 0
     """Supported temperature increments."""
 
+    json: dict[str, Any] = field(default_factory=dict)
+    """The raw JSON returned by the PitBoss API."""
+
     @classmethod
     def from_dict(cls, grill_dict) -> "Grill":
         """Creates a Grill from a JSON dict."""
@@ -180,6 +184,7 @@ class Grill:
             temp_increments=list(
                 int(t) for t in grill_dict["temp_increment"].split("/")
             ),
+            json=grill_dict,
             control_board=ControlBoard.from_dict(grill_dict["control_board"]),
         )
 
