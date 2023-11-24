@@ -203,6 +203,8 @@ def get_grills(control_board: str | None = None) -> Iterable[Grill]:
     :type control_board: str or None
     """
     for grill in _read_grills().values():
+        if not grill["control_board"].get("status_function"):
+            continue
         if control_board is None or grill["control_board"]["name"] == control_board:
             yield Grill.from_dict(grill)
 
