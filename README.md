@@ -30,6 +30,39 @@ async def main():
 asyncio.run(main())
 ```
 
+## Installation
+
+### Pip
+
+To install pytboss, run this command in your terminal:
+
+```sh
+$ pip install pytboss
+```
+
+### Source code
+
+Pytboss is actively developed on Github, where the code is [always available](https://github.com/dknowles2/pytboss).
+
+You can either clone the public repository:
+
+```sh
+$ git clone https://github.com/dknowles2/pytboss
+```
+
+Or download the latest [tarball](https://github.com/dknowles2/pytboss/tarball/main):
+
+```sh
+$ curl -OL https://github.com/dknowles2/pytboss/tarball/main
+```
+
+Once you have a copy of the source, you can embed it in your own Python package, or install it into your site-packages easily:
+
+```sh
+$ cd pytboss
+$ python -m pip install .
+```
+
 ## Supported Models
 
 The following models should be supported. Note however that only the `PBV4PS2` model has been tested.
