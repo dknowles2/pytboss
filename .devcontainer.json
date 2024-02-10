@@ -1,6 +1,6 @@
 {
     "name": "Python 3",
-    "image": "mcr.microsoft.com/devcontainers/python:0-3.10-bullseye",
+    "image": "mcr.microsoft.com/devcontainers/python:3.12",
     "postCreateCommand": "scripts/setup",
     "customizations": {
         "vscode": {
@@ -37,6 +37,8 @@
         "dialout"
     ],
     "features": {
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+            "moby": false
+        }
     }
 }

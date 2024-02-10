@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name            = "pytboss"
 # version         = "2023.4.0"
-description     = "Python library for interacting with Pitboss grills and smokers."
+description     = "Python library for interacting with PitBoss grills and smokers."
 authors         = [
     {name = "David Knowles", email = "dknowles2@gmail.com"},
 ]
-dependencies    = ["bleak", "bleak_retry_connector", "js2py"]
+dependencies    = ["bleak", "bleak_retry_connector", "dukpy"]
 requires-python = ">=3.10"
 dynamic         = ["readme", "version"]
 license         = {text = "Apache License 2.0"}
@@ -20,9 +20,9 @@ classifiers     = [
 ]
 
 [project.urls]
-"Homepage"      = "https://github.com/dknowles2/pyschlage"
-"Source Code"   = "https://github.com/dknowles2/pyschlage"
-"Bug Reports"   = "https://github.com/dknowles2/pyschlage/issues"
+"Homepage"      = "https://github.com/dknowles2/pytboss"
+"Source Code"   = "https://github.com/dknowles2/pytboss"
+"Bug Reports"   = "https://github.com/dknowles2/pytboss/issues"
 
 [tool.setuptools]
 platforms            = ["any"]
