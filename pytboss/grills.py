@@ -7,47 +7,45 @@ from importlib import resources
 import json
 from typing import Any
 
-import js2py
+import dukpy
 
 from .exceptions import InvalidGrill
 
 _COMMAND_JS_TMPL = """\
-function() {
-    let formatHex = function(n) {
-        let t = '0' + parseInt(n).toString(16);
+function command() {
+    var formatHex = function(n) {
+        var t = '0' + parseInt(n).toString(16);
         return t.substring(t.length - 2)
     };
-    let formatDecimal = function(n) {
-        let t = '000' + parseInt(n).toString(10);
+    var formatDecimal = function(n) {
+        var t = '000' + parseInt(n).toString(10);
         return t.substring(t.length - 3);
     };
     %s
 }
+command.apply(null, dukpy['args']);
 """
 
 _CONTROLLER_JS_TMPL = """\
-// Basic polyfill for String.startsWith.
-String.prototype.startsWith = function(search, pos){
-    return this.slice(pos || 0, search.length) === search;
-};
-function(message) {
-    let convertTemperature = function(parts, startIndex) {
-        let temp = (
+function parse(message) {
+    var convertTemperature = function(parts, startIndex) {
+        var temp = (
             parts[startIndex] * 100 +
             parts[startIndex + 1] * 10 +
             parts[startIndex + 2]
         );
         return temp === 960 ? null : temp;
     };
-    let parseHexMessage = function(_data) {
-        const parsed = [];
-        for (let i = 0; i < _data.length; i+=2) {
-            parsed.push(parseInt(_data.substring(i, i+2), 16));
+    var parseHexMessage = function(data) {
+        var parsed = [];
+        for (var i = 0; i < data.length; i+=2) {
+            parsed.push(parseInt(data.substring(i, i+2), 16));
         }
         return parsed;
     };
     %s
 }
+parse(dukpy['message']);
 """
 
 
@@ -70,11 +68,14 @@ class Command:
     @classmethod
     def from_dict(cls, cmd_dict) -> "Command":
         """Creates a Command from a JSON dict."""
+        js_func = cmd_dict["function"]
+        if js_func:
+            js_func = js_func.replace("let ", "var ")
         return cls(
             name=cmd_dict["name"],
             slug=cmd_dict["slug"],
             _hex=cmd_dict["hexadecimal"],
-            _js_func=cmd_dict["function"],
+            _js_func=js_func,
         )
 
     def __call__(self, *args) -> str:
@@ -85,7 +86,7 @@ class Command:
         if self._js_func is None:
             raise NotImplementedError
 
-        return js2py.eval_js(_COMMAND_JS_TMPL % self._js_func)(*args)
+        return dukpy.evaljs(_COMMAND_JS_TMPL % self._js_func, args=args)
 
 
 @dataclass
@@ -107,27 +108,31 @@ class ControlBoard:
     @classmethod
     def from_dict(cls, ctrl_dict) -> "ControlBoard":
         """Creates a ControlBoard from a JSON dict."""
+        status_js_func = ctrl_dict["status_function"]
+        temperatures_js_func = ctrl_dict["temperature_function"]
         return cls(
             name=ctrl_dict["name"],
             commands={
                 c["slug"]: Command.from_dict(c)
                 for c in ctrl_dict["control_board_commands"]
             },
-            _status_js_func=ctrl_dict["status_function"],
-            _temperatures_js_func=ctrl_dict["temperature_function"],
+            _status_js_func=status_js_func.replace("let ", "var "),
+            _temperatures_js_func=temperatures_js_func.replace("let ", "var "),
         )
 
     def parse_status(self, message) -> dict | None:
         """Parses a status message."""
         if not self._status_js_func:
             raise NotImplementedError
-        return js2py.eval_js(_CONTROLLER_JS_TMPL % self._status_js_func)(message)
+        return dukpy.evaljs(_CONTROLLER_JS_TMPL % self._status_js_func, message=message)
 
     def parse_temperatures(self, message) -> dict | None:
         """Parses a temperatures message."""
         if not self._temperatures_js_func:
             raise NotImplementedError
-        return js2py.eval_js(_CONTROLLER_JS_TMPL % self._temperatures_js_func)(message)
+        return dukpy.evaljs(
+            _CONTROLLER_JS_TMPL % self._temperatures_js_func, message=message
+        )
 
 
 @dataclass

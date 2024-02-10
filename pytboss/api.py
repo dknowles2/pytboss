@@ -194,7 +194,7 @@ class PitBoss:
             return
 
         async with self._lock:
-            self._state.update(state.to_dict())
+            self._state.update(state)
             # TODO: Run callbacks concurrently
             # TODO: Send copies of state so subscribers can't modify it
             for callback in self._state_callbacks:

@@ -2,6 +2,7 @@ import asyncio
 import json
 from unittest import mock
 
+import bleak
 from bleak_retry_connector import BleakClientWithServiceCache
 
 from pytboss import ble
@@ -29,19 +30,13 @@ async def test_connect_disconnect(
 
 
 @mock.patch("bleak_retry_connector.establish_connection")
-@mock.patch("bleak.BleakClient", spec=True)
-@mock.patch("bleak.BleakClient", spec=True)
-@mock.patch("bleak.BLEDevice", spec=True)
-@mock.patch("bleak.BLEDevice", spec=True)
-async def test_reset_device(
-    mock_old_device,
-    mock_new_device,
-    mock_old_bleak_client,
-    mock_new_bleak_client,
-    mock_establish_connection,
-):
+async def test_reset_device(mock_establish_connection):
+    mock_old_device = mock.create_autospec(bleak.BLEDevice)
+    mock_new_device = mock.create_autospec(bleak.BLEDevice)
     mock_old_device.name = "OLD DEVICE NAME"
     mock_new_device.name = "NEW DEVICE NAME"
+    mock_old_bleak_client = mock.create_autospec(bleak.BleakClient)
+    mock_new_bleak_client = mock.create_autospec(bleak.BleakClient)
     mock_establish_connection.return_value = mock_old_bleak_client
 
     conn = ble.BleConnection(mock_old_device)
@@ -75,19 +70,13 @@ async def test_reset_device(
 
 
 @mock.patch("bleak_retry_connector.establish_connection")
-@mock.patch("bleak.BleakClient", spec=True)
-@mock.patch("bleak.BleakClient", spec=True)
-@mock.patch("bleak.BLEDevice", spec=True)
-@mock.patch("bleak.BLEDevice", spec=True)
-async def test_reset_device_with_debug_log_subscription(
-    mock_old_device,
-    mock_new_device,
-    mock_old_bleak_client,
-    mock_new_bleak_client,
-    mock_establish_connection,
-):
+async def test_reset_device_with_debug_log_subscription(mock_establish_connection):
+    mock_old_device = mock.create_autospec(bleak.BLEDevice)
+    mock_new_device = mock.create_autospec(bleak.BLEDevice)
     mock_old_device.name = "OLD DEVICE NAME"
     mock_new_device.name = "NEW DEVICE NAME"
+    mock_old_bleak_client = mock.create_autospec(bleak.BleakClient)
+    mock_new_bleak_client = mock.create_autospec(bleak.BleakClient)
     mock_establish_connection.return_value = mock_old_bleak_client
 
     conn = ble.BleConnection(mock_old_device)
