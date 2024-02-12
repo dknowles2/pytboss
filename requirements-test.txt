@@ -1,2 +1,2 @@
 -r requirements.txt
-pytest-asyncio==0.23.4
+pytest-asyncio==0.23.5
