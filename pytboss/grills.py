@@ -5,11 +5,28 @@ from dataclasses import dataclass, field
 from functools import cache
 from importlib import resources
 import json
+from math import floor
+import re
 from typing import Any
 
-import dukpy
+from dukpy import evaljs
 
 from .exceptions import InvalidGrill
+
+# Control boards that already convert Fahrenheit to Celsius.
+_HAS_FTOC = ("LFS", "PBM", "PBT", "PBV")
+
+TEMPERATURE_FIELDS = (
+    "p1Target",
+    "p2Target",
+    "p1Temp",
+    "p2Temp",
+    "p3Temp",
+    "p4Temp",
+    "grillSetTemp",
+    "grillTemp",
+    "smokerActTemp",
+)
 
 _COMMAND_JS_TMPL = """\
 function command() {
@@ -48,6 +65,24 @@ function parse(message) {
 parse(dukpy['message']);
 """
 
+_FN_RE = re.compile(r"(.+ ?= ?)(\(.[^\)]+\))( ?=>)?(.+)")
+
+
+def _scrub_js(s: str | None) -> str | None:
+    if s is None:
+        return s
+    s = _FN_RE.sub(r"\1 function \2\4", s)
+    s = s.replace("let ", "var ")
+    s = s.replace("const ", "var ")
+    return s
+
+
+def f_to_c(temp: int | None) -> int | None:
+    """Converts a temperature from Fahrenheit to Celsius."""
+    if temp is None:
+        return temp
+    return floor((temp - 32) / 1.8)
+
 
 @dataclass
 class Command:
@@ -68,9 +103,7 @@ class Command:
     @classmethod
     def from_dict(cls, cmd_dict) -> "Command":
         """Creates a Command from a JSON dict."""
-        js_func = cmd_dict["function"]
-        if js_func:
-            js_func = js_func.replace("let ", "var ")
+        js_func = _scrub_js(cmd_dict["function"])
         return cls(
             name=cmd_dict["name"],
             slug=cmd_dict["slug"],
@@ -86,7 +119,7 @@ class Command:
         if self._js_func is None:
             raise NotImplementedError
 
-        return dukpy.evaljs(_COMMAND_JS_TMPL % self._js_func, args=args)
+        return evaljs(_COMMAND_JS_TMPL % self._js_func, args=args)
 
 
 @dataclass
@@ -108,31 +141,40 @@ class ControlBoard:
     @classmethod
     def from_dict(cls, ctrl_dict) -> "ControlBoard":
         """Creates a ControlBoard from a JSON dict."""
-        status_js_func = ctrl_dict["status_function"]
-        temperatures_js_func = ctrl_dict["temperature_function"]
         return cls(
             name=ctrl_dict["name"],
             commands={
                 c["slug"]: Command.from_dict(c)
                 for c in ctrl_dict["control_board_commands"]
             },
-            _status_js_func=status_js_func.replace("let ", "var "),
-            _temperatures_js_func=temperatures_js_func.replace("let ", "var "),
+            _status_js_func=_scrub_js(ctrl_dict["status_function"]),
+            _temperatures_js_func=_scrub_js(ctrl_dict["temperature_function"]),
         )
 
-    def parse_status(self, message) -> dict | None:
+    def _evaljs(self, js_func: str, message: str) -> dict | None:
+        js = _CONTROLLER_JS_TMPL % js_func
+        status = evaljs(js, message=message)
+        if (
+            status is not None
+            and self.name not in _HAS_FTOC
+            and not status.get("isFahrenheit", True)
+        ):
+            for k in TEMPERATURE_FIELDS:
+                if k in status:
+                    status[k] = f_to_c(status.get(k, None))
+        return status
+
+    def parse_status(self, message: str) -> dict | None:
         """Parses a status message."""
         if not self._status_js_func:
             raise NotImplementedError
-        return dukpy.evaljs(_CONTROLLER_JS_TMPL % self._status_js_func, message=message)
+        return self._evaljs(self._status_js_func, message)
 
-    def parse_temperatures(self, message) -> dict | None:
+    def parse_temperatures(self, message: str) -> dict | None:
         """Parses a temperatures message."""
         if not self._temperatures_js_func:
             raise NotImplementedError
-        return dukpy.evaljs(
-            _CONTROLLER_JS_TMPL % self._temperatures_js_func, message=message
-        )
+        return self._evaljs(self._temperatures_js_func, message)
 
 
 @dataclass
