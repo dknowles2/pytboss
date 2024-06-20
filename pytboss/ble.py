@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from typing import Awaitable, Callable
+from typing import Any, Awaitable, Callable
 from uuid import UUID
 
 from bleak import BleakClient, BleakGATTCharacteristic, BLEDevice
@@ -76,7 +76,7 @@ class BleConnection:
 
         self._lock = asyncio.Lock()  # Protects items below.
         self._last_command_id = 0
-        self._rpc_futures = {}
+        self._rpc_futures: dict[int, asyncio.Future[Any]] = {}
         self._debug_log_callback: DebugLogCallback | None = None
 
     async def connect(self) -> None:
@@ -84,10 +84,12 @@ class BleConnection:
         if self._is_connected:
             _LOGGER.warning("Already connected. Ignoring call to connect().")
             return
+        if self._ble_device is None:
+            return
         self._ble_client = await bleak_retry_connector.establish_connection(
             client_class=BleakClientWithServiceCache,
             device=self._ble_device,
-            name=self._ble_device.name,
+            name=self._ble_device.name or "<unknown>",
             disconnected_callback=self._on_disconnected,
         )
         self._is_connected = True
@@ -123,6 +125,9 @@ class BleConnection:
         self._is_connected = False
         self._ble_device = ble_device
         await self.connect()
+        if self._ble_client is None:
+            self._reconnecting = False
+            return
         async with self._lock:
             if self._debug_log_callback:
                 await self._ble_client.start_notify(
@@ -140,6 +145,8 @@ class BleConnection:
         :param callback: Function to call when debug logs are output by the device.
         :type callback: DebugLogCallback
         """
+        if self._ble_client is None:
+            return
         async with self._lock:
             assert (
                 self._debug_log_callback is None
@@ -154,6 +161,8 @@ class BleConnection:
         async with self._lock:
             if not self._debug_log_callback:
                 # Assume we've already cancelled the subscription.
+                return
+            if self._ble_client is None:
                 return
             await self._ble_client.stop_notify(CHAR_DEBUG_LOG)
             self._debug_log_callback = None
@@ -193,6 +202,8 @@ class BleConnection:
         await self._send_prepared_command(cmd)
 
     async def _send_prepared_command(self, cmd: str):
+        if self._ble_client is None:
+            return
         async with self._lock:
             await self._ble_client.write_gatt_char(
                 CHAR_RPC_TX_CTL, _encode_len(len(cmd))
@@ -213,6 +224,8 @@ class BleConnection:
     async def _on_rpc_data_received(
         self, unused_char: BleakGATTCharacteristic, data: bytearray
     ):
+        if self._ble_client is None:
+            return
         resp_len = _decode_len(data)
         resp = bytearray()
         async with self._lock:

@@ -19,7 +19,7 @@ class FileSystem:
         """
         self._conn = conn
 
-    async def get_file_list(self) -> list[str]:
+    async def get_file_list(self) -> dict:
         """:meta private:"""
         return await self._conn.send_command("FS.List", {})
 

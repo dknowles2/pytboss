@@ -7,7 +7,7 @@ from importlib import resources
 import json
 from math import floor
 import re
-from typing import Any
+from typing import Any, TypedDict
 
 from dukpy import evaljs
 
@@ -84,6 +84,91 @@ def f_to_c(temp: int | None) -> int | None:
     return floor((temp - 32) / 1.8)
 
 
+class StateDict(TypedDict, total=False):
+    """State of the grill."""
+
+    p1Target: int
+    """Target temperature for meat probe 1."""
+
+    p2Target: int | None
+    """Target temperature for meat probe 2."""
+
+    p1Temp: int | None
+    """Current temperature of meat probe 1 (if present)."""
+
+    p2Temp: int | None
+    """Current temperature of meat probe 2 (if present)."""
+
+    p3Temp: int
+    """Current temperature of meat probe 3 (if present)."""
+
+    p4Temp: int
+    """Current temperature of meat probe 4 (if present)."""
+
+    smokerActTemp: int
+    """Current temperature of the smoker."""
+
+    grillSetTemp: int
+    """Target temperature for the grill."""
+
+    grillTemp: int
+    """Current temperature of the grill."""
+
+    moduleIsOn: bool
+    """Whether the control module is powered on."""
+
+    err1: bool
+    """Whether there is an error with meat probe 1."""
+
+    err2: bool
+    """Whether there is an error with meat probe 2."""
+
+    err3: bool
+    """Whether there is an error with meat probe 3."""
+
+    highTempErr: bool
+    """Whether the temperature is too high."""
+
+    fanErr: bool
+    """Whether there was an error with the fan."""
+
+    hotErr: bool
+    """Whether there was an error with the igniter."""
+
+    motorErr: bool
+    """Whether there was an error with the auger."""
+
+    noPellets: bool
+    """Whether the pellet hopper is empty."""
+
+    erL: bool
+    """Whether there was an error in the start-up cycle."""
+
+    fanState: bool
+    """Whether the fan is currently on."""
+
+    hotState: bool
+    """Whether the igniter is currently on."""
+
+    motorState: bool
+    """Whether the auger is currently on."""
+
+    lightState: bool
+    """Whether the light is currently on."""
+
+    primeState: bool
+    """Whether the prime mode is on."""
+
+    isFahrenheit: bool
+    """Whether the temperature readings are in Fahrenheit."""
+
+    recipeStep: bool
+    """The current recipe step number."""
+
+    recipeTime: int
+    """The time remaining for this recipe step (in seconds)."""
+
+
 @dataclass
 class Command:
     """A control board command."""
@@ -151,7 +236,7 @@ class ControlBoard:
             _temperatures_js_func=_scrub_js(ctrl_dict["temperature_function"]),
         )
 
-    def _evaljs(self, js_func: str, message: str) -> dict | None:
+    def _evaljs(self, js_func: str, message: str) -> StateDict | None:
         js = _CONTROLLER_JS_TMPL % js_func
         status = evaljs(js, message=message)
         if (
@@ -164,13 +249,13 @@ class ControlBoard:
                     status[k] = f_to_c(status.get(k, None))
         return status
 
-    def parse_status(self, message: str) -> dict | None:
+    def parse_status(self, message: str) -> StateDict | None:
         """Parses a status message."""
         if not self._status_js_func:
             raise NotImplementedError
         return self._evaljs(self._status_js_func, message)
 
-    def parse_temperatures(self, message: str) -> dict | None:
+    def parse_temperatures(self, message: str) -> StateDict | None:
         """Parses a temperatures message."""
         if not self._temperatures_js_func:
             raise NotImplementedError
@@ -199,7 +284,7 @@ class Grill:
     meat_probes: int = 0
     """The number of meat probes available on the grill."""
 
-    temp_increments: list[int] | None = 0
+    temp_increments: list[int] | None = field(default_factory=list)
     """Supported temperature increments."""
 
     json: dict[str, Any] = field(default_factory=dict)
