@@ -23,7 +23,7 @@ def mock_control_board():
 
 @pytest.fixture
 def mock_get_grill():
-    with mock.patch("pytboss.grills.get_grill", autospec=True) as mock_get_grill:
+    with mock.patch("pytboss.api.get_grill", autospec=True) as mock_get_grill:
         yield mock_get_grill
 
 

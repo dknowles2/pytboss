@@ -1,5 +1,7 @@
 """Client library for Mongoose OS configuration RPCs."""
 
+from typing import Any
+
 from .ble import BleConnection
 
 
@@ -81,7 +83,7 @@ class Config:
 
 
 def _wifi_params(ssid: str | None = None, password: str | None = None) -> dict:
-    sta = {"enable": True}
+    sta: dict[str, Any] = {"enable": True}
     if ssid:
         sta["ssid"] = ssid
     if password:

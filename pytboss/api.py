@@ -4,99 +4,14 @@ import asyncio
 import inspect
 import json
 import logging
-from typing import Awaitable, Callable, TypedDict
+from typing import Awaitable, Callable
 
-from . import grills
 from .ble import BleConnection
 from .config import Config
 from .fs import FileSystem
+from .grills import Grill, StateDict, get_grill
 
 _LOGGER = logging.getLogger("pytboss")
-
-
-class StateDict(TypedDict, total=False):
-    """State of the grill."""
-
-    p1Target: int
-    """Target temperature for meat probe 1."""
-
-    p2Target: int | None
-    """Target temperature for meat probe 2."""
-
-    p1Temp: int | None
-    """Current temperature of meat probe 1 (if present)."""
-
-    p2Temp: int | None
-    """Current temperature of meat probe 2 (if present)."""
-
-    p3Temp: int
-    """Current temperature of meat probe 3 (if present)."""
-
-    p4Temp: int
-    """Current temperature of meat probe 4 (if present)."""
-
-    smokerActTemp: int
-    """Current temperature of the smoker."""
-
-    grillSetTemp: int
-    """Target temperature for the grill."""
-
-    grillTemp: int
-    """Current temperature of the grill."""
-
-    moduleIsOn: bool
-    """Whether the control module is powered on."""
-
-    err1: bool
-    """Whether there is an error with meat probe 1."""
-
-    err2: bool
-    """Whether there is an error with meat probe 2."""
-
-    err3: bool
-    """Whether there is an error with meat probe 3."""
-
-    highTempErr: bool
-    """Whether the temperature is too high."""
-
-    fanErr: bool
-    """Whether there was an error with the fan."""
-
-    hotErr: bool
-    """Whether there was an error with the igniter."""
-
-    motorErr: bool
-    """Whether there was an error with the auger."""
-
-    noPellets: bool
-    """Whether the pellet hopper is empty."""
-
-    erL: bool
-    """Whether there was an error in the start-up cycle."""
-
-    fanState: bool
-    """Whether the fan is currently on."""
-
-    hotState: bool
-    """Whether the igniter is currently on."""
-
-    motorState: bool
-    """Whether the auger is currently on."""
-
-    lightState: bool
-    """Whether the light is currently on."""
-
-    primeState: bool
-    """Whether the prime mode is on."""
-
-    isFahrenheit: bool
-    """Whether the temperature readings are in Fahrenheit."""
-
-    recipeStep: bool
-    """The current recipe step number."""
-
-    recipeTime: int
-    """The time remaining for this recipe step (in seconds)."""
 
 
 StateCallback = Callable[[StateDict], Awaitable[None] | None]
@@ -126,11 +41,11 @@ class PitBoss:
         """
         self.fs = FileSystem(conn)
         self.config = Config(conn)
-        self._spec: grills.Grill = grills.get_grill(grill_model)
+        self._spec: Grill = get_grill(grill_model)
         self._conn = conn
         self._lock = asyncio.Lock()  # protects callbacks and state.
-        self._state_callbacks = []
-        self._vdata_callbacks = []
+        self._state_callbacks: list[StateCallback] = []
+        self._vdata_callbacks: list[VDataCallback] = []
         self._state = StateDict()
 
     def is_connected(self) -> bool:
@@ -206,7 +121,7 @@ class PitBoss:
                 else:
                     callback(self._state)
 
-    async def _on_vdata_received(self, payload: bytearray):
+    async def _on_vdata_received(self, payload: str):
         vdata = json.loads(payload)
         _LOGGER.debug("VData received: %s", vdata)
         async with self._lock:
@@ -275,11 +190,11 @@ class PitBoss:
     async def get_state(self) -> StateDict:
         """Retrieves the current grill state."""
         resp = await self._conn.send_command("PB.GetState", {})
-        status = self._spec.control_board.parse_status(resp["sc_11"])
-        status.update(self._spec.control_board.parse_temperatures(resp["sc_12"]))
+        status = self._spec.control_board.parse_status(resp["sc_11"]) or {}
+        status.update(self._spec.control_board.parse_temperatures(resp["sc_12"]) or {})
         return status
 
-    async def get_firmware_version(self) -> str:
+    async def get_firmware_version(self) -> dict:
         """Returns the firmware version installed on the grill."""
         return await self._conn.send_command("PB.GetFirmwareVersion", {})
 
