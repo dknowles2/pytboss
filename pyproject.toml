@@ -4,18 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name            = "pytboss"
-# version         = "2023.4.0"
 description     = "Python library for interacting with PitBoss grills and smokers."
 authors         = [
     {name = "David Knowles", email = "dknowles2@gmail.com"},
 ]
 dependencies    = ["bleak", "bleak_retry_connector", "dukpy"]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dynamic         = ["readme", "version"]
 license         = {text = "Apache License 2.0"}
 keywords        = ["pitboss", "api", "iot", "ble"]
 classifiers     = [
-    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
