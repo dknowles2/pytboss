@@ -20,6 +20,9 @@ class StateDict(TypedDict, total=False):
     p1Target: int
     """Target temperature for meat probe 1."""
 
+    p2Target: int | None
+    """Target temperature for meat probe 2."""
+
     p1Temp: int | None
     """Current temperature of meat probe 1 (if present)."""
 
