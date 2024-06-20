@@ -112,6 +112,7 @@ The following models should be supported. Note however that only the `PBV4PS2` m
 *  [PB1450CS](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1450CS-2021-10-14-124.png)
 *  [PB1600 PSE](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS.Elite2024.png)
 *  [PB1600CS](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600CS-2021-10-14-EN-119.png)
+*  [PB1600CST](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600CST.png)
 *  [PB1600PS1](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS1-2020-5-22-single-105.png)
 *  [PB1600PS2](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS2-2021-8-17-120.png)
 *  [PB1600PS3](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS3.png)
@@ -162,4 +163,5 @@ The following models should be supported. Note however that only the `PBV4PS2` m
 *  [PBV6 PSE](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/V6%20Elite.png)
 *  [PBV6PSE](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/V6%20Elite.png)
 *  [PBV7PW1](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV7PW1_Sportsman-2021-6-30-controller123.png)
+*  [PBX - test 1](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS3.png)
 *  [Savannah Wi-Fi Upgrade](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/ghost%20grill.png)
