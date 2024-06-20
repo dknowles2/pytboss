@@ -103,6 +103,7 @@ class TestGetGrills:
             # These have bad parsing routines. Ignore.
             return
 
+        assert grill.control_board._temperatures_js_func is not None
         js = JSFunc(grill.control_board._temperatures_js_func)
         msg = Message()
 
@@ -153,7 +154,7 @@ class TestGetGrills:
 
                 in_c = grills_lib.f_to_c(want[key])
                 try:
-                    assert status[key] == in_c, f"{key}: {status[key]} != {in_c}"
+                    assert status[key] == in_c, f"{key}: {status[key]} != {in_c}"  # type: ignore[literal-required]
                 except AssertionError:
                     if key in ("p4Temp", "smokerActTemp"):
                         # Some grills don't convert these fields for some reason.
@@ -172,6 +173,7 @@ class TestGetGrills:
             return
 
         msg = Message()
+        assert grill.control_board._status_js_func is not None
         js = JSFunc(grill.control_board._status_js_func)
 
         # WARNING! THE ORDER HERE MATTERS!
@@ -257,9 +259,9 @@ class TestGetGrills:
             assert status["grillTemp"] == 225
             assert "grillSetTemp" not in status
 
-            error_keys = ("err1", "err2", "err3")
-            error_keys += ("highTempErr", "fanErr", "hotErr", "motorErr")
-            error_keys += ("noPellets", "erL")
+            error_keys = ["err1", "err2", "err3"]
+            error_keys += ["highTempErr", "fanErr", "hotErr", "motorErr"]
+            error_keys += ["noPellets", "erL"]
             for key in error_keys:
                 if key in msg:
                     msg[key] = "01"
@@ -267,7 +269,7 @@ class TestGetGrills:
             assert status is not None
             for key in error_keys:
                 if key in msg:
-                    assert status[key]
+                    assert status[key]  # type: ignore[literal-required]
 
             msg["isFahrenheit"] = "00"
             status = grill.control_board.parse_status(str(msg))
@@ -277,7 +279,7 @@ class TestGetGrills:
                     continue
                 in_c = grills_lib.f_to_c(want[key])
                 try:
-                    assert status[key] == in_c, f"{key}: {status[key]} != {in_c}"
+                    assert status[key] == in_c, f"{key}: {status[key]} != {in_c}"  # type: ignore[literal-required]
                 except AssertionError:
                     if key in ("p4Temp", "smokerActTemp"):
                         # Some grills don't convert these fields for some reason.

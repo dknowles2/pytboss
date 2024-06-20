@@ -62,7 +62,6 @@ def get_control_board_grills(control_board, auth):
 
 
 def main():
-    cfg_txt = (Path.home() / ".pitboss").read_text()
     cfg = configparser.ConfigParser()
     cfg.read(str(Path.home() / ".pitboss"))
     auth = login(cfg["pitboss"]["username"], cfg["pitboss"]["password"])
