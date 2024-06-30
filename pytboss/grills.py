@@ -5,28 +5,12 @@ from dataclasses import dataclass, field
 from functools import cache
 from importlib import resources
 import json
-from math import floor
 import re
 from typing import Any, TypedDict
 
 from dukpy import evaljs
 
 from .exceptions import InvalidGrill
-
-# Control boards that already convert Fahrenheit to Celsius.
-_HAS_FTOC = ("LFS", "PBM", "PBT", "PBV")
-
-TEMPERATURE_FIELDS = (
-    "p1Target",
-    "p2Target",
-    "p1Temp",
-    "p2Temp",
-    "p3Temp",
-    "p4Temp",
-    "grillSetTemp",
-    "grillTemp",
-    "smokerActTemp",
-)
 
 _COMMAND_JS_TMPL = """\
 function command() {
@@ -75,13 +59,6 @@ def _scrub_js(s: str | None) -> str | None:
     s = s.replace("let ", "var ")
     s = s.replace("const ", "var ")
     return s
-
-
-def f_to_c(temp: int | None) -> int | None:
-    """Converts a temperature from Fahrenheit to Celsius."""
-    if temp is None:
-        return temp
-    return floor((temp - 32) / 1.8)
 
 
 class StateDict(TypedDict, total=False):
@@ -238,16 +215,7 @@ class ControlBoard:
 
     def _evaljs(self, js_func: str, message: str) -> StateDict | None:
         js = _CONTROLLER_JS_TMPL % js_func
-        status = evaljs(js, message=message)
-        if (
-            status is not None
-            and self.name not in _HAS_FTOC
-            and not status.get("isFahrenheit", True)
-        ):
-            for k in TEMPERATURE_FIELDS:
-                if k in status:
-                    status[k] = f_to_c(status.get(k, None))
-        return status
+        return evaljs(js, message=message)
 
     def parse_status(self, message: str) -> StateDict | None:
         """Parses a status message."""

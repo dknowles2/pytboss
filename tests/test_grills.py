@@ -1,10 +1,35 @@
 from contextlib import contextmanager
+from math import floor
 import re
 
 import pytest
 
 from pytboss import grills as grills_lib
 from pytboss.exceptions import InvalidGrill
+
+# Most control boards perform the fahrenheit to celsius conversion internally,
+# however these boards do NOT and instead rely on the conversion to happen in
+# their JS snippets.
+_HAS_FTOC = ("LFS", "PBM", "PBT", "PBV")
+
+TEMPERATURE_FIELDS = (
+    "p1Target",
+    "p2Target",
+    "p1Temp",
+    "p2Temp",
+    "p3Temp",
+    "p4Temp",
+    "grillSetTemp",
+    "grillTemp",
+    "smokerActTemp",
+)
+
+
+def f_to_c(temp: int | None) -> int | None:
+    """Converts a temperature from Fahrenheit to Celsius."""
+    if temp is None:
+        return temp
+    return floor((temp - 32) / 1.8)
 
 
 class TestCommand:
@@ -148,13 +173,15 @@ class TestGetGrills:
             msg["isFahrenheit"] = "00"
             status = grill.control_board.parse_temperatures(str(msg))
             assert status is not None
-            for key in grills_lib.TEMPERATURE_FIELDS:
+            for key in TEMPERATURE_FIELDS:
                 if key not in msg or key not in want:
                     continue
 
-                in_c = grills_lib.f_to_c(want[key])
+                temp = want[key]
+                if grill.control_board.name in _HAS_FTOC:
+                    temp = f_to_c(want[key])
                 try:
-                    assert status[key] == in_c, f"{key}: {status[key]} != {in_c}"  # type: ignore[literal-required]
+                    assert status[key] == temp, f"{key}: {status[key]} != {temp}"  # type: ignore[literal-required]
                 except AssertionError:
                     if key in ("p4Temp", "smokerActTemp"):
                         # Some grills don't convert these fields for some reason.
@@ -274,12 +301,14 @@ class TestGetGrills:
             msg["isFahrenheit"] = "00"
             status = grill.control_board.parse_status(str(msg))
             assert status is not None
-            for key in grills_lib.TEMPERATURE_FIELDS:
+            for key in TEMPERATURE_FIELDS:
                 if key not in msg or key not in want:
                     continue
-                in_c = grills_lib.f_to_c(want[key])
+                temp = want[key]
+                if grill.control_board.name in _HAS_FTOC:
+                    temp = f_to_c(want[key])
                 try:
-                    assert status[key] == in_c, f"{key}: {status[key]} != {in_c}"  # type: ignore[literal-required]
+                    assert status[key] == temp, f"{key}: {status[key]} != {temp}"  # type: ignore[literal-required]
                 except AssertionError:
                     if key in ("p4Temp", "smokerActTemp"):
                         # Some grills don't convert these fields for some reason.
