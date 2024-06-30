@@ -25,7 +25,7 @@ TEMPERATURE_FIELDS = (
 )
 
 
-def f_to_c(temp: int | None) -> int | None:
+def f_to_c(temp: int) -> int:
     """Converts a temperature from Fahrenheit to Celsius."""
     if temp is None:
         return temp
