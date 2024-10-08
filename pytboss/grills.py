@@ -2,7 +2,6 @@
 
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from functools import cache
 from importlib import resources
 import json
 import re
