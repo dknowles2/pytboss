@@ -12,6 +12,8 @@ from dukpy import evaljs
 
 from .exceptions import InvalidGrill
 
+_GRILLS = json.loads(resources.files(__package__).joinpath("grills.json").read_text())
+
 _COMMAND_JS_TMPL = """\
 function command() {
     var formatHex = function(n) {
@@ -289,20 +291,13 @@ class Grill:
         )
 
 
-@cache
-def _read_grills() -> dict:
-    """Reads all known grill specifications."""
-    grills_json = resources.files(__package__).joinpath("grills.json").read_text()
-    return json.loads(grills_json)
-
-
 def get_grills(control_board: str | None = None) -> Iterable[Grill]:
     """Retrieves grill specifications.
 
     :param control_board: If specified, returns only grills with this control board.
     :type control_board: str or None
     """
-    for grill in _read_grills().values():
+    for grill in _GRILLS.values():
         if not grill["control_board"].get("status_function"):
             continue
         if control_board is None or grill["control_board"]["name"] == control_board:
@@ -315,6 +310,6 @@ def get_grill(grill_name: str) -> Grill:
     :param grill_name: The name of the grill specification to retrieve.
     :type grill_name: str
     """
-    if (grill := _read_grills().get(grill_name, None)) is None:
+    if (grill := _GRILLS.get(grill_name, None)) is None:
         raise InvalidGrill(f"Unknown grill name: {grill_name}")
     return Grill.from_dict(grill)
