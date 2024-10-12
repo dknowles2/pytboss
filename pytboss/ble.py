@@ -239,7 +239,9 @@ class BleConnection:
 
         if fut and not fut.cancelled():
             if "error" in payload:
-                fut.set_exception(RPCError(payload.get("message", "Unknown error")))
+                fut.set_exception(
+                    RPCError(payload["error"].get("message", "Unknown error"))
+                )
                 return
 
             fut.set_result(payload["result"])
