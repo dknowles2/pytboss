@@ -20,14 +20,18 @@ async def test_connect_disconnect(
     mock_establish_connection.return_value = mock_bleak_client
 
     conn = ble.BleConnection(mock_device)
-    await conn.connect()
+    cb = mock.AsyncMock()
+    await conn.connect(cb, cb)
     assert conn.is_connected()
     await conn.disconnect()
     assert not conn.is_connected()
 
     mock_establish_connection.assert_awaited()
-    mock_bleak_client.start_notify.assert_awaited_with(
-        ble.CHAR_RPC_RX_CTL, conn._on_rpc_data_received
+    mock_bleak_client.start_notify.assert_has_awaits(
+        [
+            mock.call(ble.CHAR_RPC_RX_CTL, conn._on_rpc_data_received),
+            mock.call(ble.CHAR_DEBUG_LOG, conn._on_debug_log_received),
+        ]
     )
     mock_bleak_client.disconnect.assert_awaited()
 
@@ -43,68 +47,27 @@ async def test_reset_device(mock_establish_connection):
     mock_establish_connection.return_value = mock_old_bleak_client
 
     conn = ble.BleConnection(mock_old_device)
-    await conn.connect()
-
-    mock_establish_connection.assert_awaited_with(
-        client_class=BleakClientWithServiceCache,
-        device=mock_old_device,
-        name=mock_old_device.name,
-        disconnected_callback=conn._on_disconnected,
-    )
-    mock_old_bleak_client.disconnect.side_effect = lambda: conn._on_disconnected(None)
-    mock_old_bleak_client.start_notify.assert_awaited_with(
-        ble.CHAR_RPC_RX_CTL, conn._on_rpc_data_received
-    )
-
-    mock_establish_connection.return_value = mock_new_bleak_client
-    await conn.reset_device(mock_new_device)
-    assert conn.is_connected()
-
-    mock_old_bleak_client.disconnect.assert_awaited()
-    mock_establish_connection.assert_awaited_with(
-        client_class=BleakClientWithServiceCache,
-        device=mock_new_device,
-        name=mock_new_device.name,
-        disconnected_callback=conn._on_disconnected,
-    )
-    mock_new_bleak_client.start_notify.assert_awaited_with(
-        ble.CHAR_RPC_RX_CTL, conn._on_rpc_data_received
-    )
-
-
-@mock.patch("bleak_retry_connector.establish_connection")
-async def test_reset_device_with_debug_log_subscription(mock_establish_connection):
-    mock_old_device = mock.create_autospec(bleak.BLEDevice)
-    mock_new_device = mock.create_autospec(bleak.BLEDevice)
-    mock_old_device.name = "OLD DEVICE NAME"
-    mock_new_device.name = "NEW DEVICE NAME"
-    mock_old_bleak_client = mock.create_autospec(bleak.BleakClient)
-    mock_new_bleak_client = mock.create_autospec(bleak.BleakClient)
-    mock_establish_connection.return_value = mock_old_bleak_client
-
-    conn = ble.BleConnection(mock_old_device)
-    await conn.connect()
-    assert conn.is_connected()
-
-    mock_establish_connection.assert_awaited_with(
-        client_class=BleakClientWithServiceCache,
-        device=mock_old_device,
-        name=mock_old_device.name,
-        disconnected_callback=conn._on_disconnected,
-    )
-    mock_old_bleak_client.disconnect.side_effect = lambda: conn._on_disconnected(None)
-    mock_old_bleak_client.start_notify.assert_awaited_with(
-        ble.CHAR_RPC_RX_CTL, conn._on_rpc_data_received
-    )
     cb = mock.AsyncMock()
-    await conn.subscribe_debug_logs(cb)
-    mock_old_bleak_client.start_notify.assert_awaited_with(
-        ble.CHAR_DEBUG_LOG, conn._on_debug_log_received
+    await conn.connect(cb, cb)
+
+    mock_establish_connection.assert_awaited_with(
+        client_class=BleakClientWithServiceCache,
+        device=mock_old_device,
+        name=mock_old_device.name,
+        disconnected_callback=conn._on_disconnected,
+    )
+    mock_old_bleak_client.disconnect.side_effect = lambda: conn._on_disconnected(None)
+    mock_old_bleak_client.start_notify.assert_has_awaits(
+        [
+            mock.call(ble.CHAR_RPC_RX_CTL, conn._on_rpc_data_received),
+            mock.call(ble.CHAR_DEBUG_LOG, conn._on_debug_log_received),
+        ]
     )
 
     mock_establish_connection.return_value = mock_new_bleak_client
     await conn.reset_device(mock_new_device)
     assert conn.is_connected()
+
     mock_old_bleak_client.disconnect.assert_awaited()
     mock_establish_connection.assert_awaited_with(
         client_class=BleakClientWithServiceCache,
@@ -129,16 +92,13 @@ async def test_subscribe_debug_logs(
     mock_establish_connection.return_value = mock_bleak_client
 
     conn = ble.BleConnection(mock_device)
-    await conn.connect()
-    cb = mock.AsyncMock()
-    await conn.subscribe_debug_logs(cb)
+    state_cb = mock.AsyncMock()
+    vdata_cb = mock.AsyncMock
+    await conn.connect(state_cb, vdata_cb)
 
-    mock_bleak_client.start_notify.assert_awaited_with(
-        ble.CHAR_DEBUG_LOG, conn._on_debug_log_received
-    )
-    data = bytearray("Hello world".encode("utf-8"))
-    await conn._on_debug_log_received(mock.Mock(), data)
-    cb.assert_called_once_with(data)
+    state_data = bytearray("<==PB: STATE [5]".encode("utf-8"))
+    await conn._on_debug_log_received(state_data)
+    state_cb.assert_called_once_with("STATE")
 
 
 @mock.patch("bleak_retry_connector.establish_connection")
@@ -148,7 +108,8 @@ async def test_send_command(mock_device, mock_bleak_client, mock_establish_conne
     mock_establish_connection.return_value = mock_bleak_client
     loop = asyncio.get_running_loop()
     conn = ble.BleConnection(mock_device, loop=loop)
-    await conn.connect()
+    cb = mock.AsyncMock()
+    await conn.connect(cb, cb)
     future = loop.create_future()
     with mock.patch.object(loop, "create_future") as mock_create_future:
         mock_create_future.return_value = future
@@ -182,7 +143,8 @@ async def test_on_rpc_data_received(
     mock_establish_connection.return_value = mock_bleak_client
     loop = asyncio.get_running_loop()
     conn = ble.BleConnection(mock_device, loop=loop)
-    await conn.connect()
+    cb = mock.AsyncMock()
+    await conn.connect(cb, cb)
     future = loop.create_future()
     conn._rpc_futures[1] = future
 
@@ -209,7 +171,8 @@ async def test_on_rpc_error_received(
     mock_establish_connection.return_value = mock_bleak_client
     loop = asyncio.get_running_loop()
     conn = ble.BleConnection(mock_device, loop=loop)
-    await conn.connect()
+    cb = mock.AsyncMock()
+    await conn.connect(cb, cb)
     future = loop.create_future()
     conn._rpc_futures[1] = future
 
