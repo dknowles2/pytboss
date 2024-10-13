@@ -6,10 +6,10 @@ import json
 import logging
 from typing import Awaitable, Callable
 
-from .ble import BleConnection
 from .config import Config
 from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
+from .transport import Transport
 
 _LOGGER = logging.getLogger("pytboss")
 
@@ -30,11 +30,11 @@ class PitBoss:
     config: Config
     """Configuration operations."""
 
-    def __init__(self, conn: BleConnection, grill_model: str) -> None:
+    def __init__(self, conn: Transport, grill_model: str) -> None:
         """Initializes the class.
 
-        :param conn: BLE transport for the grill.
-        :type conn: pytboss.ble.BleConnection
+        :param conn: Connection transport for the grill.
+        :type conn: pytboss.transport.Transport
         :param grill_model: The grill model. This is necessary to determine all
             supported commands and cannot be determined automatically.
         :type grill_model: str
@@ -58,8 +58,7 @@ class PitBoss:
         Required to be called before the API can be used.
         """
         # TODO: Add support for stop()
-        await self._conn.connect()
-        await self._conn.subscribe_debug_logs(self._on_debug_log_received)
+        await self._conn.connect(self._on_state_received, self._on_vdata_received)
 
     async def subscribe_state(self, callback: StateCallback):
         """Registers a callback to receive grill state updates.
@@ -80,23 +79,6 @@ class PitBoss:
         # TODO: Return a handle for unsubscribe.
         async with self._lock:
             self._vdata_callbacks.append(callback)
-
-    async def _on_debug_log_received(self, data: bytearray):
-        _LOGGER.debug("Debug log received: %s", data)
-        parts = data.decode("utf-8").split()
-        if len(parts) != 3:
-            # Unknown payload; ignore.
-            return
-
-        head, payload, tail = parts
-        checksum = int(tail[1 : len(tail) - 1])  # noqa: E203
-        if len(payload) != checksum:
-            # Bad payload; ignore.
-            return
-        if head == "<==PB:":
-            await self._on_state_received(payload)
-        elif head == "<==PBD:":
-            await self._on_vdata_received(payload)
 
     async def _on_state_received(self, payload: str):
         _LOGGER.debug("State received: %s", payload)
