@@ -13,8 +13,8 @@ import logging
 from typing import Callable
 from uuid import UUID
 
-from bleak import BleakClient, BleakGATTCharacteristic, BLEDevice
 import bleak_retry_connector
+from bleak import BleakClient, BleakGATTCharacteristic, BLEDevice
 from bleak_retry_connector import BleakClientWithServiceCache
 
 from .transport import RawStateCallback, RawVDataCallback, Transport
