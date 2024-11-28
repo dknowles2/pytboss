@@ -18,11 +18,6 @@ class Transport(ABC):
         self._last_command_id = 0
         self._rpc_futures: dict[int, Future[Any]] = {}
 
-    async def _next_command_id(self) -> int:
-        async with self._lock:
-            self._last_command_id = self._last_command_id + 1 & 2047
-            return self._last_command_id
-
     @abstractmethod
     async def connect(
         self, state_callback: RawStateCallback, vdata_callback: RawVDataCallback
@@ -32,6 +27,9 @@ class Transport(ABC):
     @abstractmethod
     def is_connected(self) -> bool:
         """Whether there is an active connection to the device."""
+
+    @abstractmethod
+    async def _send_prepared_command(self, cmd: dict) -> None: ...
 
     async def send_command(self, method: str, params: dict) -> dict:
         """Sends a comand to the device.
@@ -59,6 +57,11 @@ class Transport(ABC):
         """
         await self._send_prepared_command(self._prepare_command(method, params))
 
+    async def _next_command_id(self) -> int:
+        async with self._lock:
+            self._last_command_id = self._last_command_id + 1 & 2047
+            return self._last_command_id
+
     async def _prepare_command(self, method: str, params: dict) -> dict:
         return {"id": await self._next_command_id(), "method": method, "params": params}
 
@@ -75,7 +78,3 @@ class Transport(ABC):
             else:
                 future.set_result(payload["result"])
         return True
-
-    @abstractmethod
-    async def _send_prepared_command(self, cmd: dict) -> None:
-        ...
