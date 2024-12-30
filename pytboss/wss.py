@@ -1,7 +1,7 @@
 """WebSocket connection support for PitBoss grills."""
 
 import logging
-from asyncio import AbstractEventLoop, Event, Task, get_running_loop
+from asyncio import AbstractEventLoop, Event, Task
 from typing import Any
 from uuid import uuid4
 
@@ -33,8 +33,7 @@ class WebSocketConnection(Transport):
             one will be generated automatically.
         :param base_url: Base URL to use for connections.
         """
-        super().__init__()
-        self._loop: AbstractEventLoop = loop or get_running_loop()
+        super().__init__(loop=loop)
         self._session = session or ClientSession(loop=self._loop)
         self._sock: ClientWebSocketResponse | None = None
         self._url = f"{base_url}/to/{grill_id}"

@@ -58,11 +58,7 @@ class BleConnection(Transport):
         :param disconnect_callback: Function to call when the BLE connection is disconnected.
         :param loop: An asyncio loop to use. If `None`, the default loop will be used.
         """
-        super().__init__()
-        if loop is None:
-            loop = asyncio.get_running_loop()
-        self._loop = loop
-
+        super().__init__(loop=loop)
         self._ble_device: BLEDevice = ble_device
         self._disconnect_callback = disconnect_callback
         self._is_connected = False
