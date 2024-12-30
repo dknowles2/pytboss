@@ -30,12 +30,13 @@ class PitBoss:
     config: Config
     """Configuration operations."""
 
-    def __init__(self, conn: Transport, grill_model: str) -> None:
+    def __init__(self, conn: Transport, grill_model: str, password: str = "") -> None:
         """Initializes the class.
 
         :param conn: Connection transport for the grill.
         :param grill_model: The grill model. This is necessary to determine all
             supported commands and cannot be determined automatically.
+        :param password: The grill password.
         """
         self.fs = FileSystem(conn)
         self.config = Config(conn)
@@ -43,6 +44,7 @@ class PitBoss:
         self._conn = conn
         self._conn.set_state_callback(self._on_state_received)
         self._conn.set_vdata_callback(self._on_vdata_received)
+        self._password = password
         self._lock = asyncio.Lock()  # protects callbacks and state.
         self._state_callbacks: list[StateCallback] = []
         self._vdata_callbacks: list[VDataCallback] = []
@@ -113,12 +115,29 @@ class PitBoss:
                 else:
                     callback(vdata)
 
+    def _authenticate(self, params: dict) -> dict:
+        if self._password:
+            params["psw"] = self._password.encode("utf-8").hex()
+        return params
+
     async def _send_hex_command(self, cmd: str) -> dict:
-        return await self._conn.send_command("PB.SendMCUCommand", {"command": cmd})
+        return await self._conn.send_command(
+            "PB.SendMCUCommand", self._authenticate({"command": cmd})
+        )
 
     async def _send_command(self, slug: str, *args) -> dict:
         cmd = self._spec.control_board.commands[slug]
         return await self._send_hex_command(cmd(*args))
+
+    async def set_grill_password(self, new_password: str) -> None:
+        """Sets the grill password.
+
+        :param new_password: The new password to set.
+        """
+        await self._conn.send_command(
+            "PB.SetDevicePassword",
+            self._authenticate({"newPassword": new_password.encode("utf-8").hex()}),
+        )
 
     async def set_grill_temperature(self, temp: int) -> dict:
         """Sets the target grill temperature.
@@ -165,7 +184,7 @@ class PitBoss:
 
     async def get_state(self) -> StateDict:
         """Retrieves the current grill state."""
-        resp = await self._conn.send_command("PB.GetState", {})
+        resp = await self._conn.send_command("PB.GetState", self._authenticate({}))
         status = self._spec.control_board.parse_status(resp["sc_11"]) or {}
         status.update(self._spec.control_board.parse_temperatures(resp["sc_12"]) or {})
         return status
@@ -183,16 +202,21 @@ class PitBoss:
     async def set_wifi_update_frequency(self, fast=5, slow=60):
         """:meta private:"""
         return await self._conn.send_command(
-            "PB.SetWifiUpdateFrequency", {"slow": slow, "fast": fast}
+            "PB.SetWifiUpdateFrequency",
+            self._authenticate({"slow": slow, "fast": fast}),
         )
 
-    async def set_virtual_data(self, data):
+    async def set_virtual_data(self, data: dict):
         """:meta private:"""
-        return await self._conn.send_command("PB.SetVirtualData", data)
+        return await self._conn.send_command(
+            "PB.SetVirtualData", self._authenticate(data)
+        )
 
     async def get_virtual_data(self):
         """:meta private:"""
-        return await self._conn.send_command("PB.GetVirtualData", {})
+        return await self._conn.send_command(
+            "PB.GetVirtualData", self._authenticate({})
+        )
 
     async def ping(self, timeout: float | None = None) -> dict:
         """Pings the device.

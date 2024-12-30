@@ -1,23 +1,25 @@
 from unittest import mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from pytboss import api, ble, grills
+from pytboss import api, grills
 from pytboss.exceptions import InvalidGrill
+from pytboss.transport import Transport
 
 
 @pytest.fixture
-def mock_conn():
-    return mock.create_autospec(ble.BleConnection)
+def mock_conn() -> AsyncMock:
+    return mock.create_autospec(Transport)
 
 
 @pytest.fixture
-def mock_cmd():
+def mock_cmd() -> Mock:
     return mock.create_autospec(grills.Command, instance=True)
 
 
 @pytest.fixture
-def mock_control_board():
+def mock_control_board() -> Mock:
     return mock.create_autospec(grills.ControlBoard)
 
 
@@ -101,6 +103,34 @@ class TestApi:
             "grillTemp": 220,
             "isFahrenheit": True,
         }
+
+    async def test_set_password(
+        self, mock_conn: AsyncMock, mock_get_grill: Mock, mock_control_board: Mock
+    ):
+        grill = grills.Grill(name="my-grill", control_board=mock_control_board)
+        mock_get_grill.return_value = grill
+        pitboss = api.PitBoss(mock_conn, "my-grill")
+        mock_conn.send_command.return_value = {}
+        await pitboss.set_grill_password("_new-password_")
+        mock_conn.send_command.assert_awaited_once_with(
+            "PB.SetDevicePassword", {"newPassword": "5f6e65772d70617373776f72645f"}
+        )
+
+    async def test_set_password_with_old_password(
+        self, mock_conn: AsyncMock, mock_get_grill: Mock, mock_control_board: Mock
+    ):
+        grill = grills.Grill(name="my-grill", control_board=mock_control_board)
+        mock_get_grill.return_value = grill
+        pitboss = api.PitBoss(mock_conn, "my-grill", "_old-password_")
+        mock_conn.send_command.return_value = {}
+        await pitboss.set_grill_password("_new-password_")
+        mock_conn.send_command.assert_awaited_once_with(
+            "PB.SetDevicePassword",
+            {
+                "newPassword": "5f6e65772d70617373776f72645f",
+                "psw": "5f6f6c642d70617373776f72645f",
+            },
+        )
 
     async def test_set_grill_temperature(
         self, mock_conn, mock_get_grill, mock_control_board, mock_cmd
