@@ -1,5 +1,5 @@
-//PitBoss Firmware 0.2.3
-//Written by Mauro Minoro for Dansons in 2022
+//PitBoss Firmware 0.5.7
+//Written by Mauro Minoro for Dansons in 2022-2023
 
 load("api_ota.js");
 load("api_events.js");
@@ -15,8 +15,9 @@ load("api_rpc.js");
 load("api_gpio.js");
 load("api_bt_gattc.js");
 load("lib_ws.js");
+load("platform.js");
 
-let hasDisconnected = false;
+let isWiFiConnected = false;
 let uartNo = 1;
 let uartBuffer = "";
 let lastStatus = {
@@ -41,17 +42,70 @@ let mcuTime = 0;
 let vData = null;
 let sendVData = false;
 let moduleIsOn = false;
-let powerStatusPos = {
-  PBL: 24,
-  PBC: 24,
-  PBG: 24,
-  PBM: 18,
-  LFS: 21,
-  LBL: 21,
-  PBA: 27,
-  PBB: 23,
-  PBV: 24,
-};
+let lastWasOn = false;
+let grillPassword = "";
+let wsIsConnecting = false;
+
+RPC.addHandler("PB.GetFirmwareVersion", function (params) {
+  return {
+    firmwareVersion: "0.5.7",
+  };
+});
+
+function getCodecTime() {
+  return Math.floor(Math.max(Sys.uptime() - 5, 0) / 10);
+}
+
+function getCodecKey(key, time) {
+  let x = [];
+  let l = time;
+  while (key.length > 1) {
+    let p = l % key.length;
+    let v = key[p];
+    key.splice(p, 1);
+    x.push((v ^ l) & 0xff);
+    l = (l * v + v) & 0xff;
+  }
+  x.push(key[0]);
+
+  return x;
+}
+
+function codec(data, key, paddingLen) {
+  let out = "";
+  let i;
+  if (paddingLen > 0) {
+    data = chr(0xff) + data;
+    for (i = 0; i < paddingLen; i++) {
+      let rndv = Math.rand() & 0xff;
+      if (rndv === 0xff) {
+        rndv = 0xfe;
+      }
+      data = chr(rndv) + data;
+    }
+  }
+
+  for (i = 0; i < data.length; i++) {
+    let k = key[i % key.length];
+    let m = (data.at(i) ^ k) & 0xff;
+    out += chr(m);
+    let k2 = (i + 1) % key.length;
+    if (paddingLen > 0) {
+      key[k2] = ((key[k2] ^ m) + i) & 0xff;
+    } else {
+      key[k2] = ((key[k2] ^ data.at(i)) + i) & 0xff;
+    }
+  }
+  if (paddingLen < 1) {
+    for (i = 0; i < out.length; i++) {
+      if (out.at(i) === 0xff) {
+        out = out.slice(i + 1);
+        break;
+      }
+    }
+  }
+  return out;
+}
 
 function toHex(num) {
   let digits = "0123456789ABCDEF";
@@ -82,6 +136,23 @@ function toHexStr(raw) {
     result += toHex(raw.at(i));
   }
   return result;
+}
+
+function fromHexStr(value) {
+  let len = value.length;
+  let rawData = "";
+
+  //make sure function doesn't crash;
+  if ((len & 1) !== 0) {
+    value += "0";
+  }
+
+  for (let x = 0; x < len; x += 2) {
+    let char = (fromHex(value.at(x)) << 4) + fromHex(value.at(x + 1));
+
+    rawData += chr(char);
+  }
+  return rawData;
 }
 
 function getStatusKey(commandNumber) {
@@ -132,29 +203,29 @@ function sendWSStatus() {
   }
 }
 
-function handlePacket(pck) {
+function handlePacket(pck, isRaw) {
   let decString = "";
-  let key = getStatusKey(pck.at(1));
-  if (pck.at(1) === 11) {
-    let deviceType = deviceId.slice(0, 3);
-    if (typeof powerStatusPos[deviceType] === "number") {
-      let pos = powerStatusPos[deviceType];
-      if (pck.length > pos) {
-        moduleIsOn = pck.at(pos) === 1;
+  let key = "";
+  if (isRaw !== true && pck.length > 1) {
+    key = getStatusKey(pck.at(1));
+    if (pck.at(1) === 11) {
+      if (pck.length > powerStatusPos) {
+        moduleIsOn = pck.at(powerStatusPos) === 1;
+      }
+    }
+    if (moduleIsOn === false) {
+      vData = null;
+    } else {
+      if (wsConn === null) {
+        WSConnect();
       }
     }
   }
-  if (moduleIsOn === false) {
-    vData = null;
-  }
   if (key !== "") {
     lastStatus[key] = pck;
-    decString = toHexStr(pck);
-    sendBTStatus(decString + " [" + JSON.stringify(decString.length) + "]");
-  } else {
-    decString = toHexStr(pck);
-    sendBTStatus(decString + " [" + JSON.stringify(decString.length) + "]");
   }
+  decString = toHexStr(pck);
+  sendBTStatus(decString + " [" + JSON.stringify(decString.length) + "]");
 }
 
 function initUART() {
@@ -184,20 +255,35 @@ function initUART() {
 
       if (ra > 0) {
         let data = UART.read(uartNo);
-
         uartBuffer += data;
-        let dStart = uartBuffer.indexOf("\xFE");
-        if (dStart >= 0) {
-          if (dStart > 0) {
-            uartBuffer = uartBuffer.slice(dStart, uartBuffer.length);
+
+        while (true) {
+          let dStart = uartBuffer.indexOf("\xFE");
+          let iapLen = psUartMessage(uartBuffer, dStart);
+          if (iapLen > 0) {
+            uartBuffer = uartBuffer.slice(iapLen, uartBuffer.length);
+            continue;
+          } else if (iapLen < 0) {
+            break;
+          } else {
+            if (dStart >= 0) {
+              if (dStart > 0) {
+                uartBuffer = uartBuffer.slice(dStart, uartBuffer.length);
+              }
+              let dEnd = uartBuffer.indexOf("\xFF");
+              if (dEnd >= 0) {
+                let packet = uartBuffer.slice(0, dEnd + 1);
+                uartBuffer = uartBuffer.slice(dEnd + 1, uartBuffer.length);
+                if (packet.length > 0) {
+                  handlePacket(packet, false);
+                }
+                continue;
+              }
+            }
           }
-          let dEnd = uartBuffer.indexOf("\xFF");
-          if (dEnd >= 0) {
-            let packet = uartBuffer.slice(0, dEnd + 1);
-            uartBuffer = uartBuffer.slice(dEnd + 1, uartBuffer.length);
-            handlePacket(packet);
-          }
+          break;
         }
+
         if (uartBuffer.length > 2048) {
           uartBuffer = uartBuffer.slice(
             uartBuffer.length - 2048,
@@ -221,30 +307,14 @@ function rebootWithDelay(Delay) {
   );
 }
 
-function setWiFiCredentials(pSSID, pPASSWORD) {
-  Cfg.set({ wifi: { sta: { ssid: pSSID, pass: pPASSWORD, enable: true } } });
-
-  rebootWithDelay(2000);
-}
-
 function uartSend(message) {
   UART.write(uartNo, message);
   UART.flush(uartNo);
 }
 
 function sendMCUCommand(pCommand) {
-  let pRawCommand = pCommand + " ";
-  let numberOfDigits = pRawCommand.length >> 1;
-  let mcuCommand = "";
+  let mcuCommand = fromHexStr(pCommand);
 
-  for (let x = 0; x < numberOfDigits; x++) {
-    let position = x << 1;
-    let char =
-      (fromHex(pRawCommand.at(position)) << 4) +
-      fromHex(pRawCommand.at(position + 1));
-
-    mcuCommand = mcuCommand + chr(char);
-  }
   lastStatus.sc_11 = "";
   lastStatus.sc_12 = "";
   uartSend(mcuCommand);
@@ -266,13 +336,49 @@ function loadConfig() {
   if (typeof Cfg.get("app.wsSlowInterval") === "number") {
     wsSlowInterval = Cfg.get("app.wsSlowInterval");
   }
+  let data = File.read("extconfig.json");
+  if (data === null) {
+    return;
+  }
+  let extConfig = JSON.parse(data);
+  data = "";
+  if (typeof extConfig !== "object") {
+    return;
+  }
+  if (typeof extConfig.psw === "string") {
+    grillPassword = codec(
+      fromHexStr(extConfig.psw),
+      [0xc3, 0x3a, 0x77, 0xf0, 0xda, 0x52, 0x6f, 0x16],
+      0
+    );
+  }
+}
+
+function saveExtConfig() {
+  let extConfig = {
+    psw: toHexStr(
+      codec(grillPassword, [0xc3, 0x3a, 0x77, 0xf0, 0xda, 0x52, 0x6f, 0x16], 4)
+    ),
+  };
+  let rawData = JSON.stringify(extConfig);
+  let fs = File.fopen("extconfig.json", "w");
+  if (fs === null) {
+    return;
+  }
+  File.fwrite(rawData, 1, rawData.length, fs);
+  File.fclose(fs);
 }
 
 function WSConnect() {
+  if (wsIsConnecting === true || isWiFiConnected === false) {
+    return;
+  }
+  wsIsConnecting = true;
   WS.connect({
     url: wsUrl,
     onconnected: function (conn) {
       wsConn = conn;
+      wsIsConnecting = false;
     },
     onframe: function (conn, data, op) {
       let rpccmd = JSON.parse(data);
@@ -313,18 +419,12 @@ function WSConnect() {
       }
     },
     ondisconnected: function (err) {
+      print("ondisconnected", wsIsConnecting, wsConn);
       if (wsConn !== null) {
         wsConn = null;
       }
+      wsIsConnecting = false;
       //try reconnecting in 5 seconds
-      Timer.set(
-        5000,
-        0,
-        function () {
-          WSConnect();
-        },
-        null
-      );
     },
   });
 }
@@ -369,14 +469,38 @@ function startMCU_UpdateTimer() {
       wsTime--;
       if (wsTime <= 0) {
         wsTime = wsWDT > 0 ? wsFastInterval : wsSlowInterval;
-        sendWSStatus();
+        if (lastWasOn || moduleIsOn) {
+          sendWSStatus();
+        }
+        lastWasOn = moduleIsOn;
       }
     },
     null
   );
 }
 
+function checkPassword(params) {
+  if (grillPassword === "") {
+    return true;
+  }
+  if (typeof params !== "object" || typeof params.psw !== "string") {
+    return false;
+  }
+  let x = getCodecTime();
+
+  let key = getCodecKey([0x8f, 0x80, 0x19, 0xcf, 0x77, 0x6c, 0xfe, 0xb7], x);
+  let data = fromHexStr(params.psw);
+  if (codec(data, key, 0) === grillPassword) {
+    return true;
+  }
+  key = getCodecKey([0x8f, 0x80, 0x19, 0xcf, 0x77, 0x6c, 0xfe, 0xb7], x + 1);
+  return codec(data, key, 0) === grillPassword;
+}
+
 RPC.addHandler("PB.SendMCUCommand", function (params) {
+  if (!checkPassword(params)) {
+    return { error: 401, message: "Unauthorized" };
+  }
   if (typeof params === "object") {
     if (typeof params.command === "string") {
       if (params.command.length > 0) {
@@ -398,22 +522,26 @@ Event.addGroupHandler(
   Net.EVENT_GRP,
   function (ev, evdata, arg) {
     if (ev === Net.STATUS_DISCONNECTED) {
-      if (hasDisconnected === false) {
-        currentIP = "";
+      if (isWiFiConnected === true) {
         uartSend("\xFE\x24\x00\xFF");
       }
-      hasDisconnected = true;
+      isWiFiConnected = false;
     } else if (ev === Net.STATUS_GOT_IP) {
-      WSConnect();
-    } else if (ev === Net.STATUS_CONNECTED) {
       uartSend("\xFE\x24\x01\xFF");
-      hasDisconnected = false;
+      isWiFiConnected = true;
+      if (moduleIsOn || lastWasOn) {
+        WSConnect();
+      }
+    } else if (ev === Net.STATUS_CONNECTED) {
     }
   },
   null
 );
 
 RPC.addHandler("PB.GetState", function (params) {
+  if (!checkPassword(params)) {
+    return { error: 401, message: "Unauthorized" };
+  }
   return {
     sc_11: toHexStr(lastStatus.sc_11),
     sc_12: toHexStr(lastStatus.sc_12),
@@ -421,6 +549,9 @@ RPC.addHandler("PB.GetState", function (params) {
 });
 
 RPC.addHandler("PB.SetWiFiUpdateFrequency", function (params) {
+  if (!checkPassword(params)) {
+    return { error: 401, message: "Unauthorized" };
+  }
   if (
     typeof params === "object" &&
     typeof params.slow === "number" &&
@@ -447,18 +578,18 @@ RPC.addHandler("PB.SetMCU_UpdateFrequency", function (params) {
 });
 
 RPC.addHandler("PB.WiFiAwakeWDT", function (params) {
+  if (!checkPassword(params)) {
+    return { error: 401, message: "Unauthorized" };
+  }
   wsWDT = 5 * 60; //5 minutes timeout
   wsTime = 0;
   return null;
 });
 
-RPC.addHandler("PB.GetFirmwareVersion", function (params) {
-  return {
-    firmwareVersion: "0.2.3",
-  };
-});
-
 RPC.addHandler("PB.SetVirtualData", function (params) {
+  if (!checkPassword(params)) {
+    return { error: 401, message: "Unauthorized" };
+  }
   if (!moduleIsOn) {
     return { error: -1, message: "Grill is Off" };
   }
@@ -471,6 +602,9 @@ RPC.addHandler("PB.SetVirtualData", function (params) {
 });
 
 RPC.addHandler("PB.GetVirtualData", function (params) {
+  if (!checkPassword(params)) {
+    return { error: 401, message: "Unauthorized" };
+  }
   if (vData === null) {
     return {};
   }
@@ -478,13 +612,89 @@ RPC.addHandler("PB.GetVirtualData", function (params) {
 });
 
 RPC.addHandler("PB.DebugPState", function (params) {
+  if (!checkPassword(params)) {
+    return { error: 401, message: "Unauthorized" };
+  }
   return { pState: pState };
+});
+
+RPC.addHandler("PB.SetDevicePassword", function (params) {
+  if (!checkPassword(params)) {
+    return { error: 401, message: "Unauthorized" };
+  }
+  if (typeof params === "object" && typeof params.newPassword === "string") {
+    grillPassword = codec(
+      fromHexStr(params.newPassword),
+      [0x8f, 0x80, 0x19, 0xcf, 0x77, 0x6c, 0xfe, 0xb7],
+      0
+    );
+    saveExtConfig();
+    return null;
+  }
+  return { error: -1, message: "Invalid parameters" };
+});
+
+RPC.addHandler("PB.SetWifiCredentials", function (params) {
+  if (!checkPassword(params)) {
+    return { error: 401, message: "Unauthorized" };
+  }
+  if (
+    typeof params === "object" &&
+    typeof params.ssid === "string" &&
+    typeof params.pass === "string"
+  ) {
+    let wifiPass = codec(
+      fromHexStr(params.pass),
+      [0x8f, 0x80, 0x27, 0xcf, 0x41, 0x6c, 0x45, 0xb7],
+      0
+    );
+    Cfg.set(
+      {
+        wifi: { sta: { ssid: params.ssid, pass: wifiPass, enable: true } },
+      },
+      false
+    );
+    return null;
+  }
+  return { error: -1, message: "Invalid parameters" };
+});
+
+RPC.addHandler("PB.GetTime", function (params) {
+  return {
+    time: Sys.uptime(),
+  };
+});
+
+RPC.addHandler("PB.RenameDevice", function (params) {
+  if (!checkPassword(params)) {
+    return { error: 401, message: "Unauthorized" };
+  }
+  if (typeof params === "object" && typeof params.name === "string") {
+    let newName = params.name;
+    if (
+      newName !== "" &&
+      newName[0] !== " " &&
+      newName[newName.length - 1] !== " "
+    ) {
+      let dashPos = deviceId.indexOf("-");
+      let prefix = deviceId.slice(0, dashPos + 1);
+      Cfg.set(
+        {
+          device: { id: prefix + newName },
+        },
+        true
+      );
+      return { newName: prefix + newName };
+    }
+  }
+  return { error: 400, message: "Invalid parameters" };
 });
 
 loadConfig(); //read config
 
 initUART();
 
+initPlatform();
 //wait 5 secs before starting the timer task, let things settle
 Timer.set(
   5000,
