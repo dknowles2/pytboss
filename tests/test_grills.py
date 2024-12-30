@@ -1,6 +1,6 @@
+import re
 from contextlib import contextmanager
 from math import floor
-import re
 
 import pytest
 
@@ -46,11 +46,11 @@ class TestCommand:
 
 class TestController:
     def parse_status(self):
-        ctrl = grills_lib.ControlBoard("PBx", [], "return {'foo': message}", None)
+        ctrl = grills_lib.ControlBoard("PBx", {}, "return {'foo': message}", None)
         assert ctrl.parse_status("bar") == {"foo": "bar"}
 
     def parse_temperatures(self):
-        ctrl = grills_lib.ControlBoard("PBx", [], "", "return {'foo': message}")
+        ctrl = grills_lib.ControlBoard("PBx", {}, "", "return {'foo': message}")
         assert ctrl.parse_temperatures("bar") == {"foo": "bar"}
 
 
@@ -77,27 +77,26 @@ def debug_js(js: JSFunc):
 
 
 class Message:
-    def __init__(self):
+    def __init__(self) -> None:
         self._data: list[str] = []
         self._idx: dict[str, int] = {}
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "".join(self._data)
 
-    def __contains__(self, k):
+    def __contains__(self, k: str) -> bool:
         return k in self._idx
 
-    def __setitem__(self, k, v):
+    def __setitem__(self, k: str, v: str) -> None:
         if k not in self:
             raise KeyError(f"{k} not in Message")
         self._data[self._idx[k]] = v
 
-    def add(self, k: str, v: str):
+    def add(self, k: str, v: str) -> None:
         if k in self:
             raise KeyError(f"{k} already in Message")
         self._idx[k] = len(self._data)
         self._data.append(v)
-        print(f"add: {self._idx[k]:02d} {v} ({k})")
 
 
 class TestGetGrills:

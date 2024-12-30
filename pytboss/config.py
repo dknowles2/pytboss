@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from .ble import BleConnection
+from .transport import SendCommandFn, Transport
 
 
 class Config:
@@ -11,11 +11,10 @@ class Config:
     Also see: https://mongoose-os.com/docs/mongoose-os/api/rpc/rpc-service-config.md
     """
 
-    def __init__(self, conn: BleConnection) -> None:
+    def __init__(self, conn: Transport) -> None:
         """Initializes the class.
 
-        :param conn: BLE transport for the device.
-        :type conn: BleConnection
+        :param conn: Transport for the device.
         """
         self._conn = conn
 
@@ -27,24 +26,21 @@ class Config:
         """Retrieves device configuration subtree.
 
         :param key: Optional path to config object. e.g. `wifi.sta.ssid`.
-        :type key: str
-        :rtype: dict
         """
         params = {}
         if key:
             params["key"] = key
         return await self._conn.send_command("Config.Get", params)
 
-    async def save_config(self, reboot=True):
+    async def save_config(self, reboot: bool = True):
         """Writes an existing device configuration on flash.
 
         :param reboot: Whether to reboot the device after the call.
-        :type reboot: bool
         """
-        fn = self._conn.send_command
+        fn: SendCommandFn = self._conn.send_command
         if reboot:
             fn = self._conn.send_command_without_answer
-        return await fn("Config.Save", {"reboot": reboot})
+        await fn("Config.Save", {"reboot": reboot})
 
     async def set(self, **kwargs):
         """Sets device configuration parameters."""
@@ -54,10 +50,7 @@ class Config:
         """Sets the WiFi credentials on the device.
 
         :param ssid: The SSID to connect to.
-        :type ssid: str
         :param password: The password for the WiFi network.
-        :type password: str
-        :rtype: dict
         """
         return await self._conn.send_command("Config.Set", _wifi_params(ssid, password))
 
@@ -65,8 +58,6 @@ class Config:
         """Sets the WiFi SSID.
 
         :param ssid: The SSID to connect to.
-        :type ssid: str
-        :rtype: dict
         """
         return await self._conn.send_command("Config.Set", _wifi_params(ssid=ssid))
 
@@ -74,8 +65,6 @@ class Config:
         """Sets the WiFi password.
 
         :param password: The password for the WiFi network.
-        :type password: str
-        :rtype: dict
         """
         return await self._conn.send_command(
             "Config.Set", _wifi_params(password=password)

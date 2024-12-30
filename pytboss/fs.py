@@ -2,7 +2,7 @@
 
 from base64 import b64decode
 
-from .ble import BleConnection
+from .transport import Transport
 
 
 class FileSystem:
@@ -11,11 +11,10 @@ class FileSystem:
     Also see: https://mongoose-os.com/docs/mongoose-os/api/rpc/rpc-service-fs.md
     """
 
-    def __init__(self, conn: BleConnection) -> None:
+    def __init__(self, conn: Transport) -> None:
         """Initializes the class.
 
-        :param conn: BLE transport for the device.
-        :type conn: BleConnection
+        :param conn: Transport for the device.
         """
         self._conn = conn
 

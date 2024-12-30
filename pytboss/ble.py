@@ -10,14 +10,14 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from typing import Any, Awaitable, Callable
+from typing import Callable
 from uuid import UUID
 
-from bleak import BleakClient, BleakGATTCharacteristic, BLEDevice
 import bleak_retry_connector
+from bleak import BleakClient, BleakGATTCharacteristic, BLEDevice
 from bleak_retry_connector import BleakClientWithServiceCache
 
-from .exceptions import RPCError
+from .transport import Transport
 
 _LOGGER = logging.getLogger("pytboss")
 
@@ -36,15 +36,11 @@ CHAR_RPC_DATA = _uuid("_mOS_RPC_data___")
 CHAR_RPC_TX_CTL = _uuid("_mOS_RPC_tx_ctl_")
 CHAR_RPC_RX_CTL = _uuid("_mOS_RPC_rx_ctl_")
 
-DebugLogCallback = Callable[[bytearray], Awaitable[None]]
-"""A callback function that receives debug logs output from the device."""
-
-
 DisconnectCallback = Callable[[BleakClient], None]
 """A callback function called when the BLE connection is disconnected."""
 
 
-class BleConnection:
+class BleConnection(Transport):
     """Bluetooth LE protocol transport for Mongoose OS devices."""
 
     _ble_device: BLEDevice | None = None
@@ -59,25 +55,14 @@ class BleConnection:
         """Initializes a BleConnection.
 
         :param ble_device: BLE device to use for transport.
-        :type ble_device: bleak.BLEDevice
         :param disconnect_callback: Function to call when the BLE connection is disconnected.
-        :type disconnect_callback: DisconnectCallback or None
         :param loop: An asyncio loop to use. If `None`, the default loop will be used.
-        :type loop: asyncio.AbstractEventLoop
         """
-        if loop is None:
-            loop = asyncio.get_running_loop()
-        self._loop = loop
-
+        super().__init__(loop=loop)
         self._ble_device: BLEDevice = ble_device
         self._disconnect_callback = disconnect_callback
         self._is_connected = False
         self._reconnecting = False
-
-        self._lock = asyncio.Lock()  # Protects items below.
-        self._last_command_id = 0
-        self._rpc_futures: dict[int, asyncio.Future[Any]] = {}
-        self._debug_log_callback: DebugLogCallback | None = None
 
     async def connect(self) -> None:
         """Starts the connection to the device."""
@@ -94,6 +79,7 @@ class BleConnection:
         )
         self._is_connected = True
         await self._ble_client.start_notify(CHAR_RPC_RX_CTL, self._on_rpc_data_received)
+        await self._ble_client.start_notify(CHAR_DEBUG_LOG, self._on_debug_log_received)
 
     def _on_disconnected(self, client: BleakClient) -> None:
         """Called when our Bluetooth client is disconnected."""
@@ -117,7 +103,6 @@ class BleConnection:
         """Resets the BLE device used for transport.
 
         :param ble_device: BLE device to use for transport.
-        :type ble_device: bleak.BLEDevice
         """
         self._reconnecting = True
         _LOGGER.debug("Resetting device to: %s", ble_device)
@@ -125,101 +110,23 @@ class BleConnection:
         self._is_connected = False
         self._ble_device = ble_device
         await self.connect()
-        if self._ble_client is None:
-            self._reconnecting = False
-            return
-        async with self._lock:
-            if self._debug_log_callback:
-                await self._ble_client.start_notify(
-                    CHAR_DEBUG_LOG, self._on_debug_log_received
-                )
         self._reconnecting = False
 
     def is_connected(self) -> bool:
         """Whether the device is currently connected."""
         return self._is_connected
 
-    async def subscribe_debug_logs(self, callback: DebugLogCallback) -> None:
-        """Subscribes to debug log output from the device.
-
-        :param callback: Function to call when debug logs are output by the device.
-        :type callback: DebugLogCallback
-        """
+    async def _send_prepared_command(self, cmd: dict):
         if self._ble_client is None:
             return
-        async with self._lock:
-            assert (
-                self._debug_log_callback is None
-            ), "Only one subscription is supported"
-            self._debug_log_callback = callback
-            await self._ble_client.start_notify(
-                CHAR_DEBUG_LOG, self._on_debug_log_received
-            )
-
-    async def unsubscribe_debug_logs(self) -> None:
-        """Unsubscribes from debug log output."""
-        async with self._lock:
-            if not self._debug_log_callback:
-                # Assume we've already cancelled the subscription.
-                return
-            if self._ble_client is None:
-                return
-            await self._ble_client.stop_notify(CHAR_DEBUG_LOG)
-            self._debug_log_callback = None
-
-    async def _next_command_id(self) -> int:
-        async with self._lock:
-            self._last_command_id = self._last_command_id + 1 & 2047
-            return self._last_command_id
-
-    async def send_command(self, method: str, params: dict) -> dict:
-        """Sends a command to the device.
-
-        :param method: The method to call.
-        :type method: str
-        :param params: Parameters to send with the command.
-        :type params: dict
-        :rtype: dict
-        """
-        command_id = await self._next_command_id()
-        cmd = json.dumps({"id": command_id, "method": method, "params": params})
-        future = self._loop.create_future()
-        async with self._lock:
-            self._rpc_futures[command_id] = future
-        await self._send_prepared_command(cmd)
-        return await future
-
-    async def send_command_without_answer(self, method: str, params: dict):
-        """Sends a command to the device and doesn't wait for the response.
-
-        :param method: The method to call.
-        :type method: str
-        :param params: Parameters to send with the command.
-        :type params: dict
-        """
-        command_id = await self._next_command_id()
-        cmd = json.dumps({"id": command_id, "method": method, "params": params})
-        await self._send_prepared_command(cmd)
-
-    async def _send_prepared_command(self, cmd: str):
-        if self._ble_client is None:
-            return
+        payload = json.dumps(cmd)
         async with self._lock:
             await self._ble_client.write_gatt_char(
-                CHAR_RPC_TX_CTL, _encode_len(len(cmd))
+                CHAR_RPC_TX_CTL, _encode_len(len(payload))
             )
-            for i in range(0, len(cmd), 20):
-                chunk = bytearray(cmd[i : i + 20].encode("utf-8"))  # noqa: E203
+            for i in range(0, len(payload), 20):
+                chunk = bytearray(payload[i : i + 20].encode("utf-8"))  # noqa: E203
                 await self._ble_client.write_gatt_char(CHAR_RPC_DATA, chunk)
-
-    async def _on_debug_log_received(
-        self, unused_char: BleakGATTCharacteristic, data: bytearray
-    ):
-        async with self._lock:
-            if not self._debug_log_callback:
-                # This shouldn't happen, but protect against it anyway.
-                return
-            await self._debug_log_callback(data)
 
     async def _on_rpc_data_received(
         self, unused_char: BleakGATTCharacteristic, data: bytearray
@@ -233,18 +140,27 @@ class BleConnection:
                 resp += await self._ble_client.read_gatt_char(CHAR_RPC_DATA)
 
         payload = json.loads(resp.decode("utf-8"))
+        await self._on_command_response(payload)
 
-        async with self._lock:
-            fut = self._rpc_futures.pop(payload["id"], None)
+    async def _on_debug_log_received(
+        self, unused_char: BleakGATTCharacteristic, data: bytearray
+    ):
+        _LOGGER.debug("Debug log received: %s", data)
+        parts = data.decode("utf-8").split()
+        if len(parts) != 3:
+            # Unknown payload; ignore.
+            return
 
-        if fut and not fut.cancelled():
-            if "error" in payload:
-                fut.set_exception(
-                    RPCError(payload["error"].get("message", "Unknown error"))
-                )
-                return
-
-            fut.set_result(payload["result"])
+        head, payload, tail = parts
+        checksum = int(tail[1 : len(tail) - 1])  # noqa: E203
+        if len(payload) != checksum:
+            # Bad payload; ignore.
+            return
+        if head == "<==PB:" and self._state_callback:
+            await self._state_callback(payload)
+        elif head == "<==PBD:" and self._vdata_callback:
+            # TODO: I think we want to decode this?
+            await self._vdata_callback(payload)
 
 
 def _encode_len(n: int) -> bytearray:
