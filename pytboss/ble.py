@@ -17,7 +17,7 @@ import bleak_retry_connector
 from bleak import BleakClient, BleakGATTCharacteristic, BLEDevice
 from bleak_retry_connector import BleakClientWithServiceCache
 
-from .transport import RawStateCallback, RawVDataCallback, Transport
+from .transport import Transport
 
 _LOGGER = logging.getLogger("pytboss")
 
@@ -70,12 +70,8 @@ class BleConnection(Transport):
         self._disconnect_callback = disconnect_callback
         self._is_connected = False
         self._reconnecting = False
-        self._state_callback: RawStateCallback | None = None
-        self._vdata_callback: RawVDataCallback | None = None
 
-    async def connect(
-        self, state_callback: RawStateCallback, vdata_callback: RawVDataCallback
-    ) -> None:
+    async def connect(self) -> None:
         """Starts the connection to the device."""
         if self._is_connected:
             _LOGGER.warning("Already connected. Ignoring call to connect().")
@@ -89,8 +85,6 @@ class BleConnection(Transport):
             disconnected_callback=self._on_disconnected,
         )
         self._is_connected = True
-        self._state_callback = state_callback
-        self._vdata_callback = vdata_callback
         await self._ble_client.start_notify(CHAR_RPC_RX_CTL, self._on_rpc_data_received)
         await self._ble_client.start_notify(CHAR_DEBUG_LOG, self._on_debug_log_received)
 
@@ -123,7 +117,7 @@ class BleConnection(Transport):
         await self.disconnect()
         self._is_connected = False
         self._ble_device = ble_device
-        await self.connect(self._state_callback, self._vdata_callback)
+        await self.connect()
         self._reconnecting = False
 
     def is_connected(self) -> bool:
@@ -156,7 +150,9 @@ class BleConnection(Transport):
         payload = json.loads(resp.decode("utf-8"))
         await self._on_command_response(payload)
 
-    async def _on_debug_log_received(self, data: bytearray):
+    async def _on_debug_log_received(
+        self, unused_char: BleakGATTCharacteristic, data: bytearray
+    ):
         _LOGGER.debug("Debug log received: %s", data)
         parts = data.decode("utf-8").split()
         if len(parts) != 3:

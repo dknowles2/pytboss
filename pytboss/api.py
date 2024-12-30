@@ -43,6 +43,8 @@ class PitBoss:
         self.config = Config(conn)
         self._spec: Grill = get_grill(grill_model)
         self._conn = conn
+        self._conn.set_state_callback(self._on_state_received)
+        self._conn.set_vdata_callback(self._on_vdata_received)
         self._lock = asyncio.Lock()  # protects callbacks and state.
         self._state_callbacks: list[StateCallback] = []
         self._vdata_callbacks: list[VDataCallback] = []
@@ -58,7 +60,7 @@ class PitBoss:
         Required to be called before the API can be used.
         """
         # TODO: Add support for stop()
-        await self._conn.connect(self._on_state_received, self._on_vdata_received)
+        await self._conn.connect()
 
     async def subscribe_state(self, callback: StateCallback):
         """Registers a callback to receive grill state updates.

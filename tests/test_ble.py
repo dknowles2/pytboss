@@ -1,6 +1,6 @@
 import asyncio
-from itertools import zip_longest
 import json
+from itertools import zip_longest
 from unittest import mock
 
 import bleak
@@ -20,8 +20,7 @@ async def test_connect_disconnect(
     mock_establish_connection.return_value = mock_bleak_client
 
     conn = ble.BleConnection(mock_device)
-    cb = mock.AsyncMock()
-    await conn.connect(cb, cb)
+    await conn.connect()
     assert conn.is_connected()
     await conn.disconnect()
     assert not conn.is_connected()
@@ -47,8 +46,7 @@ async def test_reset_device(mock_establish_connection):
     mock_establish_connection.return_value = mock_old_bleak_client
 
     conn = ble.BleConnection(mock_old_device)
-    cb = mock.AsyncMock()
-    await conn.connect(cb, cb)
+    await conn.connect()
 
     mock_establish_connection.assert_awaited_with(
         client_class=BleakClientWithServiceCache,
@@ -93,12 +91,12 @@ async def test_subscribe_debug_logs(
 
     conn = ble.BleConnection(mock_device)
     state_cb = mock.AsyncMock()
-    vdata_cb = mock.AsyncMock
-    await conn.connect(state_cb, vdata_cb)
+    conn.set_state_callback(state_cb)
+    await conn.connect()
 
     state_data = bytearray("<==PB: STATE [5]".encode("utf-8"))
-    await conn._on_debug_log_received(state_data)
-    state_cb.assert_called_once_with("STATE")
+    await conn._on_debug_log_received(None, state_data)
+    state_cb.assert_awaited_once_with("STATE")
 
 
 @mock.patch("bleak_retry_connector.establish_connection")
@@ -108,8 +106,8 @@ async def test_send_command(mock_device, mock_bleak_client, mock_establish_conne
     mock_establish_connection.return_value = mock_bleak_client
     loop = asyncio.get_running_loop()
     conn = ble.BleConnection(mock_device, loop=loop)
-    cb = mock.AsyncMock()
-    await conn.connect(cb, cb)
+    await conn.connect()
+    # TODO: Rewrite this test to fake out notify routines instead of patching create_future.
     future = loop.create_future()
     with mock.patch.object(loop, "create_future") as mock_create_future:
         mock_create_future.return_value = future
@@ -143,8 +141,7 @@ async def test_on_rpc_data_received(
     mock_establish_connection.return_value = mock_bleak_client
     loop = asyncio.get_running_loop()
     conn = ble.BleConnection(mock_device, loop=loop)
-    cb = mock.AsyncMock()
-    await conn.connect(cb, cb)
+    await conn.connect()
     future = loop.create_future()
     conn._rpc_futures[1] = future
 
@@ -171,8 +168,7 @@ async def test_on_rpc_error_received(
     mock_establish_connection.return_value = mock_bleak_client
     loop = asyncio.get_running_loop()
     conn = ble.BleConnection(mock_device, loop=loop)
-    cb = mock.AsyncMock()
-    await conn.connect(cb, cb)
+    await conn.connect()
     future = loop.create_future()
     conn._rpc_futures[1] = future
 
