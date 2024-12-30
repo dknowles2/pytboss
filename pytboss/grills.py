@@ -1,10 +1,10 @@
 """Routines for accessing grill metadata."""
 
+import json
+import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from importlib import resources
-import json
-import re
 from typing import Any, TypedDict
 
 from dukpy import evaljs
@@ -294,7 +294,6 @@ def get_grills(control_board: str | None = None) -> Iterable[Grill]:
     """Retrieves grill specifications.
 
     :param control_board: If specified, returns only grills with this control board.
-    :type control_board: str or None
     """
     for grill in _GRILLS.values():
         if not grill["control_board"].get("status_function"):
@@ -307,7 +306,6 @@ def get_grill(grill_name: str) -> Grill:
     """Retrieves a grill specification.
 
     :param grill_name: The name of the grill specification to retrieve.
-    :type grill_name: str
     """
     if (grill := _GRILLS.get(grill_name, None)) is None:
         raise InvalidGrill(f"Unknown grill name: {grill_name}")

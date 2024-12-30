@@ -3,13 +3,20 @@
 import asyncio
 from abc import ABC, abstractmethod
 from asyncio import AbstractEventLoop, Future, Lock, get_running_loop
+from collections.abc import Awaitable, Callable
 from types import TracebackType
-from typing import Any, Awaitable, Callable, Self, Type
+from typing import Any, Self, Type
+
+from mypy_extensions import DefaultNamedArg
 
 from .exceptions import RPCError
 
 RawStateCallback = Callable[[str], Awaitable[None]]
 RawVDataCallback = Callable[[str], Awaitable[None]]
+SendCommandFn = Callable[
+    [str, dict[Any, Any], DefaultNamedArg(float | None, "timeout")],
+    Awaitable[dict[Any, Any] | None],
+]
 
 
 class Transport(ABC):
@@ -62,10 +69,8 @@ class Transport(ABC):
         """Sends a comand to the device.
 
         :param method: The method to call.
-        :type method: str
         :param params: Parameters to send with the command.
-        :type params: dict
-        :rtype: dict
+        :param timeout: Timeout for the call.
         """
         cmd = await self._prepare_command(method, params)
         future = self._loop.create_future()
@@ -75,15 +80,19 @@ class Transport(ABC):
             await self._send_prepared_command(cmd)
             return await future
 
-    async def send_command_without_answer(self, method: str, params: dict) -> None:
+    async def send_command_without_answer(
+        self, method: str, params: dict, *, timeout: float | None = None
+    ) -> None:
         """Sends a command to the device and doesn't wait for the response.
 
         :param method: The method to call.
-        :type method: str
         :param params: Parameters to send with the command.
-        :type params: dict
+        :param timeout: Timeout for the call.
         """
-        await self._send_prepared_command(await self._prepare_command(method, params))
+        async with asyncio.timeout(timeout):
+            await self._send_prepared_command(
+                await self._prepare_command(method, params)
+            )
 
     async def _next_command_id(self) -> int:
         async with self._lock:

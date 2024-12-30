@@ -55,11 +55,8 @@ class BleConnection(Transport):
         """Initializes a BleConnection.
 
         :param ble_device: BLE device to use for transport.
-        :type ble_device: bleak.BLEDevice
         :param disconnect_callback: Function to call when the BLE connection is disconnected.
-        :type disconnect_callback: DisconnectCallback or None
         :param loop: An asyncio loop to use. If `None`, the default loop will be used.
-        :type loop: asyncio.AbstractEventLoop
         """
         super().__init__()
         if loop is None:
@@ -110,7 +107,6 @@ class BleConnection(Transport):
         """Resets the BLE device used for transport.
 
         :param ble_device: BLE device to use for transport.
-        :type ble_device: bleak.BLEDevice
         """
         self._reconnecting = True
         _LOGGER.debug("Resetting device to: %s", ble_device)

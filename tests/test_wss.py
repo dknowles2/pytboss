@@ -91,7 +91,7 @@ async def conn(
             yield wss.WebSocketConnection(
                 "_grill_id_",
                 session=session,
-                base_url=fake_server.make_url(""),
+                base_url=str(fake_server.make_url("")),
                 app_id="_app_id_",
             )
 

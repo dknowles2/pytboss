@@ -34,10 +34,8 @@ class PitBoss:
         """Initializes the class.
 
         :param conn: Connection transport for the grill.
-        :type conn: pytboss.transport.Transport
         :param grill_model: The grill model. This is necessary to determine all
             supported commands and cannot be determined automatically.
-        :type grill_model: str
         """
         self.fs = FileSystem(conn)
         self.config = Config(conn)
@@ -66,7 +64,6 @@ class PitBoss:
         """Registers a callback to receive grill state updates.
 
         :param callback: Callback function that will receive updated grill state.
-        :type callback: StateCallback
         """
         # TODO: Return a handle for unsubscribe.
         async with self._lock:
@@ -76,7 +73,6 @@ class PitBoss:
         """Registers a callback to receive VData updates.
 
         :param callback: Callback function that will receive updated VData.
-        :type callback: VDataCallback
         """
         # TODO: Return a handle for unsubscribe.
         async with self._lock:
@@ -128,8 +124,6 @@ class PitBoss:
         """Sets the target grill temperature.
 
         :param temp: Target grill temperature.
-        :type temp: int
-        :rtype: dict
         """
         # TODO: Clamp to a value from self._spec.temp_increments.
         if self._spec.max_temp:
@@ -142,8 +136,6 @@ class PitBoss:
         """Sets the target temperature for probe 1.
 
         :param temp: Target probe temperature.
-        :type temp: int
-        :rtype: dict
         """
         return await self._send_command("set-probe-1-temperature", temp)
 
