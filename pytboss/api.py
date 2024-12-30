@@ -193,3 +193,10 @@ class PitBoss:
     async def get_virtual_data(self):
         """:meta private:"""
         return await self._conn.send_command("PB.GetVirtualData", {})
+
+    async def ping(self, timeout: float | None = None) -> dict:
+        """Pings the device.
+
+        :param timeout: Time (in seconds) after which to abandon the RPC.
+        """
+        return await self._conn.send_command("RPC.Ping", {}, timeout=timeout)
