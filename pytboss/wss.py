@@ -19,7 +19,7 @@ class WebSocketConnection(Transport):
     def __init__(
         self,
         grill_id: str,
-        session: ClientSession = None,
+        session: ClientSession | None = None,
         loop: AbstractEventLoop | None = None,
         app_id: str | None = None,
         base_url: str = _BASE_URL,
@@ -58,7 +58,8 @@ class WebSocketConnection(Transport):
             await self._sock.close()
         if not self._session.closed:
             await self._session.close()
-        await self._subscribe_task
+        if self._subscribe_task:
+            await self._subscribe_task
 
     async def _subscribe(self) -> None:
         """Subscribes to WebSocket updates."""
@@ -96,12 +97,14 @@ class WebSocketConnection(Transport):
                 await self._state_callback(state)
             return
         if "id" in payload:
-            return await self._on_command_response(payload)
+            await self._on_command_response(payload)
+            return
         if payload.get("result", None):
             # TODO: Verify this is actually a vdata response.
             if not self._vdata_callback:
                 return
-            return await self._vdata_callback(payload)
+            await self._vdata_callback(payload["result"])
+            return
 
     def is_connected(self) -> bool:
         """Whether the device is currently connected."""
@@ -110,4 +113,5 @@ class WebSocketConnection(Transport):
     async def _send_prepared_command(self, cmd: dict) -> None:
         cmd["app_id"] = self._app_id
         _LOGGER.debug("Sending command: %s", cmd)
+        assert self._sock is not None
         await self._sock.send_json(cmd)

@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from .ble import BleConnection
+from .transport import Transport
 
 
 class Config:
@@ -11,11 +11,10 @@ class Config:
     Also see: https://mongoose-os.com/docs/mongoose-os/api/rpc/rpc-service-config.md
     """
 
-    def __init__(self, conn: BleConnection) -> None:
+    def __init__(self, conn: Transport) -> None:
         """Initializes the class.
 
-        :param conn: BLE transport for the device.
-        :type conn: BleConnection
+        :param conn: Transport for the device.
         """
         self._conn = conn
 

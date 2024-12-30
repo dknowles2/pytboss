@@ -2,7 +2,7 @@
 
 import asyncio
 from abc import ABC, abstractmethod
-from asyncio import Future, Lock
+from asyncio import AbstractEventLoop, Future, Lock, get_running_loop
 from types import TracebackType
 from typing import Any, Awaitable, Callable, Self, Type
 
@@ -15,12 +15,13 @@ RawVDataCallback = Callable[[str], Awaitable[None]]
 class Transport(ABC):
     """Base class for transport protocols."""
 
-    def __init__(self) -> None:
+    def __init__(self, loop: AbstractEventLoop | None = None) -> None:
         self._lock = Lock()
         self._last_command_id = 0
         self._rpc_futures: dict[int, Future[Any]] = {}
         self._state_callback: RawStateCallback | None = None
         self._vdata_callback: RawVDataCallback | None = None
+        self._loop = loop or get_running_loop()
 
     async def __aenter__(self) -> Self:
         await self.connect()
@@ -82,7 +83,7 @@ class Transport(ABC):
         :param params: Parameters to send with the command.
         :type params: dict
         """
-        await self._send_prepared_command(self._prepare_command(method, params))
+        await self._send_prepared_command(await self._prepare_command(method, params))
 
     async def _next_command_id(self) -> int:
         async with self._lock:
