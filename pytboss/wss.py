@@ -52,7 +52,7 @@ class WebSocketConnection(Transport):
     async def connect(self) -> None:
         """Starts the connection to the device."""
         self._keep_running = True
-        await self._ws_connect()
+        self._sock = await self._ws_connect()
         self._subscribe_task = self._loop.create_task(self._subscribe())
 
     async def disconnect(self) -> None:
@@ -65,9 +65,9 @@ class WebSocketConnection(Transport):
         if self._subscribe_task:
             await self._subscribe_task
 
-    async def _ws_connect(self) -> None:
+    async def _ws_connect(self) -> ClientWebSocketResponse:
         try:
-            self._sock = await self._session.ws_connect(self._url)
+            return await self._session.ws_connect(self._url)
         except WSServerHandshakeError as ex:
             raise GrillUnavailable from ex
 
@@ -79,7 +79,7 @@ class WebSocketConnection(Transport):
         while self._loop.is_running() and self._keep_running:
             if self._sock is None:
                 try:
-                    await self._ws_connect()
+                    self._sock = await self._ws_connect()
                 except GrillUnavailable as ex:
                     attempt += 1
                     _LOGGER.debug(

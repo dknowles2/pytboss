@@ -3,7 +3,7 @@ from typing import AsyncGenerator
 from unittest.mock import AsyncMock, call, patch
 
 from aiohttp import ClientSession
-from aiohttp.test_utils import TestServer
+from aiohttp.test_utils import BaseTestServer, TestServer
 from aiohttp.web import (
     Application,
     HTTPInternalServerError,
@@ -97,7 +97,7 @@ async def conn(
             yield make_conn(fake_server, session)
 
 
-def make_conn(fake_server: TestServer, session: ClientSession):
+def make_conn(fake_server: BaseTestServer, session: ClientSession):
     return wss.WebSocketConnection(
         "_grill_id_",
         session=session,
