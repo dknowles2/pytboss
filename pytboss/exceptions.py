@@ -11,3 +11,11 @@ class RPCError(Error):
 
 class InvalidGrill(Error):
     """Raised when an unknown or unsupported grill is requested."""
+
+
+class GrillUnavailable(Error):
+    """Raised when a grill is unavailable."""
+
+
+class NotConnectedError(Error):
+    """Raised when there is no active connection to use."""

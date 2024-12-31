@@ -1,13 +1,20 @@
 from asyncio import Event, Queue, create_task
 from typing import AsyncGenerator
-from unittest.mock import AsyncMock, call
+from unittest.mock import AsyncMock, call, patch
 
 from aiohttp import ClientSession
 from aiohttp.test_utils import TestServer
-from aiohttp.web import Application, Request, WebSocketResponse, get
-from pytest import fixture
+from aiohttp.web import (
+    Application,
+    HTTPInternalServerError,
+    Request,
+    WebSocketResponse,
+    get,
+)
+from pytest import fixture, raises
 
 from pytboss import wss
+from pytboss.exceptions import GrillUnavailable, NotConnectedError
 
 
 @fixture
@@ -31,8 +38,7 @@ async def fake_server(
 
         async def pump_status():
             while True:
-                status = await state_payloads.get()
-                await ws.send_json(status)
+                await ws.send_json(await state_payloads.get())
                 state_payloads.task_done()
 
         task = create_task(pump_status())
@@ -88,17 +94,70 @@ async def conn(
 ) -> AsyncGenerator[wss.WebSocketConnection, None]:
     async with fake_server:
         async with session:
-            yield wss.WebSocketConnection(
-                "_grill_id_",
-                session=session,
-                base_url=str(fake_server.make_url("")),
-                app_id="_app_id_",
-            )
+            yield make_conn(fake_server, session)
+
+
+def make_conn(fake_server: TestServer, session: ClientSession):
+    return wss.WebSocketConnection(
+        "_grill_id_",
+        session=session,
+        base_url=str(fake_server.make_url("")),
+        app_id="_app_id_",
+    )
 
 
 async def test_connect_disconnect(conn: wss.WebSocketConnection) -> None:
     await conn.connect()
     await conn.disconnect()
+
+
+async def test_connect_server_error(session: ClientSession) -> None:
+    async def handler(request: Request):
+        raise HTTPInternalServerError
+
+    app = Application()
+    app.add_routes([get("/to/_grill_id_", handler)])
+    async with TestServer(app) as fake_server:
+        async with session:
+            conn = make_conn(fake_server, session)
+            with raises(GrillUnavailable):
+                await conn.connect()
+
+
+@patch("asyncio.sleep")
+async def test_reconnect_backoff(mock_sleep: AsyncMock, session: ClientSession) -> None:
+    responses = [True, False, False, False, False, False, False, False, True]
+
+    async def handler(request: Request):
+        if responses and not responses.pop(0):
+            raise HTTPInternalServerError
+        ws = WebSocketResponse()
+        await ws.prepare(request)
+        if not responses:
+            # Send a status update to trigger the done event.
+            await ws.send_json({"status": [{}]})
+            async for msg in ws:
+                if msg.data == "close":
+                    await ws.close()
+        return ws
+
+    app = Application()
+    app.add_routes([get("/to/_grill_id_", handler)])
+    done = Event()
+
+    async def state_cb(_):
+        done.set()
+
+    async with TestServer(app) as fake_server:
+        async with session:
+            conn = make_conn(fake_server, session)
+            conn.set_state_callback(state_cb)
+            await conn.connect()
+            await done.wait()
+            await conn.disconnect()
+    mock_sleep.assert_has_awaits(
+        [call(1.0), call(2.0), call(4.0), call(8.0), call(16.0), call(30.0), call(30.0)]
+    )
 
 
 async def test_status(conn: wss.WebSocketConnection, state_payloads: Queue):
@@ -130,6 +189,11 @@ async def test_command(conn: wss.WebSocketConnection, command_payloads: Queue):
         assert await conn.send_command("cmd", {}, timeout=1) == "_result_"
     state_callback.assert_not_awaited()
     vdata_callback.assert_not_awaited()
+
+
+async def test_command_not_connected(conn: wss.WebSocketConnection):
+    with raises(NotConnectedError):
+        await conn.send_command("cmd", {}, timeout=1)
 
 
 async def test_command_wrong_app_id(
