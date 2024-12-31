@@ -69,6 +69,7 @@ class WebSocketConnection(Transport):
         try:
             return await self._session.ws_connect(self._url)
         except WSServerHandshakeError as ex:
+            _LOGGER.debug("Failed to connect: %s", ex)
             raise GrillUnavailable from ex
 
     async def _subscribe(self) -> None:
