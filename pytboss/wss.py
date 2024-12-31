@@ -1,16 +1,24 @@
 """WebSocket connection support for PitBoss grills."""
 
+import asyncio
 import logging
-from asyncio import AbstractEventLoop, Event, Task
+from asyncio import AbstractEventLoop, Task
 from typing import Any
 from uuid import uuid4
 
-from aiohttp import ClientSession, ClientWebSocketResponse, WSMsgType
+from aiohttp import (
+    ClientSession,
+    ClientWebSocketResponse,
+    WSMsgType,
+    WSServerHandshakeError,
+)
 
+from .exceptions import GrillUnavailable, NotConnectedError
 from .transport import Transport
 
 _BASE_URL = "wss://socket.dansonscorp.com"
 _LOGGER = logging.getLogger("pytboss")
+_MAX_BACKOFF_TIME = 30.0
 
 
 class WebSocketConnection(Transport):
@@ -39,16 +47,13 @@ class WebSocketConnection(Transport):
         self._url = f"{base_url}/to/{grill_id}"
         self._app_id = app_id or str(uuid4()).split("-")[-1]
         self._subscribe_task: Task | None = None
-        self._connected = Event()
         self._keep_running = False
 
     async def connect(self) -> None:
         """Starts the connection to the device."""
         self._keep_running = True
+        self._sock = await self._ws_connect()
         self._subscribe_task = self._loop.create_task(self._subscribe())
-        if self._subscribe_task.done() and (ex := self._subscribe_task.exception()):
-            raise ex
-        await self._connected.wait()
 
     async def disconnect(self) -> None:
         """Stops the connection to the device."""
@@ -60,25 +65,45 @@ class WebSocketConnection(Transport):
         if self._subscribe_task:
             await self._subscribe_task
 
+    async def _ws_connect(self) -> ClientWebSocketResponse:
+        try:
+            return await self._session.ws_connect(self._url)
+        except WSServerHandshakeError as ex:
+            raise GrillUnavailable from ex
+
     async def _subscribe(self) -> None:
         """Subscribes to WebSocket updates."""
+        attempt = 0
+        backoff = 1.0
+
         while self._loop.is_running() and self._keep_running:
-            async with self._session.ws_connect(self._url) as self._sock:
-                if ex := self._sock.exception():
-                    raise ex
-                self._connected.set()
+            if self._sock is None:
+                try:
+                    self._sock = await self._ws_connect()
+                except GrillUnavailable as ex:
+                    attempt += 1
+                    _LOGGER.debug(
+                        "Failed to connect (attempt %d); sleeping for %.2fs: %s",
+                        attempt,
+                        backoff,
+                        ex,
+                    )
+                    await asyncio.sleep(backoff)
+                    backoff = min(_MAX_BACKOFF_TIME, backoff * 2)
+                    continue
+
+            attempt = 0
+            backoff = 1.0
+
+            async with self._sock:
                 async for msg in self._sock:
-                    if msg.type == WSMsgType.ERROR:
-                        if ex := self._sock.exception():
-                            raise ex
-                        break
                     if msg.type == WSMsgType.CLOSED:
                         break
                     payload = msg.json()
                     _LOGGER.debug("WSS payload: %s", payload)
                     await self._handle_message(payload)
+
             self._sock = None
-            self._connected.clear()
 
     async def _handle_message(self, payload: dict[str, Any]) -> None:
         if "app_id" in payload and payload["app_id"] != self._app_id:
@@ -95,9 +120,11 @@ class WebSocketConnection(Transport):
             for state in payload["status"]:
                 await self._state_callback(state)
             return
+
         if "id" in payload:
             await self._on_command_response(payload)
             return
+
         if payload.get("result", None):
             # TODO: Verify this is actually a vdata response.
             if not self._vdata_callback:
@@ -112,5 +139,6 @@ class WebSocketConnection(Transport):
     async def _send_prepared_command(self, cmd: dict) -> None:
         cmd["app_id"] = self._app_id
         _LOGGER.debug("Sending command: %s", cmd)
-        assert self._sock is not None
+        if self._sock is None:
+            raise NotConnectedError
         await self._sock.send_json(cmd)
