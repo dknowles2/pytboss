@@ -185,7 +185,7 @@ class Command:
         return evaljs(_COMMAND_JS_TMPL % self._js_func, args=args)
 
 
-@dataclass
+@dataclass(frozen=True)
 class ControlBoard:
     """Specifications for a control board connected via UART."""
 
@@ -231,7 +231,7 @@ class ControlBoard:
         return self._evaljs(self._temperatures_js_func, message)
 
 
-@dataclass
+@dataclass(frozen=True)
 class Grill:
     """Specifications for a particular grill model."""
 

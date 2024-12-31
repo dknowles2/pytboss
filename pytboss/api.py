@@ -40,7 +40,7 @@ class PitBoss:
         """
         self.fs = FileSystem(conn)
         self.config = Config(conn)
-        self._spec: Grill = get_grill(grill_model)
+        self.spec: Grill = get_grill(grill_model)
         self._conn = conn
         self._conn.set_state_callback(self._on_state_received)
         self._conn.set_vdata_callback(self._on_vdata_received)
@@ -85,9 +85,9 @@ class PitBoss:
         state = None
         match payload[:4]:
             case "FE0B":
-                state = self._spec.control_board.parse_status(payload)
+                state = self.spec.control_board.parse_status(payload)
             case "FE0C":
-                state = self._spec.control_board.parse_temperatures(payload)
+                state = self.spec.control_board.parse_temperatures(payload)
 
         if not state:
             # Unknown or invalid payload; ignore.
@@ -126,7 +126,7 @@ class PitBoss:
         )
 
     async def _send_command(self, slug: str, *args) -> dict:
-        cmd = self._spec.control_board.commands[slug]
+        cmd = self.spec.control_board.commands[slug]
         return await self._send_hex_command(cmd(*args))
 
     async def set_grill_password(self, new_password: str) -> None:
@@ -144,11 +144,11 @@ class PitBoss:
 
         :param temp: Target grill temperature.
         """
-        # TODO: Clamp to a value from self._spec.temp_increments.
-        if self._spec.max_temp:
-            temp = min(temp, self._spec.max_temp)
-        if self._spec.min_temp:
-            temp = max(temp, self._spec.min_temp)
+        # TODO: Clamp to a value from self.spec.temp_increments.
+        if self.spec.max_temp:
+            temp = min(temp, self.spec.max_temp)
+        if self.spec.min_temp:
+            temp = max(temp, self.spec.min_temp)
         return await self._send_command("set-temperature", temp)
 
     async def set_probe_temperature(self, temp: int) -> dict:
@@ -160,13 +160,13 @@ class PitBoss:
 
     async def turn_light_on(self) -> dict:
         """Turns the light on if the grill has a light."""
-        if not self._spec.has_lights:
+        if not self.spec.has_lights:
             return {}
         return await self._send_command("turn-light-on")
 
     async def turn_light_off(self) -> dict:
         """Turns the light off if the grill has a light."""
-        if not self._spec.has_lights:
+        if not self.spec.has_lights:
             return {}
         return await self._send_command("turn-light-off")
 
@@ -185,8 +185,8 @@ class PitBoss:
     async def get_state(self) -> StateDict:
         """Retrieves the current grill state."""
         resp = await self._conn.send_command("PB.GetState", self._authenticate({}))
-        status = self._spec.control_board.parse_status(resp["sc_11"]) or {}
-        status.update(self._spec.control_board.parse_temperatures(resp["sc_12"]) or {})
+        status = self.spec.control_board.parse_status(resp["sc_11"]) or {}
+        status.update(self.spec.control_board.parse_temperatures(resp["sc_12"]) or {})
         return status
 
     async def get_firmware_version(self) -> dict:
