@@ -49,9 +49,6 @@ class WebSocketConnection(Transport):
         self._subscribe_task: Task | None = None
         self._keep_running = False
 
-    def is_running(self) -> bool:
-        return self._keep_running
-
     async def connect(self) -> None:
         """Starts the connection to the device."""
         self._sock = await self._ws_connect()
@@ -73,35 +70,31 @@ class WebSocketConnection(Transport):
             return await self._session.ws_connect(self._url)
         except WSServerHandshakeError as ex:
             _LOGGER.debug("Failed to connect: %s", ex)
-            raise GrillUnavailable from ex
+            raise GrillUnavailable(str(ex)) from ex
+
+    async def _reconnect(self) -> ClientWebSocketResponse:
+        attempt = 1
+        backoff = 1.0
+        while self._loop.is_running() and self._keep_running:
+            try:
+                _LOGGER.debug("Reconnecting (attempt %d)", attempt)
+                return await self._ws_connect()
+            except GrillUnavailable as ex:
+                _LOGGER.debug("Failed to connect (attempt %d): %s", attempt, ex)
+                _LOGGER.debug("Will try again in %.2fs", backoff)
+                await asyncio.sleep(backoff)
+                attempt += 1
+                backoff = min(_MAX_BACKOFF_TIME, backoff * 2)
 
     async def _subscribe(self) -> None:
         """Subscribes to WebSocket updates."""
-        attempt = 0
-        backoff = 1.0
-
         while self._loop.is_running() and self._keep_running:
             if self._sock is None:
-                try:
-                    self._sock = await self._ws_connect()
-                except GrillUnavailable as ex:
-                    attempt += 1
-                    _LOGGER.debug(
-                        "Failed to connect (attempt %d); sleeping for %.2fs: %s",
-                        attempt,
-                        backoff,
-                        ex,
-                    )
-                    await asyncio.sleep(backoff)
-                    backoff = min(_MAX_BACKOFF_TIME, backoff * 2)
-                    continue
-
-            attempt = 0
-            backoff = 1.0
+                self._sock = await self._reconnect()
 
             async with self._sock:
                 async for msg in self._sock:
-                    if msg.type == WSMsgType.CLOSED:
+                    if msg.type == WSMsgType.CLOSE:
                         break
                     payload = msg.json()
                     _LOGGER.debug("WSS payload: %s", payload)

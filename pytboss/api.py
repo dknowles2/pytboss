@@ -50,9 +50,6 @@ class PitBoss:
         self._vdata_callbacks: list[VDataCallback] = []
         self._state = StateDict()
 
-    def is_running(self) -> bool:
-        return self._conn.is_running()
-
     def is_connected(self) -> bool:
         """Returns whether we are actively connected to the grill."""
         return self._conn.is_connected()
