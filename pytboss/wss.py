@@ -49,6 +49,9 @@ class WebSocketConnection(Transport):
         self._subscribe_task: Task | None = None
         self._keep_running = False
 
+    def is_running(self) -> bool:
+        return self._keep_running
+
     async def connect(self) -> None:
         """Starts the connection to the device."""
         self._keep_running = True
