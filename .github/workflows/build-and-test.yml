@@ -67,4 +67,4 @@ jobs:
           echo "::add-matcher::.github/workflows/matchers/mypy.json"
       - name: Run mypy
         run: |
-          mypy .
+          mypy --install-types .
