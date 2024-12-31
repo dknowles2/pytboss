@@ -54,8 +54,8 @@ class WebSocketConnection(Transport):
 
     async def connect(self) -> None:
         """Starts the connection to the device."""
-        self._keep_running = True
         self._sock = await self._ws_connect()
+        self._keep_running = True
         self._subscribe_task = self._loop.create_task(self._subscribe())
 
     async def disconnect(self) -> None:
