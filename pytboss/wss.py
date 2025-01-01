@@ -97,7 +97,7 @@ class WebSocketConnection(Transport):
                 _LOGGER.debug("Waiting for payloads")
                 async for msg in self._sock:
                     if msg.type == WSMsgType.CLOSE:
-                        _LOGGER.debug("Stream closed: %s", msg.data)
+                        _LOGGER.debug("Socket closed: %s", msg.data)
                         break
                     payload = msg.json()
                     _LOGGER.debug("WSS payload: %s", payload)
