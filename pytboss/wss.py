@@ -73,30 +73,25 @@ class WebSocketConnection(Transport):
             _LOGGER.debug("Failed to connect: %s", ex)
             raise GrillUnavailable(str(ex)) from ex
 
-    async def _reconnect(self) -> ClientWebSocketResponse:
+    async def _subscribe(self) -> None:
+        """Subscribes to WebSocket updates."""
         attempt = 1
         backoff = 1.0
         while self._loop.is_running() and self._keep_running:
-            try:
-                _LOGGER.debug("Reconnecting (attempt %d)", attempt)
-                return await self._ws_connect()
-            except GrillUnavailable as ex:
-                _LOGGER.debug("Failed to connect (attempt %d): %s", attempt, ex)
-                _LOGGER.debug("Will try again in %.2fs", backoff)
-                await asyncio.sleep(backoff)
-                attempt += 1
-                backoff = min(_MAX_BACKOFF_TIME, backoff * 2)
-        _LOGGER.debug(
-            "Exiting reconnect loop. is_running=%s, keep_running=%s",
-            self._loop.is_running(),
-            self._keep_running,
-        )
-
-    async def _subscribe(self) -> None:
-        """Subscribes to WebSocket updates."""
-        while self._loop.is_running() and self._keep_running:
             if self._sock is None:
-                self._sock = await self._reconnect()
+                try:
+                    _LOGGER.debug("Reconnecting (attempt %d)", attempt)
+                    self._sock = await self._ws_connect()
+                except GrillUnavailable as ex:
+                    _LOGGER.debug("Failed to connect (attempt %d): %s", attempt, ex)
+                    _LOGGER.debug("Will try again in %.2fs", backoff)
+                    await asyncio.sleep(backoff)
+                    attempt += 1
+                    backoff = min(_MAX_BACKOFF_TIME, backoff * 2)
+                    continue
+
+            attempt = 1
+            backoff = 1.0
 
             async with self._sock:
                 _LOGGER.debug("Waiting for payloads")
