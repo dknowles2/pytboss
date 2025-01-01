@@ -66,6 +66,7 @@ class WebSocketConnection(Transport):
             await self._subscribe_task
 
     async def _ws_connect(self) -> ClientWebSocketResponse:
+        _LOGGER.debug("Connecting to WebSocket")
         try:
             return await self._session.ws_connect(self._url)
         except WSServerHandshakeError as ex:
@@ -85,6 +86,11 @@ class WebSocketConnection(Transport):
                 await asyncio.sleep(backoff)
                 attempt += 1
                 backoff = min(_MAX_BACKOFF_TIME, backoff * 2)
+        _LOGGER.debug(
+            "Exiting reconnect loop. is_running=%s, keep_running=%s",
+            self._loop_is_running(),
+            self._keep_running,
+        )
 
     async def _subscribe(self) -> None:
         """Subscribes to WebSocket updates."""
@@ -93,14 +99,21 @@ class WebSocketConnection(Transport):
                 self._sock = await self._reconnect()
 
             async with self._sock:
+                _LOGGER.debug("Waiting for payloads")
                 async for msg in self._sock:
                     if msg.type == WSMsgType.CLOSE:
+                        _LOGGER.debug("Stream closed: %s", msg.data)
                         break
                     payload = msg.json()
                     _LOGGER.debug("WSS payload: %s", payload)
                     await self._handle_message(payload)
 
             self._sock = None
+        _LOGGER.debug(
+            "Exiting subscribe loop. is_running=%s, keep_running=%s",
+            self._loop_is_running(),
+            self._keep_running,
+        )
 
     async def _handle_message(self, payload: dict[str, Any]) -> None:
         if "app_id" in payload and payload["app_id"] != self._app_id:
