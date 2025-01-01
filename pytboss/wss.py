@@ -88,7 +88,7 @@ class WebSocketConnection(Transport):
                 backoff = min(_MAX_BACKOFF_TIME, backoff * 2)
         _LOGGER.debug(
             "Exiting reconnect loop. is_running=%s, keep_running=%s",
-            self._loop_is_running(),
+            self._loop.is_running(),
             self._keep_running,
         )
 
@@ -111,7 +111,7 @@ class WebSocketConnection(Transport):
             self._sock = None
         _LOGGER.debug(
             "Exiting subscribe loop. is_running=%s, keep_running=%s",
-            self._loop_is_running(),
+            self._loop.is_running(),
             self._keep_running,
         )
 
