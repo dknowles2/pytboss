@@ -8,7 +8,7 @@ description     = "Python library for interacting with PitBoss grills and smoker
 authors         = [
     {name = "David Knowles", email = "dknowles2@gmail.com"},
 ]
-dependencies    = ["bleak", "bleak_retry_connector", "dukpy"]
+dependencies    = ["aiohttp", "bleak", "bleak_retry_connector", "dukpy", "mypy_extensions"]
 requires-python = ">=3.12"
 dynamic         = ["readme", "version"]
 license         = {text = "Apache License 2.0"}
