@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from asyncio import AbstractEventLoop, Task
+from asyncio import AbstractEventLoop, Event, Lock, Task
 from typing import Any
 from uuid import uuid4
 
@@ -42,10 +42,12 @@ class WebSocketConnection(Transport):
         """
         super().__init__(loop=loop)
         self._session = session or ClientSession(loop=self._loop)
+        self._sock_lock = Lock()  # Protects access to self._sock operations
         self._sock: ClientWebSocketResponse | None = None
         self._url = f"{base_url}/to/{grill_id}"
         self._app_id = app_id or str(uuid4()).split("-")[-1]
         self._subscribe_task: Task | None = None
+        self._subscribed = Event()
         self._keep_running = False
 
     async def connect(self) -> None:
@@ -53,6 +55,7 @@ class WebSocketConnection(Transport):
         self._sock = await self._ws_connect()
         self._keep_running = True
         self._subscribe_task = self._loop.create_task(self._subscribe())
+        await self._subscribed.wait()
 
     async def disconnect(self) -> None:
         """Stops the connection to the device."""
@@ -94,10 +97,13 @@ class WebSocketConnection(Transport):
 
             async with self._sock:
                 _LOGGER.debug("Waiting for payloads")
+                self._subscribed.set()
                 async for msg in self._sock:
-                    payload = msg.json()
-                    _LOGGER.debug("WSS payload: %s", payload)
-                    await self._handle_message(payload)
+                    async with self._sock_lock:
+                        payload = msg.json()
+                        _LOGGER.debug("WSS payload: %s", payload)
+                        await self._handle_message(payload)
+                _LOGGER.debug("WebSocket closed")
 
             self._sock = None
         _LOGGER.debug(
@@ -142,4 +148,5 @@ class WebSocketConnection(Transport):
         _LOGGER.debug("Sending command: %s", cmd)
         if self._sock is None:
             raise NotConnectedError
-        await self._sock.send_json(cmd)
+        async with self._sock_lock:
+            await self._sock.send_json(cmd)
