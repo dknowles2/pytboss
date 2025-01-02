@@ -140,12 +140,12 @@ class WebSocketConnection(Transport):
 
     def is_connected(self) -> bool:
         """Whether the device is currently connected."""
-        return self._sock is not None
+        return self._sock is not None and not self._sock.closed
 
     async def _send_prepared_command(self, cmd: dict) -> None:
+        if not self.is_connected():
+            raise NotConnectedError
         cmd["app_id"] = self._app_id
         _LOGGER.debug("Sending command: %s", cmd)
-        if self._sock is None:
-            raise NotConnectedError
         async with self._sock_lock:
             await self._sock.send_json(cmd)  # type: ignore
