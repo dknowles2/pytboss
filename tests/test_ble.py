@@ -94,9 +94,9 @@ async def test_subscribe_debug_logs(
     conn.set_state_callback(state_cb)
     await conn.connect()
 
-    state_data = bytearray("<==PB: STATE [5]".encode("utf-8"))
+    state_data = bytearray("<==PB: FE0B.STATE [10]".encode("utf-8"))
     await conn._on_debug_log_received(None, state_data)
-    state_cb.assert_awaited_once_with("STATE")
+    state_cb.assert_awaited_once_with("FE0B.STATE", None)
 
 
 @mock.patch("bleak_retry_connector.establish_connection")

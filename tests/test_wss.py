@@ -135,7 +135,7 @@ async def test_reconnect_backoff(mock_sleep: AsyncMock, session: ClientSession) 
         await ws.prepare(request)
         if not responses:
             # Send a status update to trigger the done event.
-            await ws.send_json({"status": [{}]})
+            await ws.send_json({"status": ["A", "B"]})
             async for msg in ws:
                 if msg.data == "close":
                     await ws.close()
@@ -145,7 +145,7 @@ async def test_reconnect_backoff(mock_sleep: AsyncMock, session: ClientSession) 
     app.add_routes([get("/to/_grill_id_", handler)])
     done = Event()
 
-    async def state_cb(_):
+    async def state_cb(a, b):
         done.set()
 
     async with TestServer(app) as fake_server:
@@ -166,14 +166,9 @@ async def test_status(conn: wss.WebSocketConnection, state_payloads: Queue):
     conn.set_state_callback(state_callback)
     conn.set_vdata_callback(vdata_callback)
     async with conn:
-        await state_payloads.put({"status": ["status-a"]})
+        await state_payloads.put({"status": ["status-a", "status-b"]})
         await state_callback.wait()
-        state_callback.assert_awaited_once_with("status-a")
-        state_callback.reset_mock()
-        state_callback.want_awaits = 2
-        await state_payloads.put({"status": ["status-b", "status-c"]})
-        await state_callback.wait()
-        state_callback.assert_has_awaits([call("status-b"), call("status-c")])
+        state_callback.assert_awaited_once_with("status-a", "status-b")
 
     vdata_callback.assert_not_awaited()
 
