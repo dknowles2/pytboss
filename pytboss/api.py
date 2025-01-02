@@ -54,13 +54,16 @@ class PitBoss:
         """Returns whether we are actively connected to the grill."""
         return self._conn.is_connected()
 
-    async def start(self):
+    async def start(self) -> None:
         """Sets up the API for use.
 
         Required to be called before the API can be used.
         """
-        # TODO: Add support for stop()
         await self._conn.connect()
+
+    async def stop(self) -> None:
+        """Stops any background polling."""
+        await self._conn.disconnect()
 
     async def subscribe_state(self, callback: StateCallback):
         """Registers a callback to receive grill state updates.
