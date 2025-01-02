@@ -125,6 +125,7 @@ class WebSocketConnection(Transport):
             if not self._state_callback:
                 return
             for state in payload["status"]:
+                _LOGGER.debug("Calling state callback for %s", state)
                 await self._state_callback(state)
             return
 
