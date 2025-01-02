@@ -124,8 +124,7 @@ class WebSocketConnection(Transport):
         if "status" in payload:
             if not self._state_callback:
                 return
-            for state in payload["status"]:
-                await self._state_callback(state)
+            await self._state_callback(*payload["status"])
             return
 
         if "id" in payload:
@@ -149,4 +148,4 @@ class WebSocketConnection(Transport):
         if self._sock is None:
             raise NotConnectedError
         async with self._sock_lock:
-            await self._sock.send_json(cmd)
+            await self._sock.send_json(cmd)  # type: ignore

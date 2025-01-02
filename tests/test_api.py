@@ -49,7 +49,7 @@ class TestApi:
             "FE 0B 01 06 05 01 09 01 01 09 02 09 06 00 09 06 00 02 02 00 02 02 "
             "05 01 01 00 00 00 00 00 00 00 00 00 01 01 01 00 01 01 04 0C 3B 1F"
         ).split()
-        await pitboss._on_state_received("".join(data))
+        await pitboss._on_state_received("".join(data), None)
 
         assert status == {
             "p1Target": 165,
@@ -91,7 +91,7 @@ class TestApi:
             "FE 0C 01 07 00 01 05 00 01 06 05 09 06 00 "
             "09 06 00 02 02 00 02 02 05 02 02 00 01"
         ).split()
-        await pitboss._on_state_received("".join(data))
+        await pitboss._on_state_received(None, "".join(data))
         assert status == {
             "p1Target": 170,
             "p1Temp": 150,

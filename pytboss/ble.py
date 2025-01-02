@@ -155,9 +155,18 @@ class BleConnection(Transport):
         checksum = int(tail[1 : len(tail) - 1])  # noqa: E203
         if len(payload) != checksum:
             # Bad payload; ignore.
+            _LOGGER.debug(
+                "Ignoring message with bad checksum (%d != %d)", len(payload), checksum
+            )
             return
         if head == "<==PB:" and self._state_callback:
-            await self._state_callback(payload)
+            status_payload = temperatures_payload = None
+            match payload[:4]:
+                case "FE0B":
+                    status_payload = payload
+                case "FE0C":
+                    temperatures_payload = payload
+            await self._state_callback(status_payload, temperatures_payload)
         elif head == "<==PBD:" and self._vdata_callback:
             # TODO: I think we want to decode this?
             await self._vdata_callback(payload)

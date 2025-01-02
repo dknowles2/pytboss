@@ -11,7 +11,7 @@ from mypy_extensions import DefaultNamedArg
 
 from .exceptions import RPCError
 
-RawStateCallback = Callable[[str], Awaitable[None]]
+RawStateCallback = Callable[[str | None, str | None], Awaitable[None]]
 RawVDataCallback = Callable[[str], Awaitable[None]]
 SendCommandFn = Callable[
     [str, dict[Any, Any], DefaultNamedArg(float | None, "timeout")],

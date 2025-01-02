@@ -83,17 +83,27 @@ class PitBoss:
         async with self._lock:
             self._vdata_callbacks.append(callback)
 
-    async def _on_state_received(self, payload: str):
-        _LOGGER.debug("State received: %s", payload)
-        state = None
-        match payload[:4]:
-            case "FE0B":
-                state = self.spec.control_board.parse_status(payload)
-            case "FE0C":
-                state = self.spec.control_board.parse_temperatures(payload)
+    async def _on_state_received(
+        self, status_payload: str | None, temperatures_payload: str | None
+    ) -> None:
+        _LOGGER.debug(
+            "State received: status=%s, temperatures=%s",
+            status_payload,
+            temperatures_payload,
+        )
+        state = StateDict()
+        if status_payload:
+            if new_state := self.spec.control_board.parse_status(status_payload):
+                state.update(new_state)
+        if temperatures_payload:
+            if new_state := self.spec.control_board.parse_temperatures(
+                temperatures_payload
+            ):
+                state.update(new_state)
 
         if not state:
             # Unknown or invalid payload; ignore.
+            _LOGGER.debug("Could not parse state payload")
             return
 
         async with self._lock:
