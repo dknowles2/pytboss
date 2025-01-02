@@ -94,6 +94,7 @@ class PitBoss:
 
         if not state:
             # Unknown or invalid payload; ignore.
+            _LOGGER.debug("Could not parse state payload: %s", payload)
             return
 
         async with self._lock:
