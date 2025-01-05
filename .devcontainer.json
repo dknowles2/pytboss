@@ -33,6 +33,8 @@
     "privileged": true,
     "remoteUser": "vscode",
     "runArgs": [
+        // net=host seems to be required for the bluez service to find the bluetooth adaptor
+        "--net=host",
         "--group-add",
         "dialout",
         "--group-add",
