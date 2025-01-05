@@ -34,11 +34,20 @@
     "remoteUser": "vscode",
     "runArgs": [
         "--group-add",
-        "dialout"
+        "dialout",
+        "--group-add",
+        "bluetooth"
     ],
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:2": {
             "moby": false
+        },
+        "ghcr.io/devcontainers-extra/features/apt-packages:1": {
+            "packages": [
+                "bluez",
+                "libpcap-dev",
+                "libudev-dev"
+            ]
         }
     }
 }
