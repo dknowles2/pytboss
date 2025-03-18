@@ -63,6 +63,14 @@ $ cd pytboss
 $ python -m pip install .
 ```
 
+### Development
+
+This has a vscode dev env configured that has the necessary dependencies installed. This container has the bluez subsystem configured but needs the host machine's bluetoothd to be stopped before the container is started. This can be done in ubuntu linux using the command `systemctl stop bluetooth`. After the container is started, the bluez service can be started by running the following commands in the container:
+```
+sudo service dbus start
+sudo service bluetooth start
+```
+
 ## Supported Models
 
 The following models should be supported. Note however that only the `PBV4PS2` model has been tested.
