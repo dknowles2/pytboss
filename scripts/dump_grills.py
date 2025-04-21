@@ -25,6 +25,7 @@ CONTROL_BOARDS = (
     "PBC",
     "PBG",
     "PBL",
+    "PBL2",
     "PBM",
     "PBP",
     "PBT",
@@ -66,7 +67,7 @@ def main():
     cfg.read(str(Path.home() / ".pitboss"))
     auth = login(cfg["pitboss"]["username"], cfg["pitboss"]["password"])
     grills = {}
-    for i in range(1, 101):
+    for i in range(1, 111):
         try:
             grill = get_grill_details(i, auth)
         except requests.HTTPError:
