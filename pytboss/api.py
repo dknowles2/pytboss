@@ -145,14 +145,14 @@ class PitBoss:
         """Port of getCodecKey() from JavaScript."""
         key = key_bytes.copy()  # Make a copy to avoid modifying the original
         x = []
-        l = time_val
+        mtime = time_val
         
         while len(key) > 1:
-            p = l % len(key)
+            p = mtime % len(key)
             v = key[p]
             key.pop(p)
-            x.append((v ^ l) & 0xff)
-            l = (l * v + v) & 0xff
+            x.append((v ^ mtime) & 0xff)
+            mtime = (mtime * v + v) & 0xff
             
         x.append(key[0])
         return x
