@@ -44,7 +44,6 @@ class PitBoss:
         self.fs = FileSystem(conn)
         self.config = Config(conn)
         self.spec: Grill = get_grill(grill_model)
-        #print(get_grill(grill_model))
         self._conn = conn
         self._conn.set_state_callback(self._on_state_received)
         self._conn.set_vdata_callback(self._on_vdata_received)
@@ -53,13 +52,9 @@ class PitBoss:
         self._state_callbacks: list[StateCallback] = []
         self._vdata_callbacks: list[VDataCallback] = []
         self._state = StateDict()
-        #print("password")
-        #print(password)
 
     def is_connected(self) -> bool:
         """Returns whether we are actively connected to the grill."""
-        #print("is_connected")
-        #print(self._conn.is_connected())
         return self._conn.is_connected()
 
     async def start(self) -> None:
@@ -68,11 +63,9 @@ class PitBoss:
         Required to be called before the API can be used.
         """
         await self._conn.connect()
-        #print("start connect await done")
 
     async def stop(self) -> None:
         """Stops any background polling."""
-        #print("STOP")
         await self._conn.disconnect()
 
     async def subscribe_state(self, callback: StateCallback):
@@ -81,7 +74,6 @@ class PitBoss:
         :param callback: Callback function that will receive updated grill state.
         """
         # TODO: Return a handle for unsubscribe.
-        #print("SUBSCRIBESTATE")
         async with self._lock:
             self._state_callbacks.append(callback)
 
@@ -90,7 +82,6 @@ class PitBoss:
 
         :param callback: Callback function that will receive updated VData.
         """
-        #print("SUBSCRIBEVDATA")
         # TODO: Return a handle for unsubscribe.
         async with self._lock:
             self._vdata_callbacks.append(callback)
@@ -131,7 +122,6 @@ class PitBoss:
     async def _on_vdata_received(self, payload: str):
         vdata = json.loads(payload)
         _LOGGER.debug("VData received: %s", vdata)
-        #printf("VData received: %s", vdata)
         async with self._lock:
             # TODO: Run callbacks concurrently
             # TODO: Send copies of state so subscribers can't modify it
@@ -312,7 +302,6 @@ class PitBoss:
     async def get_state(self) -> StateDict:
         """Retrieves the current grill state."""
         resp = await self._conn.send_command("PB.GetState", await self._authenticate({}))
-        #print(resp)
         status = self.spec.control_board.parse_status(resp["sc_11"]) or {}
         status.update(self.spec.control_board.parse_temperatures(resp["sc_12"]) or {})
         return status
@@ -348,8 +337,6 @@ class PitBoss:
 
     async def get_time(self):
         """:meta private:"""
-        #print("GETTING TIME")
-        #print(await self._conn.send_command("PB.GetTime", {}))
         return await self._conn.send_command("PB.GetTime", {})
 
     async def ping(self, timeout: float | None = None) -> dict:
@@ -357,6 +344,4 @@ class PitBoss:
 
         :param timeout: Time (in seconds) after which to abandon the RPC.
         """
-        #print("PING")
-        #print(await self._conn.send_command("RPC.Ping", {}))
         return await self._conn.send_command("RPC.Ping", {}, timeout=timeout)
