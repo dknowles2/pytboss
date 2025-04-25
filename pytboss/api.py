@@ -9,11 +9,13 @@ import time
 from typing import Awaitable, Callable
 
 from .config import Config
+from .exceptions import GrillUnavailable, NotConnectedError, RPCError
 from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
 from .transport import Transport
 
 _LOGGER = logging.getLogger("pytboss")
+_LOGGER.setLevel(logging.DEBUG)
 
 StateCallback = Callable[[StateDict], Awaitable[None] | None]
 """A callback function that receives updated grill state."""
@@ -44,6 +46,8 @@ class PitBoss:
         self.fs = FileSystem(conn)
         self.config = Config(conn)
         self.spec: Grill = get_grill(grill_model)
+        print("init")
+        print(get_grill(grill_model))
         self._conn = conn
         self._conn.set_state_callback(self._on_state_received)
         self._conn.set_vdata_callback(self._on_vdata_received)
@@ -52,9 +56,13 @@ class PitBoss:
         self._state_callbacks: list[StateCallback] = []
         self._vdata_callbacks: list[VDataCallback] = []
         self._state = StateDict()
+        print("password")
+        print(password)
 
     def is_connected(self) -> bool:
         """Returns whether we are actively connected to the grill."""
+        print("is_connected")
+        print(self._conn.is_connected())
         return self._conn.is_connected()
 
     async def start(self) -> None:
@@ -63,9 +71,11 @@ class PitBoss:
         Required to be called before the API can be used.
         """
         await self._conn.connect()
+        print("start connect await done")
 
     async def stop(self) -> None:
         """Stops any background polling."""
+        print("STOP")
         await self._conn.disconnect()
 
     async def subscribe_state(self, callback: StateCallback):
@@ -74,6 +84,7 @@ class PitBoss:
         :param callback: Callback function that will receive updated grill state.
         """
         # TODO: Return a handle for unsubscribe.
+        print("SUBSCRIBESTATE")
         async with self._lock:
             self._state_callbacks.append(callback)
 
@@ -82,6 +93,7 @@ class PitBoss:
 
         :param callback: Callback function that will receive updated VData.
         """
+        print("SUBSCRIBEVDATA")
         # TODO: Return a handle for unsubscribe.
         async with self._lock:
             self._vdata_callbacks.append(callback)
@@ -90,6 +102,11 @@ class PitBoss:
         self, status_payload: str | None, temperatures_payload: str | None
     ) -> None:
         _LOGGER.debug(
+            "State received: status=%s, temperatures=%s",
+            status_payload,
+            temperatures_payload,
+        )
+        print(
             "State received: status=%s, temperatures=%s",
             status_payload,
             temperatures_payload,
@@ -107,6 +124,7 @@ class PitBoss:
         if not state:
             # Unknown or invalid payload; ignore.
             _LOGGER.debug("Could not parse state payload")
+            print("Could not parse state payload")
             return
 
         async with self._lock:
@@ -122,6 +140,7 @@ class PitBoss:
     async def _on_vdata_received(self, payload: str):
         vdata = json.loads(payload)
         _LOGGER.debug("VData received: %s", vdata)
+        printf("VData received: %s", vdata)
         async with self._lock:
             # TODO: Run callbacks concurrently
             # TODO: Send copies of state so subscribers can't modify it
@@ -137,22 +156,23 @@ class PitBoss:
             response = await self.get_time()
             uptime = response.get("time", 0)
             return int(max(uptime - 5, 0) / 10)
-        except Exception:
+        except (RPCError, GrillUnavailable, NotConnectedError) as e:
             # Fallback to local time if we can't get grill time
+            _LOGGER.debug("Failed to get grill time, using local time: %s", e)
             return int(max(time.time() - 5, 0) / 10)
 
     def _get_codec_key(self, key_bytes: list[int], time_val: int) -> list[int]:
         """Port of getCodecKey() from JavaScript."""
         key = key_bytes.copy()  # Make a copy to avoid modifying the original
         x = []
-        mtime = time_val
+        l = time_val
         
         while len(key) > 1:
-            p = mtime % len(key)
+            p = l % len(key)
             v = key[p]
             key.pop(p)
-            x.append((v ^ mtime) & 0xff)
-            mtime = (mtime * v + v) & 0xff
+            x.append((v ^ l) & 0xff)
+            l = (l * v + v) & 0xff
             
         x.append(key[0])
         return x
@@ -197,14 +217,10 @@ class PitBoss:
         if not self._password:
             return params
             
-        # Always get fresh grill time
-        grill_time_resp = await self.get_time()
-        grill_time = grill_time_resp.get("time", 0)
+        # Get codec time (with fallback to local time if needed)
+        base_time = await self._get_codec_time()
         
-        # Calculate codec time using grill time
-        base_time = int(max(grill_time - 5, 0) / 10)
-        
-        # Changed order to prioritize base_time + 1 first
+        # Try multiple time values around the base time
         # This appears to be more reliable based on logs
         time_values = [base_time + 1, base_time, base_time - 1]
               
@@ -224,18 +240,18 @@ class PitBoss:
                 # Convert to hex string
                 hex_result = encrypted.hex()
                 results.append((x, hex_result))
-            except Exception as e:
-                print(f"Error encrypting with time value {x}: {e}")
+            except (ValueError, IndexError, TypeError, OverflowError) as e:
+                _LOGGER.debug("Error encrypting with time value %s: %s", x, e)
         
         # Use the first result (highest priority) from our ordered list
         if results:
             x, hex_result = results[0]
             params["psw"] = hex_result
-            #print(f"Using time value {x} for authentication")
+            _LOGGER.debug("Using time value %s for authentication", x)
             return params
         
         # This should never happen since we're trying multiple time values
-        raise Exception("Failed to generate authentication token")
+        raise RPCError("Failed to generate authentication token")
 
     async def _send_hex_command(self, cmd: str) -> dict:
         return await self._conn.send_command(
@@ -302,6 +318,7 @@ class PitBoss:
     async def get_state(self) -> StateDict:
         """Retrieves the current grill state."""
         resp = await self._conn.send_command("PB.GetState", await self._authenticate({}))
+        print(resp)
         status = self.spec.control_board.parse_status(resp["sc_11"]) or {}
         status.update(self.spec.control_board.parse_temperatures(resp["sc_12"]) or {})
         return status
@@ -337,6 +354,8 @@ class PitBoss:
 
     async def get_time(self):
         """:meta private:"""
+        print("GETTING TIME")
+        print(await self._conn.send_command("PB.GetTime", {}))
         return await self._conn.send_command("PB.GetTime", {})
 
     async def ping(self, timeout: float | None = None) -> dict:
@@ -344,4 +363,7 @@ class PitBoss:
 
         :param timeout: Time (in seconds) after which to abandon the RPC.
         """
+        print("PING")
+        print(await self._conn.send_command("RPC.Ping", {}))
         return await self._conn.send_command("RPC.Ping", {}, timeout=timeout)
+
