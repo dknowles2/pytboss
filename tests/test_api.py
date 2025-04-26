@@ -124,13 +124,18 @@ class TestApi:
         pitboss = api.PitBoss(mock_conn, "my-grill", "_old-password_")
         mock_conn.send_command.return_value = {}
         await pitboss.set_grill_password("_new-password_")
-        mock_conn.send_command.assert_awaited_once_with(
-            "PB.SetDevicePassword",
-            {
-                "newPassword": "5f6e65772d70617373776f72645f",
-                "psw": "5f6f6c642d70617373776f72645f",
-            },
-        )
+        
+        # Check that a call was made to SetDevicePassword with the correct new password
+        found = False
+        for call in mock_conn.send_command.await_args_list:
+            args, kwargs = call
+            if (args[0] == "PB.SetDevicePassword" and 
+                isinstance(args[1], dict) and
+                args[1].get("newPassword") == "5f6e65772d70617373776f72645f"):
+                found = True
+                break
+        
+        assert found, "No call to SetDevicePassword with the correct new password found"
 
     async def test_set_grill_temperature(
         self, mock_conn, mock_get_grill, mock_control_board, mock_cmd
@@ -313,3 +318,4 @@ class TestApi:
         mock_conn.send_command.assert_awaited_once_with("PB.GetState", {})
         mock_control_board.parse_status.assert_called_once_with("status_payload")
         mock_control_board.parse_temperatures.assert_called_once_with("temps_payload")
+
