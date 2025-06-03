@@ -1,6 +1,6 @@
 -r requirements.txt
 mypy==1.15.0
-pytest==8.3.5
+pytest==8.4.0
 pytest-asyncio==0.26.0
 pytest-aiohttp==1.1.0
 ruff==0.11.11
