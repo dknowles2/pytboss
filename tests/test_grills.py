@@ -10,7 +10,7 @@ from pytboss.exceptions import InvalidGrill
 # Most control boards perform the fahrenheit to celsius conversion internally,
 # however these boards do NOT and instead rely on the conversion to happen in
 # their JS snippets.
-_HAS_FTOC = ("LFS", "PBM", "PBT", "PBV")
+_HAS_FTOC = ("LFS", "PBA", "PBE", "PBM", "PBT", "PBV")
 
 TEMPERATURE_FIELDS = (
     "p1Target",
