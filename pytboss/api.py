@@ -32,8 +32,6 @@ class PitBoss:
     config: Config
     """Configuration operations."""
 
-    _grill_time_offset = None  # Time difference between client and grill
-
     def __init__(self, conn: Transport, grill_model: str, password: str = "") -> None:
         """Initializes the class.
 
@@ -133,9 +131,10 @@ class PitBoss:
                     callback(vdata)
 
     async def _authenticate(self, params: dict) -> dict:
-        if not self._password:
-            return params
-        params["psw"] = encode(self._password, key=timed_key(await self.get_uptime()))
+        if self._password:
+            params["psw"] = encode(
+                self._password, key=timed_key(await self.get_uptime())
+            )
         return params
 
     async def _send_hex_command(self, cmd: str) -> dict:
