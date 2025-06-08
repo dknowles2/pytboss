@@ -4,18 +4,17 @@ import asyncio
 import inspect
 import json
 import logging
-import random
-import time
+from functools import lru_cache
+from time import time
 from typing import Awaitable, Callable
 
+from .codec import encode, timed_key
 from .config import Config
-from .exceptions import GrillUnavailable, NotConnectedError, RPCError
 from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
 from .transport import Transport
 
 _LOGGER = logging.getLogger("pytboss")
-_LOGGER.setLevel(logging.DEBUG)
 
 StateCallback = Callable[[StateDict], Awaitable[None] | None]
 """A callback function that receives updated grill state."""
@@ -49,7 +48,7 @@ class PitBoss:
         self._conn = conn
         self._conn.set_state_callback(self._on_state_received)
         self._conn.set_vdata_callback(self._on_vdata_received)
-        self._password = password
+        self._password = password.encode("utf-8")
         self._lock = asyncio.Lock()  # protects callbacks and state.
         self._state_callbacks: list[StateCallback] = []
         self._vdata_callbacks: list[VDataCallback] = []
@@ -133,108 +132,11 @@ class PitBoss:
                 else:
                     callback(vdata)
 
-    async def _get_codec_time(self) -> int:
-        """Port of getCodecTime() from JavaScript using actual grill time."""
-        try:
-            response = await self.get_time()
-            uptime = response.get("time", 0)
-            return int(max(uptime - 5, 0) / 10)
-        except (RPCError, GrillUnavailable, NotConnectedError) as e:
-            # Fallback to local time if we can't get grill time
-            _LOGGER.debug("Failed to get grill time, using local time: %s", e)
-            return int(max(time.time() - 5, 0) / 10)
-
-    def _get_codec_key(self, key_bytes: list[int], time_val: int) -> list[int]:
-        """Port of getCodecKey() from JavaScript."""
-        key = key_bytes.copy()  # Make a copy to avoid modifying the original
-        x = []
-        l = time_val
-        
-        while len(key) > 1:
-            p = l % len(key)
-            v = key[p]
-            key.pop(p)
-            x.append((v ^ l) & 0xff)
-            l = (l * v + v) & 0xff
-            
-        x.append(key[0])
-        return x
-
-    def _codec(self, data: bytes, key: list[int], padding_len: int) -> bytes:
-        """Port of codec() from JavaScript."""
-        result = bytearray()
-        
-        # Apply padding if needed
-        if padding_len > 0:
-            data = b'\xff' + data
-            for _ in range(padding_len):
-                rnd_val = random.randint(0, 254)  # Avoid 0xff
-                data = bytes([rnd_val]) + data
-        
-        # Make a copy of the key to modify during processing
-        key_copy = key.copy()
-        
-        # Process each byte
-        for i in range(len(data)):
-            k = key_copy[i % len(key_copy)]
-            m = (data[i] ^ k) & 0xff
-            result.append(m)
-            
-            k2 = (i + 1) % len(key_copy)
-            if padding_len > 0:
-                key_copy[k2] = ((key_copy[k2] ^ m) + i) & 0xff
-            else:
-                key_copy[k2] = ((key_copy[k2] ^ data[i]) + i) & 0xff
-        
-        # Remove padding marker if decoding
-        if padding_len < 1:
-            try:
-                ff_index = result.index(0xff)
-                result = result[ff_index + 1:]
-            except ValueError:
-                pass
-        
-        return bytes(result)
-
     async def _authenticate(self, params: dict) -> dict:
         if not self._password:
             return params
-            
-        # Get codec time (with fallback to local time if needed)
-        base_time = await self._get_codec_time()
-        
-        # Try multiple time values around the base time
-        # This appears to be more reliable based on logs
-        time_values = [base_time + 1, base_time, base_time - 1]
-              
-        # Get the raw password bytes
-        password_bytes = self._password.encode("utf-8")
-        
-        results = []
-        # Try authentication with each time value
-        for x in time_values:
-            try:
-                # Get the key for encryption
-                key = self._get_codec_key([0x8f, 0x80, 0x19, 0xcf, 0x77, 0x6c, 0xfe, 0xb7], x)
-                
-                # Encrypt the password using the exact same approach as the grill
-                encrypted = self._codec(password_bytes, key, 4)
-                
-                # Convert to hex string
-                hex_result = encrypted.hex()
-                results.append((x, hex_result))
-            except (ValueError, IndexError, TypeError, OverflowError) as e:
-                _LOGGER.debug("Error encrypting with time value %s: %s", x, e)
-        
-        # Use the first result (highest priority) from our ordered list
-        if results:
-            x, hex_result = results[0]
-            params["psw"] = hex_result
-            _LOGGER.debug("Using time value %s for authentication", x)
-            return params
-        
-        # This should never happen since we're trying multiple time values
-        raise RPCError("Failed to generate authentication token")
+        params["psw"] = encode(self._password, key=timed_key(await self.get_uptime()))
+        return params
 
     async def _send_hex_command(self, cmd: str) -> dict:
         return await self._conn.send_command(
@@ -250,10 +152,12 @@ class PitBoss:
 
         :param new_password: The new password to set.
         """
+        new_password_bytes = new_password.encode("utf-8")
         await self._conn.send_command(
             "PB.SetDevicePassword",
-            await self._authenticate({"newPassword": new_password.encode("utf-8").hex()}),
+            await self._authenticate({"newPassword": encode(new_password_bytes)}),
         )
+        self._password = new_password_bytes
 
     async def set_grill_temperature(self, temp: int) -> dict:
         """Sets the target grill temperature.
@@ -300,7 +204,9 @@ class PitBoss:
 
     async def get_state(self) -> StateDict:
         """Retrieves the current grill state."""
-        resp = await self._conn.send_command("PB.GetState", await self._authenticate({}))
+        resp = await self._conn.send_command(
+            "PB.GetState", await self._authenticate({})
+        )
         status = self.spec.control_board.parse_status(resp["sc_11"]) or {}
         status.update(self.spec.control_board.parse_temperatures(resp["sc_12"]) or {})
         return status
@@ -334,9 +240,17 @@ class PitBoss:
             "PB.GetVirtualData", await self._authenticate({})
         )
 
-    async def get_time(self):
+    async def get_uptime(self) -> float:
         """:meta private:"""
-        return await self._conn.send_command("PB.GetTime", {})
+        # abuse lru_cache to add a 5 second TTL
+        return await self._get_uptime(int(time() // 5))
+
+    @lru_cache(maxsize=1)
+    async def _get_uptime(self, ttl_hash) -> float:
+        """:meta private:"""
+        _ = ttl_hash
+        result = await self._conn.send_command("PB.GetTime", {})
+        return result.get("time", 0.0)
 
     async def ping(self, timeout: float | None = None) -> dict:
         """Pings the device.
@@ -344,4 +258,3 @@ class PitBoss:
         :param timeout: Time (in seconds) after which to abandon the RPC.
         """
         return await self._conn.send_command("RPC.Ping", {}, timeout=timeout)
-
