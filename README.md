@@ -67,6 +67,8 @@ $ python -m pip install .
 
 The following models should be supported. Note however that only the `PBV4PS2` model has been tested.
 
+<!-- GRILLS START -->
+
 *  [AustinXL Wi-Fi Upgrade](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/ghost%20grill.png)
 *  [LG0800BL](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG0800BL.png)
 *  [LG1000BL](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG1000BL.png)
@@ -165,3 +167,5 @@ The following models should be supported. Note however that only the `PBV4PS2` m
 *  [PBV7PW1](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV7PW1_Sportsman-2021-6-30-controller123.png)
 *  [PBX - test 1](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS3.png)
 *  [Savannah Wi-Fi Upgrade](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/ghost%20grill.png)
+
+<!-- GRILLS END -->
