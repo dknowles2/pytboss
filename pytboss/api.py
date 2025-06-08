@@ -4,15 +4,17 @@ import asyncio
 import inspect
 import json
 import logging
+from functools import lru_cache
+from time import time
 from typing import Awaitable, Callable
 
+from .codec import encode, timed_key
 from .config import Config
 from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
 from .transport import Transport
 
 _LOGGER = logging.getLogger("pytboss")
-
 
 StateCallback = Callable[[StateDict], Awaitable[None] | None]
 """A callback function that receives updated grill state."""
@@ -44,7 +46,7 @@ class PitBoss:
         self._conn = conn
         self._conn.set_state_callback(self._on_state_received)
         self._conn.set_vdata_callback(self._on_vdata_received)
-        self._password = password
+        self._password = password.encode("utf-8")
         self._lock = asyncio.Lock()  # protects callbacks and state.
         self._state_callbacks: list[StateCallback] = []
         self._vdata_callbacks: list[VDataCallback] = []
@@ -128,14 +130,16 @@ class PitBoss:
                 else:
                     callback(vdata)
 
-    def _authenticate(self, params: dict) -> dict:
+    async def _authenticate(self, params: dict) -> dict:
         if self._password:
-            params["psw"] = self._password.encode("utf-8").hex()
+            params["psw"] = encode(
+                self._password, key=timed_key(await self.get_uptime())
+            )
         return params
 
     async def _send_hex_command(self, cmd: str) -> dict:
         return await self._conn.send_command(
-            "PB.SendMCUCommand", self._authenticate({"command": cmd})
+            "PB.SendMCUCommand", await self._authenticate({"command": cmd})
         )
 
     async def _send_command(self, slug: str, *args) -> dict:
@@ -147,10 +151,12 @@ class PitBoss:
 
         :param new_password: The new password to set.
         """
+        new_password_bytes = new_password.encode("utf-8")
         await self._conn.send_command(
             "PB.SetDevicePassword",
-            self._authenticate({"newPassword": new_password.encode("utf-8").hex()}),
+            await self._authenticate({"newPassword": encode(new_password_bytes)}),
         )
+        self._password = new_password_bytes
 
     async def set_grill_temperature(self, temp: int) -> dict:
         """Sets the target grill temperature.
@@ -197,7 +203,9 @@ class PitBoss:
 
     async def get_state(self) -> StateDict:
         """Retrieves the current grill state."""
-        resp = await self._conn.send_command("PB.GetState", self._authenticate({}))
+        resp = await self._conn.send_command(
+            "PB.GetState", await self._authenticate({})
+        )
         status = self.spec.control_board.parse_status(resp["sc_11"]) or {}
         status.update(self.spec.control_board.parse_temperatures(resp["sc_12"]) or {})
         return status
@@ -216,20 +224,32 @@ class PitBoss:
         """:meta private:"""
         return await self._conn.send_command(
             "PB.SetWifiUpdateFrequency",
-            self._authenticate({"slow": slow, "fast": fast}),
+            await self._authenticate({"slow": slow, "fast": fast}),
         )
 
     async def set_virtual_data(self, data: dict):
         """:meta private:"""
         return await self._conn.send_command(
-            "PB.SetVirtualData", self._authenticate(data)
+            "PB.SetVirtualData", await self._authenticate(data)
         )
 
     async def get_virtual_data(self):
         """:meta private:"""
         return await self._conn.send_command(
-            "PB.GetVirtualData", self._authenticate({})
+            "PB.GetVirtualData", await self._authenticate({})
         )
+
+    async def get_uptime(self) -> float:
+        """:meta private:"""
+        # abuse lru_cache to add a 5 second TTL
+        return await self._get_uptime(int(time() // 5))
+
+    @lru_cache(maxsize=1)
+    async def _get_uptime(self, ttl_hash) -> float:
+        """:meta private:"""
+        _ = ttl_hash
+        result = await self._conn.send_command("PB.GetTime", {})
+        return result.get("time", 0.0)
 
     async def ping(self, timeout: float | None = None) -> dict:
         """Pings the device.
