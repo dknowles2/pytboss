@@ -35,3 +35,4 @@ jobs:
           commit_message: "Automated: Update README.md"
           file_pattern: 'README.md'
           branch: main
+          token: ${{ secrets.PAT }}
