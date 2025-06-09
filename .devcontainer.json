@@ -33,12 +33,24 @@
     "privileged": true,
     "remoteUser": "vscode",
     "runArgs": [
+        // net=host seems to be required for the bluez service to find the bluetooth adaptor
+        "--net=host",
         "--group-add",
-        "dialout"
+        "dialout",
+        "--group-add",
+        "bluetooth"
     ],
+    "postStartCommand": "sudo service dbus start && sudo service bluetooth start",
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:2": {
             "moby": false
+        },
+        "ghcr.io/devcontainers-extra/features/apt-packages:1": {
+            "packages": [
+                "bluez",
+                "libpcap-dev",
+                "libudev-dev"
+            ]
         }
     }
 }
