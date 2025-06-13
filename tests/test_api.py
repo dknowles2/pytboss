@@ -5,6 +5,7 @@ import pytest
 from freezegun import freeze_time
 
 from pytboss import api, grills
+from pytboss.codec import decode, timed_key
 from pytboss.exceptions import InvalidGrill
 from pytboss.transport import Transport
 
@@ -112,12 +113,26 @@ class TestApi:
         mock_get_grill.return_value = grill
         pitboss = api.PitBoss(mock_conn, "my-grill")
         mock_conn.send_command.side_effect = [{"time": 100.0}, {}]
-        with mock.patch("pytboss.api.encode") as mock_encode:
-            mock_encode.side_effect = lambda b, **kwargs: f"~{b.decode()}~"
-            await pitboss.set_grill_password("newpwd")
-            mock_conn.send_command.assert_awaited_once_with(
-                "PB.SetDevicePassword", {"newPassword": "~newpwd~"}
-            )
+        await pitboss.set_grill_password("newpwd")
+        [cmd] = mock_conn.send_command.await_args_list
+        assert len(cmd.args) == 2
+        assert cmd.kwargs == {}
+        assert cmd.args[0] == "PB.SetDevicePassword"
+        assert decode(bytes.fromhex(cmd.args[1]["newPassword"])) == b"newpwd"
+
+        # Ensure we send the new password on subsequent actions
+        mock_conn.send_command.reset_mock()
+        mock_conn.send_command.side_effect = [{"time": 105.0}, {}]
+        await pitboss.get_virtual_data()
+        [get_time, cmd2] = mock_conn.send_command.await_args_list
+        assert get_time == call("PB.GetTime", {})
+        assert len(cmd2.args) == 2
+        assert cmd2.kwargs == {}
+        assert cmd2.args[0] == "PB.GetVirtualData"
+        assert (
+            decode(bytes.fromhex(cmd2.args[1]["psw"]), key=timed_key(106.0))
+            == b"newpwd"
+        )
 
     @freeze_time("2025-06-01 00:00:00")
     async def test_set_password_with_old_password(
@@ -127,22 +142,15 @@ class TestApi:
         mock_get_grill.return_value = grill
         pitboss = api.PitBoss(mock_conn, "my-grill", "oldpwd")
         mock_conn.send_command.side_effect = [{"time": 100.0}, {}]
-        with (
-            mock.patch("pytboss.api.encode") as mock_encode,
-            mock.patch("pytboss.api.timed_key") as mock_timed_key,
-        ):
-            mock_encode.side_effect = lambda b, **kwargs: f"~{b.decode()}~"
-            mock_timed_key.side_effect = [[0xAA, 0xAB], [0xBA, 0xBB]]
-            await pitboss.set_grill_password("newpwd")
-            mock_conn.send_command.assert_has_awaits(
-                [
-                    call("PB.GetTime", {}),
-                    call(
-                        "PB.SetDevicePassword",
-                        {"newPassword": "~newpwd~", "psw": "~oldpwd~"},
-                    ),
-                ]
-            )
+        await pitboss.set_grill_password("newpwd")
+        get_time, set_pwd = mock_conn.send_command.await_args_list
+        assert get_time == call("PB.GetTime", {})
+        assert len(set_pwd.args) == 2
+        assert set_pwd.kwargs == {}
+        assert set_pwd.args[0] == "PB.SetDevicePassword"
+        params = set_pwd.args[1]
+        assert decode(bytes.fromhex(params["psw"]), key=timed_key(101.0)) == b"oldpwd"
+        assert decode(bytes.fromhex(params["newPassword"])) == b"newpwd"
 
     async def test_set_grill_temperature(
         self, mock_conn, mock_get_grill, mock_control_board, mock_cmd

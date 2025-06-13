@@ -134,7 +134,7 @@ class PitBoss:
         if self._password:
             params["psw"] = encode(
                 self._password, key=timed_key(await self.get_uptime())
-            )
+            ).hex()
         return params
 
     async def _send_hex_command(self, cmd: str) -> dict:
@@ -154,7 +154,7 @@ class PitBoss:
         new_password_bytes = new_password.encode("utf-8")
         await self._conn.send_command(
             "PB.SetDevicePassword",
-            await self._authenticate({"newPassword": encode(new_password_bytes)}),
+            await self._authenticate({"newPassword": encode(new_password_bytes).hex()}),
         )
         self._password = new_password_bytes
 
