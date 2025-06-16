@@ -1,335 +1,329 @@
+import json
+from itertools import count
+from typing import Generator
 from unittest import mock
-from unittest.mock import AsyncMock, Mock, call
+from unittest.mock import Mock
 
 import pytest
 from freezegun import freeze_time
 
 from pytboss import api, grills
 from pytboss.codec import decode, timed_key
-from pytboss.exceptions import InvalidGrill
+from pytboss.exceptions import InvalidGrill, Unauthorized
 from pytboss.transport import Transport
 
+STATE_HEX = (
+    "FE 0B 01 06 05 01 09 01 01 09 02 09 06 00 09 06 00 02 02 00 02 02 "
+    "05 01 01 00 00 00 00 00 00 00 00 00 01 01 01 00 01 01 04 0C 3B 1F"
+).replace(" ", "")
+STATE_DICT = {
+    "p1Target": 165,
+    "p1Temp": 191,
+    "p2Temp": 192,
+    "p3Temp": None,
+    "p4Temp": None,
+    "smokerActTemp": 220,
+    "grillSetTemp": 225,
+    "isFahrenheit": True,
+    "moduleIsOn": True,
+    "err1": False,
+    "err2": False,
+    "err3": False,
+    "highTempErr": False,
+    "fanErr": False,
+    "hotErr": False,
+    "motorErr": False,
+    "noPellets": False,
+    "erL": False,
+    "fanState": True,
+    "hotState": True,
+    "motorState": True,
+    "lightState": False,
+    "primeState": True,
+    "recipeStep": 4,
+    "recipeTime": 46771,
+}
+TEMPS_HEX = (
+    "FE 0C 01 07 00 01 05 00 01 06 05 09 06 00 09 06 00 02 02 00 02 02 05 02 02 00 01"
+).replace(" ", "")
+TEMPS_DICT = {
+    "p1Target": 170,
+    "p1Temp": 150,
+    "p2Temp": 165,
+    "p3Temp": None,
+    "p4Temp": None,
+    "smokerActTemp": 220,
+    "grillSetTemp": 225,
+    "grillTemp": 220,
+    "isFahrenheit": True,
+}
 
-@pytest.fixture
-def mock_conn() -> AsyncMock:
-    return mock.create_autospec(Transport)
+
+class FakeTransport(Transport):
+    """Fake implementation of a transport protocol."""
+
+    def __init__(self, password: str = ""):
+        super().__init__()
+        self.last_mcu_command: str | None = None
+        self.password = password
+        self._clock = count(1.0)
+        self._is_connected = False
+
+    async def connect(self) -> None:
+        self._is_connected = True
+        return None
+
+    async def disconnect(self) -> None:
+        self._is_connected = False
+        return None
+
+    def is_connected(self) -> bool:
+        return self._is_connected
+
+    async def send_state(self, state: str | None) -> None:
+        if self._state_callback:
+            await self._state_callback(state, None)
+
+    async def send_temps(self, temps: str | None) -> None:
+        if self._state_callback:
+            await self._state_callback(None, temps)
+
+    async def _send_prepared_command(self, cmd: dict) -> None:
+        _ = json.dumps(cmd)  # Ensure we can encode the cmd as JSON
+        dispatch = {
+            "PB.GetTime": self._get_time,
+            "PB.GetVirtualData": self._get_virtual_data,
+            "PB.SetDevicePassword": self._set_password,
+            "PB.SendMCUCommand": self._send_mcu_command,
+            "PB.GetState": self._get_state,
+        }
+        resp = {"id": cmd["id"]}
+        try:
+            resp["result"] = dispatch[cmd["method"]](cmd["params"])
+        except Unauthorized:
+            resp["error"] = {"code": 401, "message": "Unauthorized"}
+        except Exception as ex:
+            resp["error"] = {"code": -1, "message": str(ex)}
+        await self._on_command_response(resp)
+
+    def _check_password(self, params: dict) -> None:
+        if not self.password:
+            return None
+        if "psw" not in params:
+            raise Unauthorized
+        psw = bytes.fromhex(params["psw"])
+        if not psw:
+            raise Unauthorized
+        if decode(psw, key=timed_key(self._uptime())).decode() != self.password:
+            raise Unauthorized
+
+    def _uptime(self) -> float:
+        return next(self._clock)
+
+    def _get_time(self, params: dict) -> dict:
+        return {"time": self._uptime()}
+
+    def _get_virtual_data(self, params: dict) -> dict:
+        self._check_password(params)
+        return {}
+
+    def _set_password(self, params: dict) -> dict:
+        self._check_password(params)
+        if "newPassword" not in params:
+            raise KeyError(f"newPassword not in {params}")
+        self.password = decode(bytes.fromhex(params["newPassword"])).decode()
+        return {}
+
+    def _send_mcu_command(self, params: dict) -> dict:
+        self._check_password(params)
+        if "command" not in params:
+            raise KeyError("Command parameter missing")
+        command = params["command"]
+        if not command:
+            raise ValueError("Empty command")
+        self.last_mcu_command = bytes.fromhex(params["command"]).decode()
+        return {}
+
+    def _get_state(self, params: dict) -> dict:
+        self._check_password(params)
+        return {"sc_11": STATE_HEX, "sc_12": TEMPS_HEX}
 
 
-@pytest.fixture
-def mock_cmd() -> Mock:
-    return mock.create_autospec(grills.Command, instance=True)
+def make_cmd(slug: str) -> Mock:
+    cmd = mock.create_autospec(grills.Command, instance=True)
+    cmd.side_effect = lambda *p: f"{slug}{p}".encode("utf-8").hex()
+    return cmd
 
 
 @pytest.fixture
 def mock_control_board() -> Mock:
-    return mock.create_autospec(grills.ControlBoard)
+    ctrl = mock.create_autospec(grills.ControlBoard)
+    ctrl.commands = {
+        cmd: make_cmd(cmd)
+        for cmd in (
+            "set-temperature",
+            "set-probe-1-temperature",
+            "turn-light-on",
+            "turn-light-off",
+            "turn-off",
+            "turn-primer-motor-on",
+            "turn-primer-motor-off",
+        )
+    }
+    return ctrl
 
 
 @pytest.fixture
-def mock_get_grill():
+def mock_get_grill(my_grill: grills.Grill) -> Generator[Mock, None, None]:
     with mock.patch("pytboss.api.get_grill", autospec=True) as mock_get_grill:
+        mock_get_grill.return_value = my_grill
         yield mock_get_grill
 
 
-class TestApi:
-    def test_init(self, mock_conn):
-        _ = api.PitBoss(mock_conn, "PBV4PS2")
-
-    def test_init_bad_model(self, mock_conn):
-        with pytest.raises(InvalidGrill):
-            _ = api.PitBoss(mock_conn, "unknown-model")
-
-    async def test_on_state_received(self, mock_conn):
-        pitboss = api.PitBoss(mock_conn, "PBV4PS2")
-        status = {}
-
-        def cb(s):
-            status.update(s)
-
-        await pitboss.subscribe_state(cb)
-        data = (
-            "FE 0B 01 06 05 01 09 01 01 09 02 09 06 00 09 06 00 02 02 00 02 02 "
-            "05 01 01 00 00 00 00 00 00 00 00 00 01 01 01 00 01 01 04 0C 3B 1F"
-        ).split()
-        await pitboss._on_state_received("".join(data), None)
-
-        assert status == {
-            "p1Target": 165,
-            "p1Temp": 191,
-            "p2Temp": 192,
-            "p3Temp": None,
-            "p4Temp": None,
-            "smokerActTemp": 220,
-            "grillSetTemp": 225,
-            "isFahrenheit": True,
-            "moduleIsOn": True,
-            "err1": False,
-            "err2": False,
-            "err3": False,
-            "highTempErr": False,
-            "fanErr": False,
-            "hotErr": False,
-            "motorErr": False,
-            "noPellets": False,
-            "erL": False,
-            "fanState": True,
-            "hotState": True,
-            "motorState": True,
-            "lightState": False,
-            "primeState": True,
-            "recipeStep": 4,
-            "recipeTime": 46771,
-        }
-
-    async def test_on_temperatures_received(self, mock_conn):
-        pitboss = api.PitBoss(mock_conn, "PBV4PS2")
-        status = {}
-
-        def cb(s):
-            status.update(s)
-
-        await pitboss.subscribe_state(cb)
-        data = (
-            "FE 0C 01 07 00 01 05 00 01 06 05 09 06 00 "
-            "09 06 00 02 02 00 02 02 05 02 02 00 01"
-        ).split()
-        await pitboss._on_state_received(None, "".join(data))
-        assert status == {
-            "p1Target": 170,
-            "p1Temp": 150,
-            "p2Temp": 165,
-            "p3Temp": None,
-            "p4Temp": None,
-            "smokerActTemp": 220,
-            "grillSetTemp": 225,
-            "grillTemp": 220,
-            "isFahrenheit": True,
-        }
-
-    async def test_set_password(
-        self, mock_conn: AsyncMock, mock_get_grill: Mock, mock_control_board: Mock
-    ):
-        grill = grills.Grill(name="my-grill", control_board=mock_control_board)
-        mock_get_grill.return_value = grill
-        pitboss = api.PitBoss(mock_conn, "my-grill")
-        mock_conn.send_command.side_effect = [{"time": 100.0}, {}]
-        await pitboss.set_grill_password("newpwd")
-        [cmd] = mock_conn.send_command.await_args_list
-        assert len(cmd.args) == 2
-        assert cmd.kwargs == {}
-        assert cmd.args[0] == "PB.SetDevicePassword"
-        assert decode(bytes.fromhex(cmd.args[1]["newPassword"])) == b"newpwd"
-
-        # Ensure we send the new password on subsequent actions
-        mock_conn.send_command.reset_mock()
-        mock_conn.send_command.side_effect = [{"time": 105.0}, {}]
-        await pitboss.get_virtual_data()
-        [get_time, cmd2] = mock_conn.send_command.await_args_list
-        assert get_time == call("PB.GetTime", {})
-        assert len(cmd2.args) == 2
-        assert cmd2.kwargs == {}
-        assert cmd2.args[0] == "PB.GetVirtualData"
-        assert (
-            decode(bytes.fromhex(cmd2.args[1]["psw"]), key=timed_key(106.0))
-            == b"newpwd"
-        )
-
-    @freeze_time("2025-06-01 00:00:00")
-    async def test_set_password_with_old_password(
-        self, mock_conn: AsyncMock, mock_get_grill: Mock, mock_control_board: Mock
-    ):
-        grill = grills.Grill(name="my-grill", control_board=mock_control_board)
-        mock_get_grill.return_value = grill
-        pitboss = api.PitBoss(mock_conn, "my-grill", "oldpwd")
-        mock_conn.send_command.side_effect = [{"time": 100.0}, {}]
-        await pitboss.set_grill_password("newpwd")
-        get_time, set_pwd = mock_conn.send_command.await_args_list
-        assert get_time == call("PB.GetTime", {})
-        assert len(set_pwd.args) == 2
-        assert set_pwd.kwargs == {}
-        assert set_pwd.args[0] == "PB.SetDevicePassword"
-        params = set_pwd.args[1]
-        assert decode(bytes.fromhex(params["psw"]), key=timed_key(101.0)) == b"oldpwd"
-        assert decode(bytes.fromhex(params["newPassword"])) == b"newpwd"
-
-    async def test_set_grill_temperature(
-        self, mock_conn, mock_get_grill, mock_control_board, mock_cmd
-    ):
-        grill = grills.Grill(name="my-grill", control_board=mock_control_board)
-        mock_get_grill.return_value = grill
-        pitboss = api.PitBoss(mock_conn, "my-grill")
-        mock_control_board.commands = {"set-temperature": mock_cmd}
-        mock_cmd.side_effect = ["HEXCMD"]
-        mock_conn.send_command.return_value = {}
-        assert (await pitboss.set_grill_temperature(225)) == {}
-
-        mock_cmd.assert_called_once_with(225)
-        mock_conn.send_command.assert_awaited_once_with(
-            "PB.SendMCUCommand", {"command": "HEXCMD"}
-        )
-
-    async def test_set_grill_temperature_high(
-        self, mock_conn, mock_get_grill, mock_control_board, mock_cmd
-    ):
-        grill = grills.Grill(
-            name="my-grill",
-            control_board=mock_control_board,
-            max_temp=200,
-        )
-        mock_get_grill.return_value = grill
-        pitboss = api.PitBoss(mock_conn, "my-grill")
-        mock_control_board.commands = {"set-temperature": mock_cmd}
-        mock_cmd.side_effect = ["HEXCMD"]
-        mock_conn.send_command.return_value = {}
-        assert (await pitboss.set_grill_temperature(225)) == {}
-
-        mock_cmd.assert_called_once_with(200)
-        mock_conn.send_command.assert_awaited_once_with(
-            "PB.SendMCUCommand", {"command": "HEXCMD"}
-        )
-
-    async def test_set_grill_temperature_low(
-        self, mock_conn, mock_get_grill, mock_control_board, mock_cmd
-    ):
-        grill = grills.Grill(
-            name="my-grill",
-            control_board=mock_control_board,
-            min_temp=300,
-        )
-        mock_get_grill.return_value = grill
-        pitboss = api.PitBoss(mock_conn, "my-grill")
-        mock_control_board.commands = {"set-temperature": mock_cmd}
-        mock_cmd.side_effect = ["HEXCMD"]
-        mock_conn.send_command.return_value = {}
-        assert (await pitboss.set_grill_temperature(225)) == {}
-
-        mock_cmd.assert_called_once_with(300)
-        mock_conn.send_command.assert_awaited_once_with(
-            "PB.SendMCUCommand", {"command": "HEXCMD"}
-        )
-
-    async def test_set_probe_temperature(
-        self, mock_conn, mock_get_grill, mock_control_board, mock_cmd
-    ):
-        grill = grills.Grill(name="my-grill", control_board=mock_control_board)
-        mock_get_grill.return_value = grill
-        pitboss = api.PitBoss(mock_conn, "my-grill")
-        mock_control_board.commands = {"set-probe-1-temperature": mock_cmd}
-        mock_cmd.side_effect = ["HEXCMD"]
-        mock_conn.send_command.return_value = {}
-        assert (await pitboss.set_probe_temperature(225)) == {}
-
-        mock_cmd.assert_called_once_with(225)
-        mock_conn.send_command.assert_awaited_once_with(
-            "PB.SendMCUCommand", {"command": "HEXCMD"}
-        )
-
-    async def test_turn_light_on(
-        self, mock_conn, mock_get_grill, mock_control_board, mock_cmd
-    ):
-        grill = grills.Grill(
-            name="my-grill", control_board=mock_control_board, has_lights=True
-        )
-        mock_get_grill.return_value = grill
-        pitboss = api.PitBoss(mock_conn, "my-grill")
-        mock_control_board.commands = {"turn-light-on": mock_cmd}
-        mock_cmd.side_effect = ["HEXCMD"]
-        mock_conn.send_command.return_value = {}
-        assert (await pitboss.turn_light_on()) == {}
-
-        mock_cmd.assert_called_once()
-        mock_conn.send_command.assert_awaited_once_with(
-            "PB.SendMCUCommand", {"command": "HEXCMD"}
-        )
-
-    async def test_turn_light_on_no_lights(
-        self, mock_conn, mock_get_grill, mock_control_board, mock_cmd
-    ):
-        grill = grills.Grill(
-            name="my-grill", control_board=mock_control_board, has_lights=False
-        )
-        mock_get_grill.return_value = grill
-        pitboss = api.PitBoss(mock_conn, "my-grill")
-        mock_control_board.commands = {"turn-light-on": mock_cmd}
-        mock_cmd.side_effect = ["HEXCMD"]
-        mock_conn.send_command.return_value = {}
-        assert (await pitboss.turn_light_on()) == {}
-
-        mock_cmd.assert_not_called()
-        mock_conn.send_command.assert_not_awaited()
-
-    async def test_turn_light_off(
-        self, mock_conn, mock_get_grill, mock_control_board, mock_cmd
-    ):
-        grill = grills.Grill(
-            name="my-grill", control_board=mock_control_board, has_lights=True
-        )
-        mock_get_grill.return_value = grill
-        pitboss = api.PitBoss(mock_conn, "my-grill")
-        mock_control_board.commands = {
-            "turn-light-off": mock_cmd,
-        }
-        mock_cmd.side_effect = ["HEXCMD"]
-        mock_conn.send_command.return_value = {}
-        assert (await pitboss.turn_light_off()) == {}
-
-        mock_cmd.assert_called_once()
-        mock_conn.send_command.assert_awaited_once_with(
-            "PB.SendMCUCommand", {"command": "HEXCMD"}
-        )
-
-    async def test_turn_light_off_no_lights(
-        self, mock_conn, mock_get_grill, mock_control_board, mock_cmd
-    ):
-        grill = grills.Grill(
-            name="my-grill", control_board=mock_control_board, has_lights=False
-        )
-        mock_get_grill.return_value = grill
-        pitboss = api.PitBoss(mock_conn, "my-grill")
-        mock_control_board.commands = {"turn-light-off": mock_cmd}
-        mock_cmd.side_effect = ["HEXCMD"]
-        mock_conn.send_command.return_value = {}
-        assert (await pitboss.turn_light_off()) == {}
-
-        mock_cmd.assert_not_called()
-        mock_conn.send_command.assert_not_awaited()
-
-    @pytest.mark.parametrize(
-        "slug,method",
-        [
-            ("turn-off", "turn_grill_off"),
-            ("turn-primer-motor-on", "turn_primer_motor_on"),
-            ("turn-primer-motor-off", "turn_primer_motor_off"),
-        ],
+@pytest.fixture
+def my_grill(
+    request: pytest.FixtureRequest,
+    mock_control_board: Mock,
+) -> grills.Grill:
+    kwargs = {}
+    if marker := request.node.get_closest_marker("grill_params"):
+        kwargs = marker.args[0]
+    return grills.Grill(
+        name="my-grill",
+        control_board=mock_control_board,
+        min_temp=kwargs.get("min_temp", None),
+        max_temp=kwargs.get("max_temp", None),
+        has_lights=kwargs.get("has_lights", False),
     )
-    async def test_grill_functions(
-        self, slug, method, mock_conn, mock_get_grill, mock_control_board, mock_cmd
-    ):
-        grill = grills.Grill(name="my-grill", control_board=mock_control_board)
-        mock_get_grill.return_value = grill
-        pitboss = api.PitBoss(mock_conn, "my-grill")
-        mock_control_board.commands = {slug: mock_cmd}
-        mock_cmd.side_effect = ["HEXCMD"]
-        mock_conn.send_command.return_value = {}
-        assert (await getattr(pitboss, method)()) == {}
 
-        mock_cmd.assert_called_once()
-        mock_conn.send_command.assert_awaited_once_with(
-            "PB.SendMCUCommand", {"command": "HEXCMD"}
-        )
 
-    async def test_get_state(self, mock_conn, mock_get_grill, mock_control_board):
-        grill = grills.Grill(name="my-grill", control_board=mock_control_board)
-        mock_get_grill.return_value = grill
-        pitboss = api.PitBoss(mock_conn, "my-grill")
-        mock_conn.send_command.return_value = {
-            "sc_11": "status_payload",
-            "sc_12": "temps_payload",
-        }
-        mock_control_board.parse_status.return_value = {"p1Target": 200}
-        mock_control_board.parse_temperatures.return_value = {"p1Temp": 190}
-        assert (await pitboss.get_state()) == {"p1Target": 200, "p1Temp": 190}
+@pytest.fixture(params=["", "password"], ids=["no_password", "with_password"])
+def password(request: pytest.FixtureRequest) -> str:
+    return request.param
 
-        mock_conn.send_command.assert_awaited_once_with("PB.GetState", {})
-        mock_control_board.parse_status.assert_called_once_with("status_payload")
-        mock_control_board.parse_temperatures.assert_called_once_with("temps_payload")
+
+@pytest.fixture
+async def conn(password: str) -> FakeTransport:
+    return FakeTransport(password)
+
+
+@pytest.fixture
+def pitboss(mock_get_grill: Mock, conn: FakeTransport, password: str) -> api.PitBoss:
+    return api.PitBoss(conn, "my-grill", password)
+
+
+async def test_init_bad_model(conn: FakeTransport):
+    with pytest.raises(InvalidGrill):
+        _ = api.PitBoss(conn, "unknown-model")
+
+
+async def test_on_state_received():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    status = {}
+    await pitboss.subscribe_state(lambda s: status.update(s))
+    await conn.send_state(STATE_HEX)
+    assert status == STATE_DICT
+
+
+async def test_on_temperatures_received():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    status = {}
+    await pitboss.subscribe_state(lambda s: status.update(s))
+    await conn.send_temps(TEMPS_HEX)
+    assert status == TEMPS_DICT
+
+
+async def test_set_password():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.set_grill_password("newpwd")
+    assert conn.password == "newpwd"
+    # Ensure we send the new password on subsequent actions
+    await pitboss.get_virtual_data()
+
+
+async def test_set_password_with_old_password():
+    conn = FakeTransport("oldpwd")
+    pitboss = api.PitBoss(conn, "PBV4PS2", "oldpwd")
+    await pitboss.set_grill_password("newpwd")
+    assert conn.password == "newpwd"
+    # Ensure we send the new password on subsequent actions
+    await pitboss.get_virtual_data()
+
+
+async def test_set_grill_temperature(pitboss: api.PitBoss, conn: FakeTransport):
+    assert (await pitboss.set_grill_temperature(225)) == {}
+    assert conn.last_mcu_command == "set-temperature(225,)"
+
+
+@pytest.mark.grill_params({"max_temp": 200})
+async def test_set_grill_temperature_high(pitboss: api.PitBoss, conn: FakeTransport):
+    assert (await pitboss.set_grill_temperature(225)) == {}
+    assert conn.last_mcu_command == "set-temperature(200,)"
+
+
+@pytest.mark.grill_params({"min_temp": 300})
+async def test_set_grill_temperature_low(pitboss: api.PitBoss, conn: FakeTransport):
+    assert (await pitboss.set_grill_temperature(225)) == {}
+    assert conn.last_mcu_command == "set-temperature(300,)"
+
+
+async def test_set_probe_temperature(pitboss: api.PitBoss, conn: FakeTransport):
+    assert (await pitboss.set_probe_temperature(225)) == {}
+    assert conn.last_mcu_command == "set-probe-1-temperature(225,)"
+
+
+@pytest.mark.grill_params({"has_lights": True})
+async def test_turn_light_on(pitboss: api.PitBoss, conn: FakeTransport):
+    assert (await pitboss.turn_light_on()) == {}
+    assert conn.last_mcu_command == "turn-light-on()"
+
+
+async def test_turn_light_on_no_lights(pitboss: api.PitBoss, conn: FakeTransport):
+    assert (await pitboss.turn_light_on()) == {}
+    assert conn.last_mcu_command is None
+
+
+@pytest.mark.grill_params({"has_lights": True})
+async def test_turn_light_off(pitboss: api.PitBoss, conn: FakeTransport):
+    assert (await pitboss.turn_light_off()) == {}
+    assert conn.last_mcu_command == "turn-light-off()"
+
+
+async def test_turn_light_off_no_lights(pitboss: api.PitBoss, conn: FakeTransport):
+    assert (await pitboss.turn_light_off()) == {}
+    assert conn.last_mcu_command is None
+
+
+@pytest.mark.parametrize(
+    "slug,method",
+    [
+        ("turn-off", "turn_grill_off"),
+        ("turn-primer-motor-on", "turn_primer_motor_on"),
+        ("turn-primer-motor-off", "turn_primer_motor_off"),
+    ],
+)
+async def test_grill_functions(slug, method, pitboss: api.PitBoss, conn: FakeTransport):
+    assert (await getattr(pitboss, method)()) == {}
+    assert conn.last_mcu_command == f"{slug}()"
+
+
+async def test_get_state(conn: FakeTransport, password: str):
+    pitboss = api.PitBoss(conn, "PBV4PS2", password)
+    want = STATE_DICT.copy()
+    want.update(TEMPS_DICT)
+    assert (await pitboss.get_state()) == want
+
+
+async def test_get_uptime_is_cached(pitboss: api.PitBoss):
+    with freeze_time("2025-06-01 00:00:00") as ft:
+        t1 = await pitboss.get_uptime()
+        # We should use a cached uptime for 5 seconds.
+        for _ in range(5):
+            ft.tick(1.0)
+            assert await pitboss.get_uptime() == t1
+        # Now it should change.
+        ft.tick(1.0)
+        assert await pitboss.get_uptime() > t1

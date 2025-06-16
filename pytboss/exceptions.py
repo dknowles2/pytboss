@@ -19,3 +19,7 @@ class GrillUnavailable(Error):
 
 class NotConnectedError(Error):
     """Raised when there is no active connection to use."""
+
+
+class Unauthorized(Error):
+    """Raised when an RPC is not authorized."""
