@@ -5,6 +5,7 @@ from unittest import mock
 from unittest.mock import Mock
 
 import pytest
+from freezegun import freeze_time
 
 from pytboss import api, grills
 from pytboss.codec import decode, timed_key
@@ -61,14 +62,12 @@ TEMPS_DICT = {
 class FakeTransport(Transport):
     """Fake implementation of a transport protocol."""
 
-    _is_connected = False
-    _clock = count()
-    password = ""
-    last_mcu_command = None
-
     def __init__(self, password: str = ""):
         super().__init__()
+        self.last_mcu_command = None
         self.password = password
+        self._clock = count(1.0)
+        self._is_connected = False
 
     async def connect(self) -> None:
         self._is_connected = True
@@ -117,7 +116,7 @@ class FakeTransport(Transport):
             raise Unauthorized
 
     def _uptime(self) -> float:
-        return float(next(self._clock))
+        return next(self._clock)
 
     def _get_time(self, params: dict) -> dict:
         return {"time": self._uptime()}
@@ -309,3 +308,15 @@ async def test_get_state(conn: FakeTransport, password: str):
     want = STATE_DICT.copy()
     want.update(TEMPS_DICT)
     assert (await pitboss.get_state()) == want
+
+
+async def test_get_uptime_is_cached(pitboss: api.PitBoss):
+    with freeze_time("2025-06-01 00:00:00") as ft:
+        t1 = await pitboss.get_uptime()
+        # We should use a cached uptime for 5 seconds.
+        for _ in range(5):
+            ft.tick(1.0)
+            assert await pitboss.get_uptime() == t1
+        # Now it should change.
+        ft.tick(1.0)
+        assert await pitboss.get_uptime() > t1
