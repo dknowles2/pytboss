@@ -64,7 +64,7 @@ class FakeTransport(Transport):
 
     def __init__(self, password: str = ""):
         super().__init__()
-        self.last_mcu_command = None
+        self.last_mcu_command: str | None = None
         self.password = password
         self._clock = count(1.0)
         self._is_connected = False
