@@ -102,6 +102,8 @@ class FakeTransport(Transport):
             resp["result"] = dispatch[cmd["method"]](cmd["params"])
         except Unauthorized:
             resp["error"] = {"code": 401, "message": "Unauthorized"}
+        except Exception as ex:
+            resp["error"] = {"code": -1, "message": str(ex)}
         await self._on_command_response(resp)
 
     def _check_password(self, params: dict) -> None:
@@ -134,6 +136,11 @@ class FakeTransport(Transport):
 
     def _send_mcu_command(self, params: dict) -> dict:
         self._check_password(params)
+        if "command" not in params:
+            raise KeyError("Command parameter missing")
+        command = params["command"]
+        if not command:
+            raise ValueError("Empty command")
         self.last_mcu_command = bytes.fromhex(params["command"]).decode()
         return {}
 
