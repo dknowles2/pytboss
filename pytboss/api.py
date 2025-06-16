@@ -4,7 +4,6 @@ import asyncio
 import inspect
 import json
 import logging
-from functools import lru_cache
 from time import time
 from typing import Awaitable, Callable
 
@@ -51,6 +50,8 @@ class PitBoss:
         self._state_callbacks: list[StateCallback] = []
         self._vdata_callbacks: list[VDataCallback] = []
         self._state = StateDict()
+        self._last_uptime: float | None = None
+        self._last_uptime_check: int | None = None
 
     def is_connected(self) -> bool:
         """Returns whether we are actively connected to the grill."""
@@ -241,15 +242,13 @@ class PitBoss:
 
     async def get_uptime(self) -> float:
         """:meta private:"""
-        # abuse lru_cache to add a 5 second TTL
-        return await self._get_uptime(int(time() // 5))
-
-    @lru_cache(maxsize=1)
-    async def _get_uptime(self, ttl_hash) -> float:
-        """:meta private:"""
-        _ = ttl_hash
-        result = await self._conn.send_command("PB.GetTime", {})
-        return result.get("time", 0.0)
+        now = int(time())
+        if not self._last_uptime_check or now - self._last_uptime_check > 5:
+            result = await self._conn.send_command("PB.GetTime", {})
+            self._last_uptime = result.get("time", 0.0)
+            self._last_uptime_check = now
+        assert self._last_uptime is not None
+        return self._last_uptime
 
     async def ping(self, timeout: float | None = None) -> dict:
         """Pings the device.
