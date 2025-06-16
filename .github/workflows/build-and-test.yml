@@ -26,11 +26,13 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-test.txt
+          python -m pip install uv
+          uv venv
+          . .venv/bin/activate
+          uv pip install -r requirements-test.txt
       - name: Test with pytest
         run: |
-          pytest
+          uv run pytest
   ruff:
     runs-on: ubuntu-latest
     strategy:
@@ -43,11 +45,13 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements-test.txt
+          python -m pip install uv
+          uv venv
+          . .venv/bin/activate
+          uv pip install -r requirements-test.txt
       - name: Run ruff
         run: |
-          ruff check --output-format=github .
+          uv run ruff check --output-format=github .
   mypy:
     runs-on: ubuntu-latest
     strategy:
@@ -60,11 +64,13 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-test.txt
+          python -m pip install uv
+          uv venv
+          . .venv/bin/activate
+          uv pip install -r requirements-test.txt
       - name: Register mypy problem matcher
         run: |
           echo "::add-matcher::.github/workflows/matchers/mypy.json"
       - name: Run mypy
         run: |
-          mypy --non-interactive --install-types .
+          uv run mypy .

@@ -2,14 +2,23 @@
     "name": "Python 3",
     "image": "mcr.microsoft.com/devcontainers/python:3.12",
     "postCreateCommand": "scripts/setup",
+    "features": {
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+        "ghcr.io/dhoeric/features/act:1": {},
+        "ghcr.io/jsburckhardt/devcontainer-features/uv:1": {}
+    },
     "customizations": {
         "vscode": {
             "extensions": [
-                "streetsidesoftware.code-spell-checker",
+                "charliermarsh.ruff",
                 "github.vscode-pull-request-github",
                 "mongoose-os.mongoose-os-ide",
+                "ms-python.black-formatter",
+                "ms-python.mypy-type-checker",
                 "ms-python.python",
-                "ms-python.vscode-pylance"
+                "ms-python.vscode-pylance",
+                "SanjulaGanepola.github-local-actions",
+                "streetsidesoftware.code-spell-checker"
             ],
             "settings": {
                 "files.eol": "\n",
@@ -36,9 +45,4 @@
         "--group-add",
         "dialout"
     ],
-    "features": {
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {
-            "moby": false
-        }
-    }
 }
