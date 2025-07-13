@@ -13,6 +13,21 @@ from .exceptions import InvalidGrill
 
 _GRILLS = json.loads(resources.files(__package__).joinpath("grills.json").read_text())
 
+UNSUPPORTED_MODELS = (
+    "PBX - test 1",  # Nonstandard data format
+    "LG0800BL",  # Bad parsing routine
+    "LG1000BL",  # Bad parsing routine
+    "LG1200BL",  # Bad parsing routine
+    "LG1200FL",  # Bad parsing routine
+    "LG1200FP",  # Bad parsing routine
+    "LG300BL",  # Bad parsing routine
+    "LG800FL",  # Bad parsing routine
+    "LG800FP",  # Bad parsing routine
+    "LGV4BL",  # Bad parsing routine
+    "PBV30DS",  # Nonstandard data format
+    "PBV30DX",  # Nonstandard data format
+)
+
 _COMMAND_JS_TMPL = """\
 function command() {
     var formatHex = function(n) {
@@ -297,6 +312,8 @@ def get_grills(control_board: str | None = None) -> Iterable[Grill]:
     """
     for grill in _GRILLS.values():
         if not grill["control_board"].get("status_function"):
+            continue
+        if grill["name"] in UNSUPPORTED_MODELS:
             continue
         if control_board is None or grill["control_board"]["name"] == control_board:
             yield Grill.from_dict(grill)
