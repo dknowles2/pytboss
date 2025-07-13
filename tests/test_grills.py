@@ -10,7 +10,7 @@ from pytboss.exceptions import InvalidGrill
 # Most control boards perform the fahrenheit to celsius conversion internally,
 # however these boards do NOT and instead rely on the conversion to happen in
 # their JS snippets.
-_HAS_FTOC = ("LFS", "PBA", "PBE", "PBM", "PBT", "PBV")
+_HAS_FTOC = ("LFS", "PBA", "PBE", "PBM", "PBT", "PBV", "PBM2", "PBV2", "PBVA")
 
 TEMPERATURE_FIELDS = (
     "p1Target",
@@ -99,6 +99,12 @@ class Message:
         self._data.append(v)
 
 
+def idfn(arg):
+    if isinstance(arg, grills_lib.Grill):
+        grill = arg
+        return f"{grill.control_board.name} {grill.name}"
+
+
 class TestGetGrills:
     def test_plain(self):
         grills = list(grills_lib.get_grills())
@@ -108,23 +114,21 @@ class TestGetGrills:
         grills = list(grills_lib.get_grills("PBL"))
         assert len(grills) > 0
 
-    @pytest.mark.parametrize(
-        "name,grill", [(g.name, g) for g in grills_lib.get_grills()]
-    )
-    def test_js_commands(self, name: str, grill: grills_lib.Grill):
-        _ = name
+    @pytest.mark.parametrize("grill", grills_lib.get_grills(), ids=idfn)
+    def test_js_commands(self, grill: grills_lib.Grill):
         for cmd in grill.control_board.commands.values():
             cmd(11)
 
-    @pytest.mark.parametrize(
-        "name,grill", [(g.name, g) for g in grills_lib.get_grills()]
-    )
-    def test_parse_temperatures(self, name: str, grill: grills_lib.Grill):
-        if name == "PBX - test 1":
+    @pytest.mark.parametrize("grill", grills_lib.get_grills(), ids=idfn)
+    def test_parse_temperatures(self, grill: grills_lib.Grill):
+        if grill.name == "PBX - test 1":
             # Nonstandard data format. Ignore.
             return
-        if name.startswith("LG"):
+        if grill.name.startswith("LG"):
             # These have bad parsing routines. Ignore.
+            return
+        if grill.control_board.name in ("PBVA",):
+            # Nonstandard data format. Ignore.
             return
 
         assert grill.control_board._temperatures_js_func is not None
@@ -187,15 +191,16 @@ class TestGetGrills:
                         continue
                     raise
 
-    @pytest.mark.parametrize(
-        "name,grill", [(g.name, g) for g in grills_lib.get_grills()]
-    )
-    def test_parse_state(self, name: str, grill: grills_lib.Grill):
-        if name == "PBX - test 1":
+    @pytest.mark.parametrize("grill", grills_lib.get_grills(), ids=idfn)
+    def test_parse_state(self, grill: grills_lib.Grill):
+        if grill.name == "PBX - test 1":
             # Nonstandard data format. Ignore.
             return
-        if name.startswith("LG"):
+        if grill.name.startswith("LG"):
             # These have bad parsing routines. Ignore.
+            return
+        if grill.control_board.name in ("PBVA",):
+            # Nonstandard data format. Ignore.
             return
 
         msg = Message()
