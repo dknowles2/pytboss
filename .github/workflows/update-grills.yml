@@ -62,12 +62,6 @@ jobs:
           delete-branch: true
           labels: enhancement
 
-      - name: Approve PR
-        if: steps.create-pr.outputs.pull-request-number
-        run: gh pr review --approve "${{ steps.create-pr.outputs.pull-request-number }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Merge PR
         run: gh pr merge --auto --squash "${{ steps.create-pr.outputs.pull-request-number }}"
         env:
