@@ -121,16 +121,6 @@ class TestGetGrills:
 
     @pytest.mark.parametrize("grill", grills_lib.get_grills(), ids=idfn)
     def test_parse_temperatures(self, grill: grills_lib.Grill):
-        if grill.name == "PBX - test 1":
-            # Nonstandard data format. Ignore.
-            return
-        if grill.name.startswith("LG"):
-            # These have bad parsing routines. Ignore.
-            return
-        if grill.control_board.name in ("PBVA",):
-            # Nonstandard data format. Ignore.
-            return
-
         assert grill.control_board._temperatures_js_func is not None
         js = JSFunc(grill.control_board._temperatures_js_func)
         msg = Message()
@@ -193,16 +183,6 @@ class TestGetGrills:
 
     @pytest.mark.parametrize("grill", grills_lib.get_grills(), ids=idfn)
     def test_parse_state(self, grill: grills_lib.Grill):
-        if grill.name == "PBX - test 1":
-            # Nonstandard data format. Ignore.
-            return
-        if grill.name.startswith("LG"):
-            # These have bad parsing routines. Ignore.
-            return
-        if grill.control_board.name in ("PBVA",):
-            # Nonstandard data format. Ignore.
-            return
-
         msg = Message()
         assert grill.control_board._status_js_func is not None
         js = JSFunc(grill.control_board._status_js_func)
