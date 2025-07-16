@@ -50,7 +50,7 @@ jobs:
         if: steps.run-script.outputs.changes_detected == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.BOT_PAT }}
           commit-message: "Automated: Update grills.json"
           title: "Automated: Update grills.json"
           body: |
