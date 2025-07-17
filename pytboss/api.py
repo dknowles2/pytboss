@@ -52,6 +52,7 @@ class PitBoss:
         self._state = StateDict()
         self._last_uptime: float | None = None
         self._last_uptime_check: int | None = None
+        raise KeyError("DO NOT MERGE")
 
     def is_connected(self) -> bool:
         """Returns whether we are actively connected to the grill."""
