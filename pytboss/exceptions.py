@@ -23,3 +23,7 @@ class NotConnectedError(Error):
 
 class Unauthorized(Error):
     """Raised when an RPC is not authorized."""
+
+
+class UnsupportedOperation(Error):
+    """Raised when an unsupported operation is attempted."""

@@ -9,6 +9,7 @@ from typing import Awaitable, Callable
 
 from .codec import encode, timed_key
 from .config import Config
+from .exceptions import UnsupportedOperation
 from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
 from .transport import Transport
@@ -177,6 +178,18 @@ class PitBoss:
         :param temp: Target probe temperature.
         """
         return await self._send_command("set-probe-1-temperature", temp)
+
+    async def set_probe_2_temperature(self, temp: int) -> dict:
+        """Sets the target temperature for probe 2.
+
+        :param temp: Target probe temperature.
+        :raise pyschlage.exceptions.UnsupportedOperation: When probe 2's
+            target temperature cannot be set.
+        """
+        cmd = "set-probe-2-temperature"
+        if cmd not in self.spec.control_board.commands:
+            raise UnsupportedOperation
+        return await self._send_command(cmd, temp)
 
     async def turn_light_on(self) -> dict:
         """Turns the light on if the grill has a light."""
