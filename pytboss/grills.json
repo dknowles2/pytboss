@@ -6085,24 +6085,24 @@
           "created_at": "2025-06-26T21:27:12.000000Z",
           "deleted_at": null,
           "description": null,
-          "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
+          "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 202,
           "name": "Set Probe 1 Temperature",
           "slug": "set-probe-1-temperature",
-          "updated_at": "2025-06-26T21:27:12.000000Z"
+          "updated_at": "2025-08-14T17:29:11.000000Z"
         },
         {
           "control_board_id": 21,
           "created_at": "2025-06-26T21:27:12.000000Z",
           "deleted_at": null,
           "description": null,
-          "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
+          "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 203,
           "name": "Set Grill Temperature",
           "slug": "set-temperature",
-          "updated_at": "2025-06-26T21:27:12.000000Z"
+          "updated_at": "2025-08-14T17:29:34.000000Z"
         },
         {
           "control_board_id": 21,
@@ -6169,11 +6169,11 @@
       "deleted_at": null,
       "id": 21,
       "name": "PBL3",
-      "platform_id": 7,
+      "platform_id": 3,
       "site_id": 1,
-      "status_function": "if (!message.startsWith(\"FE0B\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 44) {\r\n  return null;\r\n}\r\nconst status = {\r\n  p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  smokerActTemp: convertTemperature(parts, 17),\r\n  moduleIsOn: parts[24] === 1,\r\n  err1: parts[25] === 1,\r\n  err2: parts[26] === 1,\r\n  err3: parts[27] === 1,\r\n  highTempErr: parts[28] === 1,\r\n  fanErr: parts[29] === 1,\r\n  hotErr: parts[30] === 1,\r\n  motorErr: parts[31] === 1,\r\n  noPellets: parts[32] === 1,\r\n  erL: parts[33] === 1,\r\n  fanState: parts[34] === 1,\r\n  hotState: parts[35] === 1,\r\n  motorState: parts[36] === 1,\r\n  lightState: parts[37] === 1,\r\n  primeState: parts[38] === 1,\r\n  isFahrenheit: parts[39] === 1,\r\n  recipeStep: parts[40],\r\n  recipeTime: parts[41] * 3600 + parts[42] * 60 + parts[43],\r\n};\r\nswitch (parts[23]) {\r\n  case 1:\r\n    status.grillSetTemp = convertTemperature(parts, 20);\r\n    break;\r\n  case 2:\r\n    status.grillTemp = convertTemperature(parts, 20);\r\n    break;\r\n}\r\nreturn status;",
-      "temperature_function": "if (!message.startsWith(\"FE0C\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 27) {\r\n  return null;\r\n}\r\nconst temps = {\r\n  p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  grillSetTemp: convertTemperature(parts, 20),\r\n  grillTemp: convertTemperature(parts, 23),\r\n  smokerActTemp: convertTemperature(parts, 17),\r\n  isFahrenheit: parts[26] === 1,\r\n};\r\n/*\r\nif (!temps.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if (typeof temp === \"undefined\" || temp === 960) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  temps.p1Temp = ftoc(temps.p1Temp);\r\n  temps.p2Temp = ftoc(temps.p2Temp);\r\n  temps.p3Temp = ftoc(temps.p3Temp);\r\n  temps.p4Temp = ftoc(temps.p4Temp);\r\n  temps.p1Target = ftoc(temps.p1Target);\r\n  temps.smokerActTemp = ftoc(temps.smokerActTemp);\r\n  temps.grillSetTemp = ftoc(temps.grillSetTemp);\r\n  temps.grillTemp = ftoc(temps.grillTemp);\r\n}\r\n*/\r\nreturn temps;",
-      "updated_at": "2025-06-26T21:27:27.000000Z"
+      "status_function": "if (!message.startsWith(\"FE0B\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 44) {\r\n  return null;\r\n}\r\nconst status = {\r\n  /*p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  smokerActTemp: convertTemperature(parts, 17),*/\r\n  moduleIsOn: parts[24] === 1,\r\n  err1: parts[25] === 1,\r\n  err2: parts[26] === 1,\r\n  err3: parts[27] === 1,\r\n  highTempErr: parts[28] === 1,\r\n  fanErr: parts[29] === 1,\r\n  hotErr: parts[30] === 1,\r\n  motorErr: parts[31] === 1,\r\n  noPellets: parts[32] === 1,\r\n  erL: parts[33] === 1,\r\n  fanState: parts[34] === 1,\r\n  hotState: parts[35] === 1,\r\n  motorState: parts[36] === 1,\r\n  lightState: parts[37] === 1,\r\n  primeState: parts[38] === 1,\r\n  isFahrenheit: parts[39] === 1,\r\n  recipeStep: parts[40],\r\n  recipeTime: parts[41] * 3600 + parts[42] * 60 + parts[43],\r\n};\r\nswitch (parts[23]) {\r\n  case 1:\r\n    status.grillSetTemp = convertTemperature(parts, 20);\r\n    break;\r\n  case 2:\r\n    status.grillTemp = convertTemperature(parts, 20);\r\n    break;\r\n}\r\nreturn status;",
+      "temperature_function": "if (!message.startsWith(\"FE0C\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 27) {\r\n  return null;\r\n}\r\nconst temps = {\r\n  p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  grillSetTemp: convertTemperature(parts, 20),\r\n  grillTemp: convertTemperature(parts, 23),\r\n  smokerActTemp: convertTemperature(parts, 17),\r\n  isFahrenheit: parts[26] === 1,\r\n};\r\nconsole.log(\"Temp function\", temps, temps.isFahrenheit);\r\nif (!temps.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if (typeof temp === \"undefined\" || temp === 960) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  temps.p1Temp = ftoc(temps.p1Temp);\r\n  temps.p2Temp = ftoc(temps.p2Temp);\r\n  temps.p3Temp = ftoc(temps.p3Temp);\r\n  temps.p4Temp = ftoc(temps.p4Temp);\r\n  temps.p1Target = ftoc(temps.p1Target);\r\n  temps.smokerActTemp = ftoc(temps.smokerActTemp);\r\n  temps.grillSetTemp = ftoc(temps.grillSetTemp);\r\n  temps.grillTemp = ftoc(temps.grillTemp);\r\n  console.log(\"Temp function - converted\", temps);\r\n\r\n}\r\n\r\nreturn temps;",
+      "updated_at": "2025-08-14T17:28:36.000000Z"
     },
     "control_board_id": 21,
     "created_at": "2025-07-17T19:32:19.000000Z",
@@ -18765,24 +18765,24 @@
           "created_at": "2025-06-26T21:27:12.000000Z",
           "deleted_at": null,
           "description": null,
-          "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
+          "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 202,
           "name": "Set Probe 1 Temperature",
           "slug": "set-probe-1-temperature",
-          "updated_at": "2025-06-26T21:27:12.000000Z"
+          "updated_at": "2025-08-14T17:29:11.000000Z"
         },
         {
           "control_board_id": 21,
           "created_at": "2025-06-26T21:27:12.000000Z",
           "deleted_at": null,
           "description": null,
-          "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
+          "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 203,
           "name": "Set Grill Temperature",
           "slug": "set-temperature",
-          "updated_at": "2025-06-26T21:27:12.000000Z"
+          "updated_at": "2025-08-14T17:29:34.000000Z"
         },
         {
           "control_board_id": 21,
@@ -18849,11 +18849,11 @@
       "deleted_at": null,
       "id": 21,
       "name": "PBL3",
-      "platform_id": 7,
+      "platform_id": 3,
       "site_id": 1,
-      "status_function": "if (!message.startsWith(\"FE0B\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 44) {\r\n  return null;\r\n}\r\nconst status = {\r\n  p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  smokerActTemp: convertTemperature(parts, 17),\r\n  moduleIsOn: parts[24] === 1,\r\n  err1: parts[25] === 1,\r\n  err2: parts[26] === 1,\r\n  err3: parts[27] === 1,\r\n  highTempErr: parts[28] === 1,\r\n  fanErr: parts[29] === 1,\r\n  hotErr: parts[30] === 1,\r\n  motorErr: parts[31] === 1,\r\n  noPellets: parts[32] === 1,\r\n  erL: parts[33] === 1,\r\n  fanState: parts[34] === 1,\r\n  hotState: parts[35] === 1,\r\n  motorState: parts[36] === 1,\r\n  lightState: parts[37] === 1,\r\n  primeState: parts[38] === 1,\r\n  isFahrenheit: parts[39] === 1,\r\n  recipeStep: parts[40],\r\n  recipeTime: parts[41] * 3600 + parts[42] * 60 + parts[43],\r\n};\r\nswitch (parts[23]) {\r\n  case 1:\r\n    status.grillSetTemp = convertTemperature(parts, 20);\r\n    break;\r\n  case 2:\r\n    status.grillTemp = convertTemperature(parts, 20);\r\n    break;\r\n}\r\nreturn status;",
-      "temperature_function": "if (!message.startsWith(\"FE0C\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 27) {\r\n  return null;\r\n}\r\nconst temps = {\r\n  p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  grillSetTemp: convertTemperature(parts, 20),\r\n  grillTemp: convertTemperature(parts, 23),\r\n  smokerActTemp: convertTemperature(parts, 17),\r\n  isFahrenheit: parts[26] === 1,\r\n};\r\n/*\r\nif (!temps.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if (typeof temp === \"undefined\" || temp === 960) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  temps.p1Temp = ftoc(temps.p1Temp);\r\n  temps.p2Temp = ftoc(temps.p2Temp);\r\n  temps.p3Temp = ftoc(temps.p3Temp);\r\n  temps.p4Temp = ftoc(temps.p4Temp);\r\n  temps.p1Target = ftoc(temps.p1Target);\r\n  temps.smokerActTemp = ftoc(temps.smokerActTemp);\r\n  temps.grillSetTemp = ftoc(temps.grillSetTemp);\r\n  temps.grillTemp = ftoc(temps.grillTemp);\r\n}\r\n*/\r\nreturn temps;",
-      "updated_at": "2025-06-26T21:27:27.000000Z"
+      "status_function": "if (!message.startsWith(\"FE0B\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 44) {\r\n  return null;\r\n}\r\nconst status = {\r\n  /*p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  smokerActTemp: convertTemperature(parts, 17),*/\r\n  moduleIsOn: parts[24] === 1,\r\n  err1: parts[25] === 1,\r\n  err2: parts[26] === 1,\r\n  err3: parts[27] === 1,\r\n  highTempErr: parts[28] === 1,\r\n  fanErr: parts[29] === 1,\r\n  hotErr: parts[30] === 1,\r\n  motorErr: parts[31] === 1,\r\n  noPellets: parts[32] === 1,\r\n  erL: parts[33] === 1,\r\n  fanState: parts[34] === 1,\r\n  hotState: parts[35] === 1,\r\n  motorState: parts[36] === 1,\r\n  lightState: parts[37] === 1,\r\n  primeState: parts[38] === 1,\r\n  isFahrenheit: parts[39] === 1,\r\n  recipeStep: parts[40],\r\n  recipeTime: parts[41] * 3600 + parts[42] * 60 + parts[43],\r\n};\r\nswitch (parts[23]) {\r\n  case 1:\r\n    status.grillSetTemp = convertTemperature(parts, 20);\r\n    break;\r\n  case 2:\r\n    status.grillTemp = convertTemperature(parts, 20);\r\n    break;\r\n}\r\nreturn status;",
+      "temperature_function": "if (!message.startsWith(\"FE0C\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 27) {\r\n  return null;\r\n}\r\nconst temps = {\r\n  p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  grillSetTemp: convertTemperature(parts, 20),\r\n  grillTemp: convertTemperature(parts, 23),\r\n  smokerActTemp: convertTemperature(parts, 17),\r\n  isFahrenheit: parts[26] === 1,\r\n};\r\nconsole.log(\"Temp function\", temps, temps.isFahrenheit);\r\nif (!temps.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if (typeof temp === \"undefined\" || temp === 960) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  temps.p1Temp = ftoc(temps.p1Temp);\r\n  temps.p2Temp = ftoc(temps.p2Temp);\r\n  temps.p3Temp = ftoc(temps.p3Temp);\r\n  temps.p4Temp = ftoc(temps.p4Temp);\r\n  temps.p1Target = ftoc(temps.p1Target);\r\n  temps.smokerActTemp = ftoc(temps.smokerActTemp);\r\n  temps.grillSetTemp = ftoc(temps.grillSetTemp);\r\n  temps.grillTemp = ftoc(temps.grillTemp);\r\n  console.log(\"Temp function - converted\", temps);\r\n\r\n}\r\n\r\nreturn temps;",
+      "updated_at": "2025-08-14T17:28:36.000000Z"
     },
     "control_board_id": 21,
     "created_at": "2025-07-17T19:17:03.000000Z",
@@ -20309,24 +20309,24 @@
           "created_at": "2025-06-26T21:27:12.000000Z",
           "deleted_at": null,
           "description": null,
-          "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
+          "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 202,
           "name": "Set Probe 1 Temperature",
           "slug": "set-probe-1-temperature",
-          "updated_at": "2025-06-26T21:27:12.000000Z"
+          "updated_at": "2025-08-14T17:29:11.000000Z"
         },
         {
           "control_board_id": 21,
           "created_at": "2025-06-26T21:27:12.000000Z",
           "deleted_at": null,
           "description": null,
-          "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
+          "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 203,
           "name": "Set Grill Temperature",
           "slug": "set-temperature",
-          "updated_at": "2025-06-26T21:27:12.000000Z"
+          "updated_at": "2025-08-14T17:29:34.000000Z"
         },
         {
           "control_board_id": 21,
@@ -20393,11 +20393,11 @@
       "deleted_at": null,
       "id": 21,
       "name": "PBL3",
-      "platform_id": 7,
+      "platform_id": 3,
       "site_id": 1,
-      "status_function": "if (!message.startsWith(\"FE0B\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 44) {\r\n  return null;\r\n}\r\nconst status = {\r\n  p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  smokerActTemp: convertTemperature(parts, 17),\r\n  moduleIsOn: parts[24] === 1,\r\n  err1: parts[25] === 1,\r\n  err2: parts[26] === 1,\r\n  err3: parts[27] === 1,\r\n  highTempErr: parts[28] === 1,\r\n  fanErr: parts[29] === 1,\r\n  hotErr: parts[30] === 1,\r\n  motorErr: parts[31] === 1,\r\n  noPellets: parts[32] === 1,\r\n  erL: parts[33] === 1,\r\n  fanState: parts[34] === 1,\r\n  hotState: parts[35] === 1,\r\n  motorState: parts[36] === 1,\r\n  lightState: parts[37] === 1,\r\n  primeState: parts[38] === 1,\r\n  isFahrenheit: parts[39] === 1,\r\n  recipeStep: parts[40],\r\n  recipeTime: parts[41] * 3600 + parts[42] * 60 + parts[43],\r\n};\r\nswitch (parts[23]) {\r\n  case 1:\r\n    status.grillSetTemp = convertTemperature(parts, 20);\r\n    break;\r\n  case 2:\r\n    status.grillTemp = convertTemperature(parts, 20);\r\n    break;\r\n}\r\nreturn status;",
-      "temperature_function": "if (!message.startsWith(\"FE0C\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 27) {\r\n  return null;\r\n}\r\nconst temps = {\r\n  p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  grillSetTemp: convertTemperature(parts, 20),\r\n  grillTemp: convertTemperature(parts, 23),\r\n  smokerActTemp: convertTemperature(parts, 17),\r\n  isFahrenheit: parts[26] === 1,\r\n};\r\n/*\r\nif (!temps.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if (typeof temp === \"undefined\" || temp === 960) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  temps.p1Temp = ftoc(temps.p1Temp);\r\n  temps.p2Temp = ftoc(temps.p2Temp);\r\n  temps.p3Temp = ftoc(temps.p3Temp);\r\n  temps.p4Temp = ftoc(temps.p4Temp);\r\n  temps.p1Target = ftoc(temps.p1Target);\r\n  temps.smokerActTemp = ftoc(temps.smokerActTemp);\r\n  temps.grillSetTemp = ftoc(temps.grillSetTemp);\r\n  temps.grillTemp = ftoc(temps.grillTemp);\r\n}\r\n*/\r\nreturn temps;",
-      "updated_at": "2025-06-26T21:27:27.000000Z"
+      "status_function": "if (!message.startsWith(\"FE0B\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 44) {\r\n  return null;\r\n}\r\nconst status = {\r\n  /*p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  smokerActTemp: convertTemperature(parts, 17),*/\r\n  moduleIsOn: parts[24] === 1,\r\n  err1: parts[25] === 1,\r\n  err2: parts[26] === 1,\r\n  err3: parts[27] === 1,\r\n  highTempErr: parts[28] === 1,\r\n  fanErr: parts[29] === 1,\r\n  hotErr: parts[30] === 1,\r\n  motorErr: parts[31] === 1,\r\n  noPellets: parts[32] === 1,\r\n  erL: parts[33] === 1,\r\n  fanState: parts[34] === 1,\r\n  hotState: parts[35] === 1,\r\n  motorState: parts[36] === 1,\r\n  lightState: parts[37] === 1,\r\n  primeState: parts[38] === 1,\r\n  isFahrenheit: parts[39] === 1,\r\n  recipeStep: parts[40],\r\n  recipeTime: parts[41] * 3600 + parts[42] * 60 + parts[43],\r\n};\r\nswitch (parts[23]) {\r\n  case 1:\r\n    status.grillSetTemp = convertTemperature(parts, 20);\r\n    break;\r\n  case 2:\r\n    status.grillTemp = convertTemperature(parts, 20);\r\n    break;\r\n}\r\nreturn status;",
+      "temperature_function": "if (!message.startsWith(\"FE0C\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 27) {\r\n  return null;\r\n}\r\nconst temps = {\r\n  p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  grillSetTemp: convertTemperature(parts, 20),\r\n  grillTemp: convertTemperature(parts, 23),\r\n  smokerActTemp: convertTemperature(parts, 17),\r\n  isFahrenheit: parts[26] === 1,\r\n};\r\nconsole.log(\"Temp function\", temps, temps.isFahrenheit);\r\nif (!temps.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if (typeof temp === \"undefined\" || temp === 960) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  temps.p1Temp = ftoc(temps.p1Temp);\r\n  temps.p2Temp = ftoc(temps.p2Temp);\r\n  temps.p3Temp = ftoc(temps.p3Temp);\r\n  temps.p4Temp = ftoc(temps.p4Temp);\r\n  temps.p1Target = ftoc(temps.p1Target);\r\n  temps.smokerActTemp = ftoc(temps.smokerActTemp);\r\n  temps.grillSetTemp = ftoc(temps.grillSetTemp);\r\n  temps.grillTemp = ftoc(temps.grillTemp);\r\n  console.log(\"Temp function - converted\", temps);\r\n\r\n}\r\n\r\nreturn temps;",
+      "updated_at": "2025-08-14T17:28:36.000000Z"
     },
     "control_board_id": 21,
     "created_at": "2025-06-26T21:32:02.000000Z",
