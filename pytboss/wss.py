@@ -42,6 +42,7 @@ class WebSocketConnection(Transport):
         """
         super().__init__(loop=loop)
         self._session = session or ClientSession(loop=self._loop)
+        self._session_owned = session is None  # Track if we created the session
         self._sock_lock = Lock()  # Protects access to self._sock operations
         self._sock: ClientWebSocketResponse | None = None
         self._url = f"{base_url}/to/{grill_id}"
@@ -62,7 +63,8 @@ class WebSocketConnection(Transport):
         self._keep_running = False
         if self._sock:
             await self._sock.close()
-        if not self._session.closed:
+        # Only close the session if we created it (not if it was provided externally)
+        if self._session_owned and not self._session.closed:
             await self._session.close()
         if self._subscribe_task:
             await self._subscribe_task
