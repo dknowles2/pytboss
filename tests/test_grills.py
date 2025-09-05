@@ -10,7 +10,7 @@ from pytboss.exceptions import InvalidGrill
 # Most control boards perform the fahrenheit to celsius conversion internally,
 # however these boards do NOT and instead rely on the conversion to happen in
 # their JS snippets.
-_HAS_FTOC = ("LFS", "PBA", "PBE", "PBM", "PBT", "PBV", "PBM2", "PBV2", "PBVA")
+_HAS_FTOC = ("LFS", "PBA", "PBE", "PBM", "PBT", "PBV", "PBM2", "PBV2", "PBVA", "PBL3")
 
 TEMPERATURE_FIELDS = (
     "p1Target",
@@ -63,8 +63,15 @@ class JSFunc:
             f"{i:3} {line}" for i, line in enumerate(self._js.splitlines())
         )
 
-    def has_key(self, k):
-        return k in self._js and not re.search(rf"\/[\/\*] *{k}", self._js)
+    def has_key(self, k, ignore_comments=True):
+        if ignore_comments:
+            for comment_block in re.findall(r"/\*.*?\*/", self._js, flags=re.DOTALL):
+                if k in comment_block:
+                    return False
+            for comment_line in re.findall(r"//.*", self._js):
+                if k in comment_line:
+                    return False
+        return k in self._js
 
 
 @contextmanager
@@ -190,14 +197,14 @@ class TestGetGrills:
         # WARNING! THE ORDER HERE MATTERS!
         msg.add("prefix", "FE0B")
         msg.add("p1Target", "010901")
-        if js.has_key("p2Target"):
+        if js.has_key("p2Target", ignore_comments=False):
             msg.add("p2Target", "010902")
         msg.add("p1Temp", "010601")
         msg.add("p2Temp", "010602")
         msg.add("p3Temp", "010603")
-        if js.has_key("p4Temp"):
+        if js.has_key("p4Temp", ignore_comments=False):
             msg.add("p4Temp", "010604")
-        if js.has_key("smokerActTemp"):
+        if js.has_key("smokerActTemp", ignore_comments=False):
             msg.add("smokerActTemp", "020200")
         msg.add("grillTemp", "020205")
         msg.add("condGrillTemp", "01")
@@ -210,13 +217,13 @@ class TestGetGrills:
         msg.add("hotErr", "00")
         msg.add("motorErr", "00")
         msg.add("noPellets", "00")
-        if js.has_key("erL"):
+        if js.has_key("erL", ignore_comments=False):
             msg.add("erL", "00")
         msg.add("fanState", "00")
         msg.add("hotState", "00")
         msg.add("motorState", "00")
         msg.add("lightState", "00")
-        if js.has_key("primeState"):
+        if js.has_key("primeState", ignore_comments=False):
             msg.add("primeState", "00")
         msg.add("isFahrenheit", "01")
         msg.add("recipeStep", "01")
@@ -227,9 +234,6 @@ class TestGetGrills:
 
         status = grill.control_board.parse_status(str(msg))
         want = {
-            "p1Temp": 161,
-            "p2Temp": 162,
-            "p3Temp": 163,
             "grillSetTemp": 225,
             "moduleIsOn": True,
             "err1": False,
@@ -252,6 +256,12 @@ class TestGetGrills:
             want["p1Target"] = 191
         if js.has_key("p2Target"):
             want["p2Target"] = 192
+        if js.has_key("p1Temp"):
+            want["p1Temp"] = 161
+        if js.has_key("p2Temp"):
+            want["p2Temp"] = 162
+        if js.has_key("p3Temp"):
+            want["p3Temp"] = 163
         if js.has_key("p4Temp"):
             want["p4Temp"] = 164
         if js.has_key("smokerActTemp"):
