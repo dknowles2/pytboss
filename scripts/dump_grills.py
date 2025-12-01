@@ -1,33 +1,65 @@
-#!/usr/bin/python3
-"""Script that dumps all grill specifications as JSON to stdout."""
+#!/usr/bin/env python3
+"""Script that dumps all grill specifications as JSON to stdout.
+
+Application credentials should be stored in a file called ".pitboss" in your
+home directory. The format is an INI style like this:
+
+[pitboss]
+username = email@address.com
+password = my-secret-password
+
+Run with python3 -m scripts.dump_grills
+"""
 
 import json
 import logging
+from asyncio import run
+from configparser import ConfigParser
+from pathlib import Path
+from typing import Any
 
-import requests
+from aiohttp import ClientSession
+from aiohttp.client_exceptions import ClientResponseError
+
+from pytboss.auth import async_login
+from pytboss.exceptions import Error, InvalidGrill
 
 logging.basicConfig(level=logging.DEBUG)  # Log all HTTP requests to stderr.
+
 API_URL = "https://api-prod.dansonscorp.com/api/v1"
 
 
-def get_grill_details(grill_id):
+async def get_grill_details(session: ClientSession, grill_id: int) -> dict[str, Any]:
     logging.info("Fetching grill details for grill_id: %s", grill_id)
-    resp = requests.get(API_URL + f"/grills/{grill_id}")
-    resp.raise_for_status()
-    return resp.json()["data"]["grill"]
+    resp = await session.get(f"{API_URL}/grills/{grill_id}")
+    try:
+        resp.raise_for_status()
+    except ClientResponseError as ex:
+        if ex.code == 404:
+            raise InvalidGrill
+    resp_json = await resp.json()
+    if resp_json["status"] != "success":
+        raise Error(resp_json["message"])
+    return resp_json["data"]["grill"]
 
 
-def main():
+async def main():
+    cfg = ConfigParser()
+    cfg.read(str(Path.home() / ".pitboss"))
+    async with ClientSession() as session:
+        auth_headers = await async_login(
+            session, cfg["pitboss"]["username"], cfg["pitboss"]["password"]
+        )
     grills = {}
-    for i in range(1, 150):
-        try:
-            grill = get_grill_details(i)
-        except requests.HTTPError:
-            continue
-        grills[grill["name"]] = grill
-
+    async with ClientSession(headers=auth_headers) as session:
+        for i in range(1, 150):
+            try:
+                grill = await get_grill_details(session, auth_headers, i)
+            except InvalidGrill:
+                break
+            grills[grill["name"]] = grill
     print(json.dumps(grills, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":
-    main()
+    run(main())
