@@ -35,7 +35,7 @@ async def get_grill_details(session: ClientSession, grill_id: int) -> dict[str, 
     try:
         resp.raise_for_status()
     except ClientResponseError as ex:
-        if ex.code == 404:
+        if ex.status == 404:
             raise InvalidGrill
     resp_json = await resp.json()
     if resp_json["status"] != "success":
@@ -54,7 +54,7 @@ async def main():
     async with ClientSession(headers=auth_headers) as session:
         for i in range(1, 150):
             try:
-                grill = await get_grill_details(session, auth_headers, i)
+                grill = await get_grill_details(session, i)
             except InvalidGrill:
                 break
             grills[grill["name"]] = grill

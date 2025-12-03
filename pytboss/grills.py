@@ -4,6 +4,7 @@ import json
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from functools import cache
 from importlib import resources
 from typing import Any, TypedDict
 
@@ -11,7 +12,11 @@ from dukpy import evaljs
 
 from .exceptions import InvalidGrill
 
-_GRILLS = json.loads(resources.files(__package__).joinpath("grills.json").read_text())
+
+@cache
+def _get_grills() -> dict[str, Any]:
+    return json.loads(resources.files(__package__).joinpath("grills.json").read_text())
+
 
 UNSUPPORTED_MODELS = (
     "PBX - test 1",  # Nonstandard data format
@@ -310,7 +315,7 @@ def get_grills(control_board: str | None = None) -> Iterable[Grill]:
 
     :param control_board: If specified, returns only grills with this control board.
     """
-    for grill in _GRILLS.values():
+    for grill in _get_grills().values():
         if not grill["control_board"].get("status_function"):
             continue
         if grill["name"] in UNSUPPORTED_MODELS:
@@ -324,6 +329,6 @@ def get_grill(grill_name: str) -> Grill:
 
     :param grill_name: The name of the grill specification to retrieve.
     """
-    if (grill := _GRILLS.get(grill_name, None)) is None:
+    if (grill := _get_grills().get(grill_name, None)) is None:
         raise InvalidGrill(f"Unknown grill name: {grill_name}")
     return Grill.from_dict(grill)
