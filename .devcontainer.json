@@ -4,6 +4,7 @@
     "postCreateCommand": "scripts/setup",
     "features": {
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+        "ghcr.io/devcontainers/features/rust:1": {},
         "ghcr.io/dhoeric/features/act:1": {},
         "ghcr.io/jsburckhardt/devcontainer-features/uv:1": {},
         "ghcr.io/devcontainers-extra/features/shfmt:1": {}
@@ -20,7 +21,8 @@
                 "ms-python.vscode-pylance",
                 "SanjulaGanepola.github-local-actions",
                 "streetsidesoftware.code-spell-checker",
-                "mkhl.shfmt"
+                "mkhl.shfmt",
+                "visualjj.visualjj"
             ],
             "settings": {
                 "files.eol": "\n",

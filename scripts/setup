@@ -13,3 +13,5 @@ curl -fsSL https://mongoose-os.com/downloads/mos/install.sh | /bin/bash
 sudo ln -s ~/.mos/bin/mos /usr/bin/mos
 
 pre-commit install
+
+cargo install --locked --bin jj jj-cli
