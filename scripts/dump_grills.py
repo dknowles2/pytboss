@@ -36,7 +36,8 @@ async def get_grill_details(session: ClientSession, grill_id: int) -> dict[str, 
         resp.raise_for_status()
     except ClientResponseError as ex:
         if ex.status == 404:
-            raise InvalidGrill
+            logging.warning("Unknown grill ID: %s", grill_id)
+            return {}
     resp_json = await resp.json()
     if resp_json["status"] != "success":
         raise Error(resp_json["message"])
@@ -55,6 +56,8 @@ async def main():
         for i in range(1, 150):
             try:
                 grill = await get_grill_details(session, i)
+                if not grill:
+                    continue
             except InvalidGrill:
                 break
             grills[grill["name"]] = grill
