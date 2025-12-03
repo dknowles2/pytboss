@@ -1,6 +1,6 @@
 import json
 from itertools import count
-from typing import Generator
+from typing import Any, Generator
 from unittest import mock
 from unittest.mock import Mock
 
@@ -17,14 +17,6 @@ STATE_HEX = (
     "05 01 01 00 00 00 00 00 00 00 00 00 01 01 01 00 01 01 04 0C 3B 1F"
 ).replace(" ", "")
 STATE_DICT = {
-    "p1Target": 165,
-    "p1Temp": 191,
-    "p2Temp": 192,
-    "p3Temp": None,
-    "p4Temp": None,
-    "smokerActTemp": 220,
-    "grillSetTemp": 225,
-    "isFahrenheit": True,
     "moduleIsOn": True,
     "err1": False,
     "err2": False,
@@ -312,7 +304,7 @@ async def test_grill_functions(slug, method, pitboss: api.PitBoss, conn: FakeTra
 
 async def test_get_state(conn: FakeTransport, password: str):
     pitboss = api.PitBoss(conn, "PBV4PS2", password)
-    want = STATE_DICT.copy()
+    want: dict[str, Any] = STATE_DICT.copy()
     want.update(TEMPS_DICT)
     assert (await pitboss.get_state()) == want
 
