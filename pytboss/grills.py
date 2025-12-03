@@ -18,20 +18,7 @@ def _get_grills() -> dict[str, Any]:
     return json.loads(resources.files(__package__).joinpath("grills.json").read_text())
 
 
-UNSUPPORTED_MODELS = (
-    "PBX - test 1",  # Nonstandard data format
-    "LG0800BL",  # Bad parsing routine
-    "LG1000BL",  # Bad parsing routine
-    "LG1200BL",  # Bad parsing routine
-    "LG1200FL",  # Bad parsing routine
-    "LG1200FP",  # Bad parsing routine
-    "LG300BL",  # Bad parsing routine
-    "LG800FL",  # Bad parsing routine
-    "LG800FP",  # Bad parsing routine
-    "LGV4BL",  # Bad parsing routine
-    "PBV30DS",  # Nonstandard data format
-    "PBV30DX",  # Nonstandard data format
-)
+UNSUPPORTED_MODELS = ()
 
 _COMMAND_JS_TMPL = """\
 function command() {

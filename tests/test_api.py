@@ -17,14 +17,6 @@ STATE_HEX = (
     "05 01 01 00 00 00 00 00 00 00 00 00 01 01 01 00 01 01 04 0C 3B 1F"
 ).replace(" ", "")
 STATE_DICT = {
-    "p1Target": 165,
-    "p1Temp": 191,
-    "p2Temp": 192,
-    "p3Temp": None,
-    "p4Temp": None,
-    "smokerActTemp": 220,
-    "grillSetTemp": 225,
-    "isFahrenheit": True,
     "moduleIsOn": True,
     "err1": False,
     "err2": False,

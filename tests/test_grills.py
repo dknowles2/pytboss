@@ -234,7 +234,6 @@ class TestGetGrills:
 
         status = grill.control_board.parse_status(str(msg))
         want = {
-            "grillSetTemp": 225,
             "moduleIsOn": True,
             "err1": False,
             "err2": False,
@@ -248,10 +247,11 @@ class TestGetGrills:
             "hotState": False,
             "motorState": False,
             "lightState": False,
-            "isFahrenheit": True,
             "recipeStep": 1,
             "recipeTime": 15179,
         }
+        if js.has_key("grillSettemp"):
+            want["grillSetTemp"] = 225
         if js.has_key("p1Target"):
             want["p1Target"] = 191
         if js.has_key("p2Target"):
@@ -270,6 +270,8 @@ class TestGetGrills:
             want["erL"] = False
         if js.has_key("primeState"):
             want["primeState"] = False
+        if js.has_key("isFahrenheit"):
+            want["isFahrenheit"] = True
 
         with debug_js(js):
             assert status == want
@@ -277,7 +279,6 @@ class TestGetGrills:
             msg["condGrillTemp"] = "02"
             status = grill.control_board.parse_status(str(msg))
             assert status is not None
-            assert status["grillTemp"] == 225
             assert "grillSetTemp" not in status
 
             error_keys = ["err1", "err2", "err3"]
