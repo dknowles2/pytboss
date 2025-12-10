@@ -48,7 +48,7 @@ jobs:
       - name: Create PR
         id: create-pr
         if: steps.run-script.outputs.changes_detected == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.BOT_PAT }}
           commit-message: "Automated: Update grills.json"
