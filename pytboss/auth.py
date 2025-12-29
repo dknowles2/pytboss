@@ -15,7 +15,7 @@ async def async_login(
     async with session.post(f"{API_URL}/login/app", params=params) as response:
         response_json = await response.json()
         if response_json["status"] == "error":
-            raise Unauthorized(response_json["errors"]["message"])
+            raise Unauthorized(response_json["error"]["message"])
         token = (await response.json())["data"]["token"]
         return {
             "Accept": "application/json",

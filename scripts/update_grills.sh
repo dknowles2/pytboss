@@ -29,6 +29,9 @@ function get_commit_message() {
 }
 
 python3 -m scripts.dump_grills >pytboss/grills.json
+if [[ $? -ne 0 ]]; then
+	exit $?
+fi
 
 git add pytboss/grills.json
 git commit -m "$(get_commit_message)"
