@@ -47,7 +47,7 @@ async def get_grill_details(session: ClientSession, grill_id: int) -> dict[str, 
 async def main():
     cfg = ConfigParser()
     cfg.read(str(Path.home() / ".pitboss"))
-    async with ClientSession() as session:
+    async with ClientSession(headers={"x-country": "US"}) as session:
         auth_headers = await async_login(
             session, cfg["pitboss"]["username"], cfg["pitboss"]["password"]
         )
