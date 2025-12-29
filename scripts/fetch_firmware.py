@@ -94,7 +94,9 @@ async def main(argv):
     cfg.read(str(Path.home() / ".pitboss"))
     tc = TraceConfig()
     tc.on_request_start.append(_onr_request_start)
-    async with ClientSession(trace_configs=[tc]) as session:
+    async with ClientSession(
+        headers={"x-country": "US"}, trace_configs=[tc]
+    ) as session:
         auth_headers = await async_login(
             session, cfg["pitboss"]["username"], cfg["pitboss"]["password"]
         )
