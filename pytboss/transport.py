@@ -5,13 +5,19 @@ from abc import ABC, abstractmethod
 from asyncio import AbstractEventLoop, Future, Lock, get_running_loop
 from collections.abc import Awaitable, Callable
 from types import TracebackType
-from typing import Any, Self, Type
+from typing import Any, Protocol, Self, Type
 
 from mypy_extensions import DefaultNamedArg
 
 from .exceptions import RPCError
 
-RawStateCallback = Callable[[str | None, str | None], Awaitable[None]]
+
+class RawStateCallback(Protocol):
+    async def __call__(
+        self, status_payload: str | None, temperatures_payload: str | None = None
+    ) -> None: ...
+
+
 RawVDataCallback = Callable[[str], Awaitable[None]]
 SendCommandFn = Callable[
     [str, dict[Any, Any], DefaultNamedArg(float | None, "timeout")],

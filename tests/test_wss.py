@@ -135,7 +135,7 @@ async def test_reconnect_backoff(mock_sleep: AsyncMock, session: ClientSession) 
         await ws.prepare(request)
         if not responses:
             # Send a status update to trigger the done event.
-            await ws.send_json({"status": ["A", "B"]})
+            await ws.send_json({"status": ["state"]})
             async for msg in ws:
                 if msg.data == "close":
                     await ws.close()
@@ -145,7 +145,9 @@ async def test_reconnect_backoff(mock_sleep: AsyncMock, session: ClientSession) 
     app.add_routes([get("/to/_grill_id_", handler)])
     done = Event()
 
-    async def state_cb(a, b):
+    async def state_cb(
+        status_payload: str | None, temperatures_payload: str | None = None
+    ) -> None:
         done.set()
 
     async with TestServer(app) as fake_server:
@@ -166,9 +168,9 @@ async def test_status(conn: wss.WebSocketConnection, state_payloads: Queue):
     conn.set_state_callback(state_callback)
     conn.set_vdata_callback(vdata_callback)
     async with conn:
-        await state_payloads.put({"status": ["status-a", "status-b"]})
+        await state_payloads.put({"status": ["state"]})
         await state_callback.wait()
-        state_callback.assert_awaited_once_with("status-a", "status-b")
+        state_callback.assert_awaited_once_with("state")
 
     vdata_callback.assert_not_awaited()
 
@@ -223,16 +225,16 @@ async def test_external_session_not_closed():
     """Test that external sessions are not closed when disconnect is called."""
     # Create an external session
     external_session = ClientSession()
-    
+
     # Create a connection with the external session
     conn = wss.WebSocketConnection("_grill_id_", session=external_session)
-    
+
     # Disconnect should not close the external session
     await conn.disconnect()
-    
+
     # The external session should still be open
     assert not external_session.closed
-    
+
     # Clean up
     await external_session.close()
 
@@ -241,9 +243,9 @@ async def test_internal_session_closed():
     """Test that internal sessions are closed when disconnect is called."""
     # Create a connection without providing a session (it will create its own)
     conn = wss.WebSocketConnection("_grill_id_")
-    
+
     # Disconnect should close the internal session
     await conn.disconnect()
-    
+
     # The internal session should be closed
     assert conn._session.closed

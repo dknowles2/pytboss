@@ -74,7 +74,7 @@ class FakeTransport(Transport):
 
     async def send_state(self, state: str | None) -> None:
         if self._state_callback:
-            await self._state_callback(state, None)
+            await self._state_callback(state)
 
     async def send_temps(self, temps: str | None) -> None:
         if self._state_callback:

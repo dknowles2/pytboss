@@ -88,7 +88,7 @@ class PitBoss:
             self._vdata_callbacks.append(callback)
 
     async def _on_state_received(
-        self, status_payload: str | None, temperatures_payload: str | None
+        self, status_payload: str | None, temperatures_payload: str | None = None
     ) -> None:
         _LOGGER.debug(
             "State received: status=%s, temperatures=%s",
