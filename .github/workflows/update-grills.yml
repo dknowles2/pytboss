@@ -37,7 +37,7 @@ jobs:
         run: |
           GRILLS_JSON="pytboss/grills.json"
           echo "Running scripts/dump_grills.py"
-          python scripts/dump_grills.py > "$GRILLS_JSON"
+          python -m scripts.dump_grills > "$GRILLS_JSON"
 
           if ! git diff --exit-code "$FILE_TO_UPDATE"; then
             echo "changes_detected=true" >> "$GITHUB_OUTPUT"
