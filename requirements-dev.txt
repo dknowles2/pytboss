@@ -1,4 +1,4 @@
 -r requirements-test.txt
 black==25.1.0
-pre-commit==4.3.0
+pre-commit==4.5.1
 requests==2.32.5
