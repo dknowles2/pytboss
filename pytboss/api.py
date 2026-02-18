@@ -42,7 +42,7 @@ class PitBoss:
         """
         self.fs = FileSystem(conn)
         self.config = Config(conn)
-        self.spec: Grill = get_grill(grill_model)
+        self._grill_model = grill_model
         self._conn = conn
         self._conn.set_state_callback(self._on_state_received)
         self._conn.set_vdata_callback(self._on_vdata_received)
@@ -63,6 +63,7 @@ class PitBoss:
 
         Required to be called before the API can be used.
         """
+        self.spec: Grill = await asyncio.to_thread(get_grill, self._grill_model)
         await self._conn.connect()
 
     async def stop(self) -> None:

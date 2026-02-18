@@ -200,18 +200,24 @@ async def conn(password: str) -> FakeTransport:
 
 
 @pytest.fixture
-def pitboss(mock_get_grill: Mock, conn: FakeTransport, password: str) -> api.PitBoss:
-    return api.PitBoss(conn, "my-grill", password)
+async def pitboss(
+    mock_get_grill: Mock, conn: FakeTransport, password: str
+) -> api.PitBoss:
+    pb = api.PitBoss(conn, "my-grill", password)
+    await pb.start()
+    return pb
 
 
 async def test_init_bad_model(conn: FakeTransport):
+    pitboss = api.PitBoss(conn, "unknown-model")
     with pytest.raises(InvalidGrill):
-        _ = api.PitBoss(conn, "unknown-model")
+        await pitboss.start()
 
 
 async def test_on_state_received():
     conn = FakeTransport()
     pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
     status = {}
     await pitboss.subscribe_state(lambda s: status.update(s))
     await conn.send_state(STATE_HEX)
@@ -221,6 +227,7 @@ async def test_on_state_received():
 async def test_on_temperatures_received():
     conn = FakeTransport()
     pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
     status = {}
     await pitboss.subscribe_state(lambda s: status.update(s))
     await conn.send_temps(TEMPS_HEX)
@@ -304,6 +311,7 @@ async def test_grill_functions(slug, method, pitboss: api.PitBoss, conn: FakeTra
 
 async def test_get_state(conn: FakeTransport, password: str):
     pitboss = api.PitBoss(conn, "PBV4PS2", password)
+    await pitboss.start()
     want: dict[str, Any] = STATE_DICT.copy()
     want.update(TEMPS_DICT)
     assert (await pitboss.get_state()) == want
