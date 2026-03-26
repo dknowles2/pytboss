@@ -1,5 +1,5 @@
 aiohttp==3.13.3
-bleak==3.0.0
+bleak==3.0.1
 bleak_retry_connector==4.6.0
 dukpy==0.5.1
 mypy-extensions==1.1.0
