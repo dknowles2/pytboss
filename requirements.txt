@@ -1,4 +1,4 @@
-aiohttp==3.13.3
+aiohttp==3.13.4
 bleak==3.0.1
 bleak_retry_connector==4.6.0
 dukpy==0.5.1
