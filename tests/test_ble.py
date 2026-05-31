@@ -102,6 +102,40 @@ async def test_subscribe_debug_logs(
 @mock.patch("bleak_retry_connector.establish_connection")
 @mock.patch("bleak.BleakClient", spec=True)
 @mock.patch("bleak.BLEDevice", spec=True)
+async def test_subscribe_debug_logs_pbv3m(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    mock_establish_connection.return_value = mock_bleak_client
+
+    conn = ble.BleConnection(mock_device)
+    state_cb = mock.AsyncMock()
+    conn.set_state_callback(state_cb)
+    await conn.connect()
+
+    # PBV3 M payloads have no checksum suffix — only 2 whitespace-separated parts.
+    state_data = bytearray(
+        b"<==PB:  FE0B020205090600090600090600000000000802000802010200000000000000000000000000000100000000FF"
+    )
+    await conn._on_debug_log_received(None, state_data)
+    state_cb.assert_awaited_once_with(
+        "FE0B020205090600090600090600000000000802000802010200000000000000000000000000000100000000FF",
+        None,
+    )
+
+    state_cb.reset_mock()
+    temp_data = bytearray(
+        b"<==PB:  FE0C02020509060009060009060000000000080201030000080201FF"
+    )
+    await conn._on_debug_log_received(None, temp_data)
+    state_cb.assert_awaited_once_with(
+        None,
+        "FE0C02020509060009060009060000000000080201030000080201FF",
+    )
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
 async def test_send_command(mock_device, mock_bleak_client, mock_establish_connection):
     mock_establish_connection.return_value = mock_bleak_client
     loop = asyncio.get_running_loop()
