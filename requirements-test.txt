@@ -4,5 +4,5 @@ mypy==1.19.1
 pytest==9.1.1
 pytest-asyncio==1.4.0
 pytest-aiohttp==1.1.1
-ruff==0.15.18
+ruff==0.15.19
 types-requests==2.33.0.20260518
