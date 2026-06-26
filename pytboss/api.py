@@ -12,6 +12,7 @@ from .config import Config
 from .exceptions import UnsupportedOperation
 from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
+from .ota import OTA
 from .transport import Transport
 
 _LOGGER = logging.getLogger("pytboss")
@@ -32,6 +33,9 @@ class PitBoss:
     config: Config
     """Configuration operations."""
 
+    ota: OTA
+    """Over-The-Air firmware update operations."""
+
     def __init__(self, conn: Transport, grill_model: str, password: str = "") -> None:
         """Initializes the class.
 
@@ -42,6 +46,7 @@ class PitBoss:
         """
         self.fs = FileSystem(conn)
         self.config = Config(conn)
+        self.ota = OTA(conn)
         self._grill_model = grill_model
         self._conn = conn
         self._conn.set_state_callback(self._on_state_received)
@@ -270,3 +275,78 @@ class PitBoss:
         :param timeout: Time (in seconds) after which to abandon the RPC.
         """
         return await self._conn.send_command("RPC.Ping", {}, timeout=timeout)
+
+    async def list_rpcs(self) -> list[str]:
+        """Returns a list of all RPC methods supported by the device."""
+        result = await self._conn.send_command("RPC.List", {})
+        return result.get("list", [])
+
+    async def reboot(self) -> None:
+        """Reboots the device.
+
+        Sends a ``Sys.Reboot`` command. No response is expected as the device
+        immediately restarts.
+        """
+        await self._conn.send_command_without_answer("Sys.Reboot", {})
+
+    async def rename_device(self, name: str) -> dict:
+        """Renames the device.
+
+        :param name: The new device name.
+        """
+        return await self._conn.send_command(
+            "PB.RenameDevice", await self._authenticate({"name": name})
+        )
+
+    async def set_wifi_credentials(self, ssid: str, password: str) -> dict:
+        """Sets WiFi credentials using the PB-native RPC.
+
+        This is equivalent to ``config.set_wifi_credentials()`` but uses the
+        ``PB.SetWifiCredentials`` RPC which is available on newer firmware
+        versions and is authenticated with the grill password.
+
+        :param ssid: The SSID to connect to.
+        :param password: The password for the WiFi network.
+        """
+        return await self._conn.send_command(
+            "PB.SetWifiCredentials",
+            await self._authenticate({"ssid": ssid, "password": password}),
+        )
+
+    async def wifi_awake_wdt(self) -> dict:
+        """Kicks the WiFi awake watchdog timer.
+
+        Call this periodically to prevent the device from entering WiFi sleep
+        mode while actively communicating over BLE.
+        """
+        return await self._conn.send_command(
+            "PB.WiFiAwakeWDT", await self._authenticate({})
+        )
+
+    async def load_mcu_firmware(self, url: str) -> dict:
+        """Initiates an MCU firmware load.
+
+        :param url: URL of the MCU firmware binary.
+        """
+        return await self._conn.send_command(
+            "PB.LoadMCUFirmware", await self._authenticate({"url": url})
+        )
+
+    async def get_mcu_firmware_load_status(self) -> dict:
+        """Returns the status of the MCU firmware load initiated by :meth:`load_mcu_firmware`."""
+        return await self._conn.send_command(
+            "PB.LoadMCUFirmwareStatus", await self._authenticate({})
+        )
+
+    async def query_mcu_firmware_version(self) -> dict:
+        """Queries the firmware version running on the MCU (microcontroller)."""
+        return await self._conn.send_command(
+            "PB.QueryMCUFirmwareVersion", await self._authenticate({})
+        )
+
+    async def scan_wifi(self) -> dict:
+        """Triggers a WiFi scan and returns the results.
+
+        The returned dict typically contains a list of discovered access points.
+        """
+        return await self._conn.send_command("Wifi.Scan", {})
