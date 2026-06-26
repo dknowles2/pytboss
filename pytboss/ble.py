@@ -106,11 +106,13 @@ class BleConnection(Transport):
         """
         self._reconnecting = True
         _LOGGER.debug("Resetting device to: %s", ble_device)
-        await self.disconnect()
-        self._is_connected = False
-        self._ble_device = ble_device
-        await self.connect()
-        self._reconnecting = False
+        try:
+            await self.disconnect()
+            self._is_connected = False
+            self._ble_device = ble_device
+            await self.connect()
+        finally:
+            self._reconnecting = False
 
     def is_connected(self) -> bool:
         """Whether the device is currently connected."""
