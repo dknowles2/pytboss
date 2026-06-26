@@ -82,6 +82,42 @@ async def test_reset_device(mock_establish_connection):
 
 
 @mock.patch("bleak_retry_connector.establish_connection")
+async def test_reset_device_connect_failure_resets_reconnecting_flag(
+    mock_establish_connection,
+):
+    """Regression test: _reconnecting must be reset to False even if connect() fails.
+
+    Before this fix, if establish_connection() raised during reset_device(),
+    _reconnecting would be stuck at True, silently suppressing the
+    disconnect_callback on any subsequent disconnection event.
+    """
+    mock_old_device = mock.create_autospec(bleak.BLEDevice)
+    mock_new_device = mock.create_autospec(bleak.BLEDevice)
+    mock_old_device.name = "OLD DEVICE NAME"
+    mock_new_device.name = "NEW DEVICE NAME"
+    mock_old_bleak_client = mock.create_autospec(bleak.BleakClient)
+    mock_establish_connection.return_value = mock_old_bleak_client
+
+    disconnect_callback = mock.Mock()
+    conn = ble.BleConnection(mock_old_device, disconnect_callback=disconnect_callback)
+    await conn.connect()
+
+    # Simulate establish_connection failing during the reset (e.g. out of BLE slots)
+    mock_establish_connection.side_effect = Exception("No connection slots available")
+
+    try:
+        await conn.reset_device(mock_new_device)
+    except Exception:
+        pass
+
+    # _reconnecting must be False so future disconnect events fire the callback
+    assert not conn._reconnecting
+    # And the disconnect callback should be invocable; simulate a disconnect event
+    conn._on_disconnected(mock_old_bleak_client)
+    disconnect_callback.assert_called_once_with(mock_old_bleak_client)
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
 @mock.patch("bleak.BleakClient", spec=True)
 @mock.patch("bleak.BLEDevice", spec=True)
 async def test_subscribe_debug_logs(
