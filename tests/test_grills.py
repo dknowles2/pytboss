@@ -168,7 +168,7 @@ class TestGetGrills:
             want["smokerActTemp"] = 210
 
         with debug_js(js):
-            assert temps == want
+            assert temps == dict(want)
 
             msg["isFahrenheit"] = "00"
             status = grill.control_board.parse_temperatures(str(msg))
@@ -256,7 +256,7 @@ class TestGetGrills:
             want["primeState"] = False
 
         with debug_js(js):
-            assert status == want
+            assert status == dict(want)
 
             msg["condGrillTemp"] = "02"
             status = grill.control_board.parse_status(str(msg))
