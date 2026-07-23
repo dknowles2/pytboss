@@ -239,13 +239,23 @@ class ControlBoard:
         return evaljs(js, message=message)
 
     def parse_status(self, message: str) -> StateDict | None:
-        """Parses a status message."""
+        """Parses a status message.
+
+        :param message: Raw status payload received from the grill.
+        :raise NotImplementedError: If this control board has no status-parsing
+            routine.
+        """
         if not self._status_js_func:
             raise NotImplementedError
         return self._evaljs(self._status_js_func, message)
 
     def parse_temperatures(self, message: str) -> StateDict | None:
-        """Parses a temperatures message."""
+        """Parses a temperatures message.
+
+        :param message: Raw temperatures payload received from the grill.
+        :raise NotImplementedError: If this control board has no
+            temperatures-parsing routine.
+        """
         if not self._temperatures_js_func:
             raise NotImplementedError
         return self._evaljs(self._temperatures_js_func, message)
@@ -313,6 +323,9 @@ class Grill:
 def get_grills(control_board: str | None = None) -> Iterable[Grill]:
     """Retrieves grill specifications.
 
+    Grills with no status-parsing routine, or whose name is listed in
+    `UNSUPPORTED_MODELS`, are silently excluded.
+
     :param control_board: If specified, returns only grills with this control board.
     """
     for grill in _get_grills().values():
@@ -327,7 +340,14 @@ def get_grills(control_board: str | None = None) -> Iterable[Grill]:
 def get_grill(grill_name: str) -> Grill:
     """Retrieves a grill specification.
 
+    Unlike `get_grills()`, this does not exclude names listed in
+    `UNSUPPORTED_MODELS`; requesting one of those names will succeed here
+    but its control board's `parse_status`/`parse_temperatures` may raise
+    `NotImplementedError` when actually used.
+
     :param grill_name: The name of the grill specification to retrieve.
+    :raise pytboss.exceptions.InvalidGrill: If `grill_name` is not a known
+        grill model.
     """
     if (grill := _get_grills().get(grill_name, None)) is None:
         raise InvalidGrill(f"Unknown grill name: {grill_name}")

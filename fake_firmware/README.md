@@ -9,7 +9,7 @@ or smoker.
 The firmware (`init.js`) is a copy of the official Dansons firmware used by
 the grill. It can be installed to an ESP32 using the utilities provided by
 Mongoose OS (http://www.mongoose-os.com), which is the same base operating
-system installed on PitBoss devices. The additioanl files in this directory
+system installed on PitBoss devices. The additional files in this directory
 implement fake versions of the firmware dependencies that return reasonable
 approximations of data that would be returned by a PitBoss device.
 
@@ -19,7 +19,7 @@ Files of note:
     attached to a PitBoss device's ESP32 UART pins.
 *   `lib_ws.js` - WebSocket library implementation that replaces calls with
     NOOP functions. This is a custom library written for the PitBoss firmware
-    and is not shipped with Mongoose OS. The fake firware does not need
+    and is not shipped with Mongoose OS. The fake firmware does not need
     WebSocket support (since it doesn't need to talk to the PitBoss cloud
     servers), so the implementation details are irrelevant.
 *   `../mos.yml` - A Mongoose OS configuration file that sets up a base image
