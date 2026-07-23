@@ -121,12 +121,12 @@ class TestGetGrills:
         grills = list(grills_lib.get_grills("PBL"))
         assert len(grills) > 0
 
-    @pytest.mark.parametrize("grill", grills_lib.get_grills(), ids=idfn)
+    @pytest.mark.parametrize("grill", list(grills_lib.get_grills()), ids=idfn)
     def test_js_commands(self, grill: grills_lib.Grill):
         for cmd in grill.control_board.commands.values():
             cmd(11)
 
-    @pytest.mark.parametrize("grill", grills_lib.get_grills(), ids=idfn)
+    @pytest.mark.parametrize("grill", list(grills_lib.get_grills()), ids=idfn)
     def test_parse_temperatures(self, grill: grills_lib.Grill):
         assert grill.control_board._temperatures_js_func is not None
         js = JSFunc(grill.control_board._temperatures_js_func)
@@ -188,7 +188,7 @@ class TestGetGrills:
                         continue
                     raise
 
-    @pytest.mark.parametrize("grill", grills_lib.get_grills(), ids=idfn)
+    @pytest.mark.parametrize("grill", list(grills_lib.get_grills()), ids=idfn)
     def test_parse_state(self, grill: grills_lib.Grill):
         msg = Message()
         assert grill.control_board._status_js_func is not None
