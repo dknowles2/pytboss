@@ -31,7 +31,7 @@ class FileSystem:
             resp = await self._conn.send_command(
                 "FS.Get", {"filename": filename, "offset": offset, "len": length}
             )
-            content += str(b64decode(resp["data"]))
+            content += b64decode(resp["data"]).decode("utf-8")
             offset += length
             if resp["left"] == 0:
                 return content
