@@ -2,14 +2,14 @@ import json
 from itertools import count
 from typing import Any, Generator
 from unittest import mock
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 from freezegun import freeze_time
 
 from pytboss import api, grills
 from pytboss.codec import decode, timed_key
-from pytboss.exceptions import InvalidGrill, Unauthorized
+from pytboss.exceptions import InvalidGrill, Unauthorized, UnsupportedOperation
 from pytboss.transport import Transport
 
 STATE_HEX = (
@@ -327,3 +327,144 @@ async def test_get_uptime_is_cached(pitboss: api.PitBoss):
         # Now it should change.
         ft.tick(1.0)
         assert await pitboss.get_uptime() > t1
+
+
+async def test_is_connected():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    assert pitboss.is_connected() is False
+    await pitboss.start()
+    assert pitboss.is_connected() is True
+
+
+async def test_stop():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    assert pitboss.is_connected() is True
+    await pitboss.stop()
+    assert pitboss.is_connected() is False
+
+
+async def test_on_state_received_unparseable_payload():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    called = False
+
+    async def cb(_):
+        nonlocal called
+        called = True
+
+    await pitboss.subscribe_state(cb)
+    # Neither a status nor a temperatures payload; nothing to parse.
+    await conn.send_state(None)
+    assert not called
+
+
+async def test_on_state_received_async_callback():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    received = []
+
+    async def cb(state):
+        received.append(dict(state))
+
+    await pitboss.subscribe_state(cb)
+    await conn.send_state(STATE_HEX)
+    assert received == [STATE_DICT]
+
+
+async def test_on_vdata_received():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    sync_received = []
+    async_received = []
+
+    async def async_cb(vdata):
+        async_received.append(vdata)
+
+    await pitboss.subscribe_vdata(lambda v: sync_received.append(v))
+    await pitboss.subscribe_vdata(async_cb)
+
+    await pitboss._on_vdata_received(json.dumps({"foo": "bar"}))
+
+    assert sync_received == [{"foo": "bar"}]
+    assert async_received == [{"foo": "bar"}]
+
+
+async def test_set_probe_2_temperature_unsupported(pitboss: api.PitBoss):
+    # The default mock_control_board fixture doesn't register this command.
+    with pytest.raises(UnsupportedOperation):
+        await pitboss.set_probe_2_temperature(120)
+
+
+async def test_set_probe_2_temperature(
+    pitboss: api.PitBoss, conn: FakeTransport, mock_control_board: Mock
+):
+    mock_control_board.commands["set-probe-2-temperature"] = make_cmd(
+        "set-probe-2-temperature"
+    )
+    assert (await pitboss.set_probe_2_temperature(120)) == {}
+    assert conn.last_mcu_command == "set-probe-2-temperature(120,)"
+
+
+async def test_get_firmware_version():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(
+        conn, "send_command", AsyncMock(return_value={"version": "1.2.3"})
+    ) as send_command:
+        assert await pitboss.get_firmware_version() == {"version": "1.2.3"}
+        send_command.assert_awaited_once_with("PB.GetFirmwareVersion", {})
+
+
+async def test_set_mcu_update_timer():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(
+        conn, "send_command", AsyncMock(return_value={})
+    ) as send_command:
+        assert await pitboss.set_mcu_update_timer(frequency=3) == {}
+        send_command.assert_awaited_once_with(
+            "PB.SetMCU_UpdateFrequency", {"frequency": 3}
+        )
+
+
+async def test_set_wifi_update_frequency():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(
+        conn, "send_command", AsyncMock(return_value={})
+    ) as send_command:
+        assert await pitboss.set_wifi_update_frequency(fast=1, slow=10) == {}
+        send_command.assert_awaited_once_with(
+            "PB.SetWifiUpdateFrequency", {"slow": 10, "fast": 1}
+        )
+
+
+async def test_set_virtual_data():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(
+        conn, "send_command", AsyncMock(return_value={})
+    ) as send_command:
+        assert await pitboss.set_virtual_data({"foo": "bar"}) == {}
+        send_command.assert_awaited_once_with("PB.SetVirtualData", {"foo": "bar"})
+
+
+async def test_ping():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(
+        conn, "send_command", AsyncMock(return_value={})
+    ) as send_command:
+        assert await pitboss.ping(timeout=5.0) == {}
+        send_command.assert_awaited_once_with("RPC.Ping", {}, timeout=5.0)
