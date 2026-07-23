@@ -1,4 +1,4 @@
-"""Client library for interacting with PitBoss grills over Bluetooth LE."""
+"""Client library for controlling PitBoss/Dansons grills over Bluetooth LE or WebSocket."""
 
 from .api import PitBoss  # noqa: F401
 from .ble import BleConnection  # noqa: F401

@@ -1,4 +1,4 @@
-"""Client library for interacting with PitBoss grills over Bluetooth LE."""
+"""High-level client API for controlling PitBoss/Dansons grills."""
 
 import asyncio
 import inspect
@@ -184,7 +184,7 @@ class PitBoss:
         """Sets the target temperature for probe 2.
 
         :param temp: Target probe temperature.
-        :raise pyschlage.exceptions.UnsupportedOperation: When probe 2's
+        :raise pytboss.exceptions.UnsupportedOperation: When probe 2's
             target temperature cannot be set.
         """
         cmd = "set-probe-2-temperature"

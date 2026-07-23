@@ -77,6 +77,8 @@ class Transport(ABC):
         :param method: The method to call.
         :param params: Parameters to send with the command.
         :param timeout: Timeout for the call.
+        :raise pytboss.exceptions.RPCError: If the device returns an error response.
+        :raise TimeoutError: If `timeout` elapses before a response is received.
         """
         cmd = await self._prepare_command(method, params)
         future = self._loop.create_future()
@@ -94,6 +96,7 @@ class Transport(ABC):
         :param method: The method to call.
         :param params: Parameters to send with the command.
         :param timeout: Timeout for the call.
+        :raise TimeoutError: If `timeout` elapses before the command is sent.
         """
         async with asyncio.timeout(timeout):
             await self._send_prepared_command(
