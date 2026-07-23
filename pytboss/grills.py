@@ -160,7 +160,7 @@ class StateDict(TypedDict, total=False):
     isFahrenheit: bool
     """Whether the temperature readings are in Fahrenheit."""
 
-    recipeStep: bool
+    recipeStep: int
     """The current recipe step number."""
 
     recipeTime: int
