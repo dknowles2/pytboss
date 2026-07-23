@@ -185,7 +185,11 @@ class Command:
 
     @classmethod
     def from_dict(cls, cmd_dict) -> "Command":
-        """Creates a Command from a JSON dict."""
+        """Creates a Command from a JSON dict.
+
+        :param cmd_dict: A `control_board_commands` entry from `grills.json`,
+            with `name`, `slug`, `hexadecimal`, and `function` keys.
+        """
         js_func = _scrub_js(cmd_dict["function"])
         return cls(
             name=cmd_dict["name"],
@@ -195,7 +199,11 @@ class Command:
         )
 
     def __call__(self, *args) -> str:
-        """Returns a hexadecimal command string."""
+        """Returns a hexadecimal command string.
+
+        :raise NotImplementedError: If this command has neither a static
+            hexadecimal value nor a JavaScript function to generate one.
+        """
         if self._hex:
             return self._hex
 
@@ -223,7 +231,12 @@ class ControlBoard:
 
     @classmethod
     def from_dict(cls, ctrl_dict) -> "ControlBoard":
-        """Creates a ControlBoard from a JSON dict."""
+        """Creates a ControlBoard from a JSON dict.
+
+        :param ctrl_dict: A `control_board` entry from `grills.json`, with
+            `name`, `control_board_commands`, `status_function`, and
+            `temperature_function` keys.
+        """
         return cls(
             name=ctrl_dict["name"],
             commands={
@@ -281,7 +294,12 @@ class Grill:
 
     @classmethod
     def from_dict(cls, grill_dict) -> "Grill":
-        """Creates a Grill from a JSON dict."""
+        """Creates a Grill from a JSON dict.
+
+        :param grill_dict: A top-level entry from `grills.json`, with `name`,
+            `control_board`, `meat_probes`, `temp_increment`, `min_temp`, and
+            `max_temp` keys.
+        """
         min_temp = None
         try:
             min_temp = int(grill_dict["min_temp"])

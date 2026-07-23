@@ -67,11 +67,14 @@ class PitBoss:
         await self._conn.connect()
 
     async def stop(self) -> None:
-        """Stops any background polling."""
+        """Disconnects from the grill and stops any background connection tasks."""
         await self._conn.disconnect()
 
     async def subscribe_state(self, callback: StateCallback):
         """Registers a callback to receive grill state updates.
+
+        The callback receives the same `StateDict` instance on every call,
+        shared across all subscribers; it should be treated as read-only.
 
         :param callback: Callback function that will receive updated grill state.
         """
@@ -81,6 +84,10 @@ class PitBoss:
 
     async def subscribe_vdata(self, callback: VDataCallback):
         """Registers a callback to receive VData updates.
+
+        If multiple callbacks are subscribed, they all receive the same
+        `dict` instance for a given update; it should be treated as
+        read-only.
 
         :param callback: Callback function that will receive updated VData.
         """
@@ -217,7 +224,12 @@ class PitBoss:
         return await self._send_command("turn-primer-motor-off")
 
     async def get_state(self) -> StateDict:
-        """Retrieves the current grill state."""
+        """Issues a live RPC to fetch and return the current grill state.
+
+        Unlike `subscribe_state()`, this does not use the cached state
+        maintained from prior pushed updates; it always queries the grill
+        directly.
+        """
         resp = await self._conn.send_command(
             "PB.GetState", await self._authenticate({})
         )
@@ -230,32 +242,49 @@ class PitBoss:
         return await self._conn.send_command("PB.GetFirmwareVersion", {})
 
     async def set_mcu_update_timer(self, frequency=2):
-        """:meta private:"""
+        """Sets how often (in seconds) the MCU sends status updates.
+
+        :meta private:
+        """
         return await self._conn.send_command(
             "PB.SetMCU_UpdateFrequency", {"frequency": frequency}
         )
 
     async def set_wifi_update_frequency(self, fast=5, slow=60):
-        """:meta private:"""
+        """Sets how often (in seconds) the device sends WiFi status updates.
+
+        :meta private:
+        """
         return await self._conn.send_command(
             "PB.SetWifiUpdateFrequency",
             await self._authenticate({"slow": slow, "fast": fast}),
         )
 
     async def set_virtual_data(self, data: dict):
-        """:meta private:"""
+        """Sets arbitrary virtual data on the device.
+
+        :meta private:
+        """
         return await self._conn.send_command(
             "PB.SetVirtualData", await self._authenticate(data)
         )
 
     async def get_virtual_data(self):
-        """:meta private:"""
+        """Retrieves virtual data previously set with `set_virtual_data()`.
+
+        :meta private:
+        """
         return await self._conn.send_command(
             "PB.GetVirtualData", await self._authenticate({})
         )
 
     async def get_uptime(self) -> float:
-        """:meta private:"""
+        """Returns the device's uptime, in seconds.
+
+        Cached for up to 5 seconds between RPCs.
+
+        :meta private:
+        """
         now = int(time())
         if not self._last_uptime_check or now - self._last_uptime_check > 5:
             result = await self._conn.send_command("PB.GetTime", {})

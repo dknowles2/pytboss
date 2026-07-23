@@ -65,7 +65,10 @@ class BleConnection(Transport):
         self._reconnecting = False
 
     async def connect(self) -> None:
-        """Starts the connection to the device."""
+        """Starts the connection to the device.
+
+        Does nothing if already connected or if no BLE device was set.
+        """
         if self._is_connected:
             _LOGGER.warning("Already connected. Ignoring call to connect().")
             return
