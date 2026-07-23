@@ -6,6 +6,32 @@ Python 3 library for interacting with Pitboss grills and smokers.
 
 ## Usage
 
+`pytboss` supports two ways of talking to a grill: a direct Bluetooth LE
+connection, or a WebSocket connection to the PitBoss cloud service. Both use
+the same `PitBoss` API once connected — only the `Transport` passed to it
+differs.
+
+### Bluetooth LE
+
+If you don't already know your grill's Bluetooth address, you can discover
+nearby devices with `bleak`:
+
+```python
+import asyncio
+from bleak import BleakScanner
+
+
+async def discover():
+    devices = await BleakScanner.discover()
+    for device in devices:
+        print(device.address, device.name)
+
+
+asyncio.run(discover())
+```
+
+Once you have the address, connect and subscribe to state updates:
+
 ```python
 import asyncio
 from bleak import BleakScanner
@@ -17,6 +43,7 @@ async def state_callback(data):
 
 
 async def main():
+    device_address = "AA:BB:CC:DD:EE:FF"  # Your grill's Bluetooth address.
     ble_device = await BleakScanner.find_device_by_address(device_address)
     model = "PBV4PS2"  # Or your model. See below.
     boss = PitBoss(BleConnection(ble_device), model)
@@ -24,13 +51,67 @@ async def main():
     await boss.subscribe_state(state_callback)
     await boss.start()
     while True:
-        asyncio.sleep(0.1)
+        await asyncio.sleep(0.1)
 
 
 asyncio.run(main())
 ```
 
+### WebSocket
+
+The WebSocket transport talks to the PitBoss cloud service instead of
+connecting directly over Bluetooth, which is useful when the grill isn't in
+Bluetooth range. It requires the grill's unique identifier (`grill_id`),
+which you can find in the PitBoss mobile app or account settings; this
+library does not currently provide a way to look it up.
+
+```python
+import asyncio
+from pytboss import PitBoss, WebSocketConnection
+
+
+async def state_callback(data):
+    print(data)
+
+
+async def main():
+    grill_id = "your-grill-id"
+    model = "PBV4PS2"  # Or your model. See below.
+    boss = PitBoss(WebSocketConnection(grill_id), model)
+    await boss.subscribe_state(state_callback)
+    await boss.start()
+    while True:
+        await asyncio.sleep(0.1)
+
+
+asyncio.run(main())
+```
+
+### Error handling
+
+Calls to the grill can fail for a number of reasons — the grill may be
+unreachable, the connection may drop, or an RPC may be rejected. These are
+all raised as subclasses of `pytboss.exceptions.Error`:
+
+```python
+from pytboss.exceptions import Error, GrillUnavailable, InvalidGrill, NotConnectedError
+
+try:
+    boss = PitBoss(WebSocketConnection(grill_id), model)
+    await boss.start()
+except InvalidGrill:
+    print(f"Unknown grill model: {model}")
+except GrillUnavailable:
+    print("Could not reach the grill.")
+except NotConnectedError:
+    print("Not connected to the grill.")
+except Error as ex:
+    print(f"Unexpected error: {ex}")
+```
+
 ## Installation
+
+`pytboss` requires Python 3.12 or later.
 
 ### Pip
 
@@ -196,3 +277,25 @@ The following models should be supported. Note however that only the `PBV4PS2` m
 *  [PBV7PW1](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV7PW1_Sportsman-2021-6-30-controller123.png)
 
 <!-- GRILLS END -->
+
+## Development
+
+To work on `pytboss` itself, set up a virtual environment and install the
+test dependencies:
+
+```sh
+$ python3.12 -m venv .venv
+$ source .venv/bin/activate
+$ pip install -r requirements-test.txt -e .
+```
+
+Run the test suite, linter, and type checker:
+
+```sh
+$ pytest
+$ ruff check .
+$ mypy .
+```
+
+[`pre-commit`](https://pre-commit.com) hooks are also available; install
+them with `pip install -r requirements-dev.txt` and `pre-commit install`.
