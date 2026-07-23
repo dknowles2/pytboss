@@ -261,3 +261,114 @@ async def test_on_rpc_error_received(
 def test_encode_decode_len():
     assert ble._encode_len(2**32 - 1) == bytearray([255, 255, 255, 255])
     assert ble._decode_len(bytearray([255, 255, 255, 255])) == 2**32 - 1
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_connect_when_already_connected(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    mock_establish_connection.return_value = mock_bleak_client
+
+    conn = ble.BleConnection(mock_device)
+    await conn.connect()
+    assert conn.is_connected()
+
+    # Connecting again should be a no-op (with a warning logged).
+    await conn.connect()
+    mock_establish_connection.assert_awaited_once()
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+async def test_connect_no_device(mock_establish_connection):
+    mock_device = mock.create_autospec(bleak.BLEDevice)
+    conn = ble.BleConnection(mock_device)
+    conn._ble_device = None
+
+    await conn.connect()
+
+    assert not conn.is_connected()
+    mock_establish_connection.assert_not_awaited()
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_disconnect_swallows_exception(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    mock_establish_connection.return_value = mock_bleak_client
+    conn = ble.BleConnection(mock_device)
+    await conn.connect()
+
+    mock_bleak_client.disconnect.side_effect = Exception("Bluetooth is awful")
+
+    await conn.disconnect()  # Should not raise.
+    assert not conn.is_connected()
+
+
+async def test_send_prepared_command_no_client():
+    mock_device = mock.create_autospec(bleak.BLEDevice)
+    conn = ble.BleConnection(mock_device)
+    # Never connected, so there is no BLE client yet.
+    await conn._send_prepared_command({"id": 1, "method": "foo", "params": {}})
+
+
+async def test_on_rpc_data_received_no_client():
+    mock_device = mock.create_autospec(bleak.BLEDevice)
+    conn = ble.BleConnection(mock_device)
+    # Never connected, so there is no BLE client yet.
+    await conn._on_rpc_data_received(mock.Mock(), bytearray([0, 0, 0, 0]))
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_debug_log_bad_checksum(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    mock_establish_connection.return_value = mock_bleak_client
+    conn = ble.BleConnection(mock_device)
+    state_cb = mock.AsyncMock()
+    conn.set_state_callback(state_cb)
+    await conn.connect()
+
+    # Checksum (5) doesn't match the actual payload length (10).
+    bad_data = bytearray("<==PB: FE0B.STATE [5]".encode("utf-8"))
+    await conn._on_debug_log_received(None, bad_data)
+    state_cb.assert_not_awaited()
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_debug_log_unknown_format(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    mock_establish_connection.return_value = mock_bleak_client
+    conn = ble.BleConnection(mock_device)
+    state_cb = mock.AsyncMock()
+    conn.set_state_callback(state_cb)
+    await conn.connect()
+
+    # Neither 2 nor 3 whitespace-separated parts; should be ignored.
+    await conn._on_debug_log_received(None, bytearray(b"<==PB:"))
+    state_cb.assert_not_awaited()
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_debug_log_vdata(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    mock_establish_connection.return_value = mock_bleak_client
+    conn = ble.BleConnection(mock_device)
+    vdata_cb = mock.AsyncMock()
+    conn.set_vdata_callback(vdata_cb)
+    await conn.connect()
+
+    data = bytearray(b'<==PBD:  {"foo":"bar"}')
+    await conn._on_debug_log_received(None, data)
+    vdata_cb.assert_awaited_once_with('{"foo":"bar"}')

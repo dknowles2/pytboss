@@ -15,3 +15,9 @@ def test_encode_decode():
     check = codec.decode(param, key=codec.timed_key(12.0))
     # And then we compare that the saved version matches
     assert saved == check
+
+
+def test_decode_without_marker():
+    # If no 0xFF marker is found in the decoded stream, the raw decoded
+    # bytes are returned as-is instead of raising.
+    assert codec.decode(b"") == b""
