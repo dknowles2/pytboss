@@ -239,6 +239,25 @@ async def test_external_session_not_closed():
     await external_session.close()
 
 
+async def test_status_no_state_callback(conn: wss.WebSocketConnection) -> None:
+    # No state callback registered; the payload should be silently ignored.
+    await conn._handle_message({"status": ["state"]})
+
+
+async def test_vdata_result_payload(conn: wss.WebSocketConnection) -> None:
+    vdata_callback = AsyncMock()
+    conn.set_vdata_callback(vdata_callback)
+    await conn._handle_message({"result": "some-vdata"})
+    vdata_callback.assert_awaited_once_with("some-vdata")
+
+
+async def test_result_payload_no_vdata_callback(
+    conn: wss.WebSocketConnection,
+) -> None:
+    # No vdata callback registered; the payload should be silently ignored.
+    await conn._handle_message({"result": "some-vdata"})
+
+
 async def test_internal_session_closed():
     """Test that internal sessions are closed when disconnect is called."""
     # Create a connection without providing a session (it will create its own)
