@@ -1,4 +1,9 @@
-"""Base class for transport protocols."""
+"""Shared RPC-over-futures request/response machinery for transports.
+
+Concrete transports (`pytboss.ble.BleConnection`, `pytboss.wss.WebSocketConnection`)
+subclass `Transport` and implement the connection-specific details; this
+module handles matching outgoing commands to their responses via futures.
+"""
 
 import asyncio
 from abc import ABC, abstractmethod
@@ -13,20 +18,26 @@ from .exceptions import RPCError
 
 
 class RawStateCallback(Protocol):
+    """Callback invoked by a `Transport` with raw, unparsed state payloads."""
+
     async def __call__(
         self, status_payload: str | None, temperatures_payload: str | None = None
     ) -> None: ...
 
 
 RawVDataCallback = Callable[[str], Awaitable[None]]
+"""Callback invoked by a `Transport` with a raw, unparsed VData payload."""
+
 SendCommandFn = Callable[
     [str, dict[Any, Any], DefaultNamedArg(float | None, "timeout")],
     Awaitable[dict[Any, Any] | None],
 ]
+"""Signature shared by `Transport.send_command` and `send_command_without_answer`."""
 
 
 class Transport(ABC):
-    """Base class for transport protocols."""
+    """Abstract base class implementing the RPC request/response protocol
+    shared by all connection types."""
 
     def __init__(self, loop: AbstractEventLoop | None = None) -> None:
         self._lock = Lock()

@@ -21,7 +21,12 @@ _MAX_BACKOFF_TIME = 30.0
 
 
 class WebSocketConnection(Transport):
-    """WebSocket transport for PitBoss grills."""
+    """WebSocket transport for PitBoss grills.
+
+    Unlike `pytboss.ble.BleConnection`, this transport automatically
+    reconnects with exponential backoff (up to `_MAX_BACKOFF_TIME` seconds
+    between attempts) if the connection drops.
+    """
 
     def __init__(
         self,
@@ -59,7 +64,12 @@ class WebSocketConnection(Transport):
         await self._subscribed.wait()
 
     async def disconnect(self) -> None:
-        """Stops the connection to the device."""
+        """Stops the connection to the device.
+
+        Also closes the underlying aiohttp session if it was created
+        internally (i.e. no `session` was passed to `__init__`), and waits
+        for the background reconnect/subscribe task to finish.
+        """
         self._keep_running = False
         if self._sock:
             await self._sock.close()
