@@ -6,7 +6,7 @@ repos:
         args: [--py312-plus]
         stages: [manual]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-executables-have-shebangs
         stages: [manual]
