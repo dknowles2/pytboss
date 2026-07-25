@@ -280,22 +280,26 @@ The following models should be supported. Note however that only the `PBV4PS2` m
 
 ## Development
 
-To work on `pytboss` itself, set up a virtual environment and install the
-test dependencies:
+To work on `pytboss` itself, install [`uv`](https://docs.astral.sh/uv/) and
+sync the test dependencies (`uv` manages the Python 3.12+ interpreter and
+virtual environment for you):
 
 ```sh
-$ python3.12 -m venv .venv
-$ source .venv/bin/activate
-$ pip install -r requirements-test.txt -e .
+$ uv sync --group test
 ```
 
 Run the test suite, linter, and type checker:
 
 ```sh
-$ pytest
-$ ruff check .
-$ mypy .
+$ uv run pytest
+$ uv run ruff check .
+$ uv run mypy .
 ```
 
-[`pre-commit`](https://pre-commit.com) hooks are also available; install
-them with `pip install -r requirements-dev.txt` and `pre-commit install`.
+[`pre-commit`](https://pre-commit.com) hooks are also available; sync the
+`dev` group and install them with:
+
+```sh
+$ uv sync --group dev
+$ uv run pre-commit install
+```

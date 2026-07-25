@@ -10,9 +10,10 @@ to run tests/ruff/mypy locally.
 ## Gotchas
 
 - **Python version**: the system `python3` may be older than 3.12, but this
-  project requires `>=3.12` (see `pyproject.toml`). Use
-  `python3.12 -m venv .venv` when creating a virtualenv, not a bare
-  `python3 -m venv`.
+  project requires `>=3.12` (see `pyproject.toml`). Use `uv sync --group test`
+  (or `--group dev`) to set up the environment — `uv` resolves/downloads a
+  compatible interpreter itself, so there's no need to worry about the
+  system `python3` version.
 - **Generated files — edit the generator, not the output**:
   - `pytboss/grills.json` is regenerated nightly by `scripts/dump_grills.py`
     (see `.github/workflows/update-grills.yml`), which pulls grill
@@ -37,9 +38,9 @@ to run tests/ruff/mypy locally.
 Run the same checks CI runs, and make sure all three pass cleanly:
 
 ```sh
-pytest
-ruff check .
-mypy .
+uv run pytest
+uv run ruff check .
+uv run mypy .
 ```
 
 ## Opening PRs
