@@ -15,7 +15,6 @@
                 "charliermarsh.ruff",
                 "github.vscode-pull-request-github",
                 "mongoose-os.mongoose-os-ide",
-                "ms-python.black-formatter",
                 "ms-python.mypy-type-checker",
                 "ms-python.python",
                 "ms-python.vscode-pylance",
@@ -27,12 +26,13 @@
             "settings": {
                 "files.eol": "\n",
                 "editor.tabSize": 4,
-                "python.pythonPath": "/usr/bin/python3",
                 "python.analysis.autoSearchPaths": false,
-                "python.linting.pylintEnabled": true,
-                "python.linting.enabled": true,
-                "python.formatting.provider": "black",
-                "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+                "[python]": {
+                    "editor.defaultFormatter": "charliermarsh.ruff",
+                    "editor.codeActionsOnSave": {
+                        "source.organizeImports": "explicit"
+                    }
+                },
                 "editor.formatOnPaste": false,
                 "editor.formatOnSave": true,
                 "editor.formatOnType": true,
