@@ -4,8 +4,8 @@ import asyncio
 import inspect
 import json
 import logging
+from collections.abc import Awaitable, Callable
 from time import time
-from typing import Awaitable, Callable
 
 from .codec import encode, timed_key
 from .config import Config
@@ -104,14 +104,16 @@ class PitBoss:
             temperatures_payload,
         )
         state = StateDict()
-        if status_payload:
-            if new_state := self.spec.control_board.parse_status(status_payload):
-                state.update(new_state)
-        if temperatures_payload:
-            if new_state := self.spec.control_board.parse_temperatures(
+        if status_payload and (
+            new_state := self.spec.control_board.parse_status(status_payload)
+        ):
+            state.update(new_state)
+        if temperatures_payload and (
+            new_state := self.spec.control_board.parse_temperatures(
                 temperatures_payload
-            ):
-                state.update(new_state)
+            )
+        ):
+            state.update(new_state)
 
         if not state:
             # Unknown or invalid payload; ignore.

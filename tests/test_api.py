@@ -1,6 +1,7 @@
 import json
+from collections.abc import Generator
 from itertools import count
-from typing import Any, Generator
+from typing import Any
 from unittest import mock
 from unittest.mock import AsyncMock, Mock
 
@@ -63,11 +64,9 @@ class FakeTransport(Transport):
 
     async def connect(self) -> None:
         self._is_connected = True
-        return None
 
     async def disconnect(self) -> None:
         self._is_connected = False
-        return None
 
     def is_connected(self) -> bool:
         return self._is_connected
@@ -94,13 +93,13 @@ class FakeTransport(Transport):
             resp["result"] = dispatch[cmd["method"]](cmd["params"])
         except Unauthorized:
             resp["error"] = {"code": 401, "message": "Unauthorized"}
-        except Exception as ex:
+        except Exception as ex:  # noqa: BLE001
             resp["error"] = {"code": -1, "message": str(ex)}
         await self._on_command_response(resp)
 
     def _check_password(self, params: dict) -> None:
         if not self.password:
-            return None
+            return
         if "psw" not in params:
             raise Unauthorized
         psw = bytes.fromhex(params["psw"])
@@ -143,7 +142,7 @@ class FakeTransport(Transport):
 
 def make_cmd(slug: str) -> Mock:
     cmd = mock.create_autospec(grills.Command, instance=True)
-    cmd.side_effect = lambda *p: f"{slug}{p}".encode("utf-8").hex()
+    cmd.side_effect = lambda *p: f"{slug}{p}".encode().hex()
     return cmd
 
 

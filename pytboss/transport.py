@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from asyncio import AbstractEventLoop, Future, Lock, get_running_loop
 from collections.abc import Awaitable, Callable
 from types import TracebackType
-from typing import Any, Protocol, Self, Type
+from typing import Any, Protocol, Self
 
 from mypy_extensions import DefaultNamedArg
 
@@ -53,7 +53,7 @@ class Transport(ABC):
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] | None,
+        exc_type: type[BaseException] | None,
         exc_value: BaseException | None,
         traceback: TracebackType | None,
     ) -> None:

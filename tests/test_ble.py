@@ -107,7 +107,7 @@ async def test_reset_device_connect_failure_resets_reconnecting_flag(
 
     try:
         await conn.reset_device(mock_new_device)
-    except Exception:
+    except Exception:  # noqa: BLE001, S110
         pass
 
     # _reconnecting must be False so future disconnect events fire the callback
@@ -130,7 +130,7 @@ async def test_subscribe_debug_logs(
     conn.set_state_callback(state_cb)
     await conn.connect()
 
-    state_data = bytearray("<==PB: FE0B.STATE [10]".encode("utf-8"))
+    state_data = bytearray(b"<==PB: FE0B.STATE [10]")
     await conn._on_debug_log_received(None, state_data)
     state_cb.assert_awaited_once_with("FE0B.STATE", None)
 
@@ -335,7 +335,7 @@ async def test_debug_log_bad_checksum(
     await conn.connect()
 
     # Checksum (5) doesn't match the actual payload length (10).
-    bad_data = bytearray("<==PB: FE0B.STATE [5]".encode("utf-8"))
+    bad_data = bytearray(b"<==PB: FE0B.STATE [5]")
     await conn._on_debug_log_received(None, bad_data)
     state_cb.assert_not_awaited()
 

@@ -26,17 +26,19 @@ from pytboss.exceptions import Error, InvalidGrill
 
 logging.basicConfig(level=logging.DEBUG)  # Log all HTTP requests to stderr.
 
+_LOGGER = logging.getLogger(__name__)
+
 API_URL = "https://api-prod.dansonscorp.com/api/v1"
 
 
 async def get_grill_details(session: ClientSession, grill_id: int) -> dict[str, Any]:
-    logging.info("Fetching grill details for grill_id: %s", grill_id)
+    _LOGGER.info("Fetching grill details for grill_id: %s", grill_id)
     resp = await session.get(f"{API_URL}/grills/{grill_id}")
     try:
         resp.raise_for_status()
     except ClientResponseError as ex:
         if ex.status == 404:
-            logging.warning("Unknown grill ID: %s", grill_id)
+            _LOGGER.warning("Unknown grill ID: %s", grill_id)
             return {}
     resp_json = await resp.json()
     if resp_json["status"] != "success":
