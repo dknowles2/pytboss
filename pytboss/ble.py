@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from typing import Callable
+from collections.abc import Callable
 from uuid import UUID
 
 import bleak_retry_connector
@@ -97,7 +97,7 @@ class BleConnection(Transport):
         if self._ble_client:
             try:
                 await self._ble_client.disconnect()
-            except Exception as ex:  # pylint: disable=broad-exception-caught
+            except Exception as ex:  # noqa: BLE001
                 # Bluetooth is awful. Sometimes even disconnects fail.
                 _LOGGER.debug("Failed to disconnect: %s", ex)
         self._is_connected = False
@@ -130,7 +130,7 @@ class BleConnection(Transport):
                 CHAR_RPC_TX_CTL, _encode_len(len(payload))
             )
             for i in range(0, len(payload), 20):
-                chunk = bytearray(payload[i : i + 20].encode("utf-8"))  # noqa: E203
+                chunk = bytearray(payload[i : i + 20].encode("utf-8"))
                 await self._ble_client.write_gatt_char(CHAR_RPC_DATA, chunk)
 
     async def _on_rpc_data_received(
@@ -154,7 +154,7 @@ class BleConnection(Transport):
         parts = data.decode("utf-8").split()
         if len(parts) == 3:
             head, payload, tail = parts
-            checksum = int(tail[1 : len(tail) - 1])  # noqa: E203
+            checksum = int(tail[1 : len(tail) - 1])
             if len(payload) != checksum:
                 # Bad payload; ignore.
                 _LOGGER.debug(
@@ -183,7 +183,7 @@ class BleConnection(Transport):
 
 def _encode_len(n: int) -> bytearray:
     ret = bytearray([0, 0, 0, 0])
-    for i in range(0, 4):
+    for i in range(4):
         ret[3 - i] = 255 & n
         n >>= 8
     return ret

@@ -7,7 +7,7 @@ from sys import path
 ME = Path(__file__)
 path.append(str(ME.parent.parent))
 
-from pytboss import grills  # noqa: E402
+from pytboss import grills
 
 README = (ME.parent / Path("../README.md")).absolute()
 START = "<!-- GRILLS START -->\n"

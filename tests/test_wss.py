@@ -1,5 +1,5 @@
 from asyncio import Event, Queue, create_task
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, call, patch
 
 from aiohttp import ClientSession
@@ -92,9 +92,8 @@ async def conn(
     fake_server: TestServer,
     session: ClientSession,
 ) -> AsyncGenerator[wss.WebSocketConnection, None]:
-    async with fake_server:
-        async with session:
-            yield make_conn(fake_server, session)
+    async with fake_server, session:
+        yield make_conn(fake_server, session)
 
 
 def make_conn(fake_server: BaseTestServer, session: ClientSession):
@@ -117,11 +116,10 @@ async def test_connect_server_error(session: ClientSession) -> None:
 
     app = Application()
     app.add_routes([get("/to/_grill_id_", handler)])
-    async with TestServer(app) as fake_server:
-        async with session:
-            conn = make_conn(fake_server, session)
-            with raises(GrillUnavailable):
-                await conn.connect()
+    async with TestServer(app) as fake_server, session:
+        conn = make_conn(fake_server, session)
+        with raises(GrillUnavailable):
+            await conn.connect()
 
 
 @patch("asyncio.sleep")
@@ -150,13 +148,12 @@ async def test_reconnect_backoff(mock_sleep: AsyncMock, session: ClientSession) 
     ) -> None:
         done.set()
 
-    async with TestServer(app) as fake_server:
-        async with session:
-            conn = make_conn(fake_server, session)
-            conn.set_state_callback(state_cb)
-            await conn.connect()
-            await done.wait()
-            await conn.disconnect()
+    async with TestServer(app) as fake_server, session:
+        conn = make_conn(fake_server, session)
+        conn.set_state_callback(state_cb)
+        await conn.connect()
+        await done.wait()
+        await conn.disconnect()
     mock_sleep.assert_has_awaits(
         [call(1.0), call(2.0), call(4.0), call(8.0), call(16.0), call(30.0), call(30.0)]
     )
