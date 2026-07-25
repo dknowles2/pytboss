@@ -1,6 +1,7 @@
 {
-    "python.formatting.provider": "black",
-    "python.pythonPath": "/usr/local/bin/python",
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
     "python.testing.pytestEnabled": true,
     "mos.port": "/dev/ttyUSB0",
     "mos.board": "ESP32"
