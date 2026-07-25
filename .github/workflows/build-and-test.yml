@@ -27,9 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install uv
-          uv venv
-          . .venv/bin/activate
-          uv pip install -r requirements-test.txt
+          uv sync --locked --group test
       - name: Test with pytest
         run: |
           uv run pytest
@@ -46,9 +44,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install uv
-          uv venv
-          . .venv/bin/activate
-          uv pip install -r requirements-test.txt
+          uv sync --locked --group test
       - name: Run ruff
         run: |
           uv run ruff check --output-format=github .
@@ -65,9 +61,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install uv
-          uv venv
-          . .venv/bin/activate
-          uv pip install -r requirements-test.txt
+          uv sync --locked --group test
       - name: Register mypy problem matcher
         run: |
           echo "::add-matcher::.github/workflows/matchers/mypy.json"
