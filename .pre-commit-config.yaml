@@ -3,7 +3,7 @@ repos:
     rev: v3.20.0
     hooks:
       - id: pyupgrade
-        args: [--py310-plus]
+        args: [--py312-plus]
         stages: [manual]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -30,7 +30,7 @@ repos:
           - --keep-updates
         files: ^.*\.py$
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.11.13
+    rev: v0.16.0
     hooks:
       - id: ruff
         args:

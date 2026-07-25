@@ -330,9 +330,7 @@ class Grill:
             min_temp=min_temp,
             max_temp=max_temp,
             meat_probes=grill_dict["meat_probes"],
-            temp_increments=[
-                int(t) for t in grill_dict["temp_increment"].split("/")
-            ],
+            temp_increments=[int(t) for t in grill_dict["temp_increment"].split("/")],
             json=grill_dict,
             control_board=ControlBoard.from_dict(grill_dict["control_board"]),
         )
