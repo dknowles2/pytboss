@@ -7,11 +7,6 @@ import pytest
 from pytboss import grills as grills_lib
 from pytboss.exceptions import InvalidGrill
 
-# Most control boards perform the fahrenheit to celsius conversion internally,
-# however these boards do NOT and instead rely on the conversion to happen in
-# their JS snippets.
-_HAS_FTOC = ("LFS", "PBA", "PBE", "PBM", "PBT", "PBV", "PBM2", "PBV2", "PBVA", "PBL3")
-
 TEMPERATURE_FIELDS = (
     "p1Target",
     "p2Target",
@@ -62,6 +57,19 @@ class JSFunc:
         return "\n".join(
             f"{i:3} {line}" for i, line in enumerate(self._js.splitlines())
         )
+
+    def converts_to_celsius(self):
+        """Whether this routine converts fahrenheit to celsius itself.
+
+        Most control boards convert internally and report whichever unit the
+        grill is set to, but some report fahrenheit always and rely on an
+        ftoc() helper in their JS snippet. Read that off the routine rather
+        than maintaining a list of board names: a definitions refresh can
+        introduce a board that converts, and the two routines for one board
+        do not always agree -- PBL3 converts in its temperatures reply but
+        not in its status reply.
+        """
+        return "ftoc" in self._js
 
     def has_key(self, k, ignore_comments=True):
         if ignore_comments:
@@ -183,7 +191,7 @@ class TestGetGrills:
                     continue
 
                 temp = want[key]
-                if grill.control_board.name in _HAS_FTOC:
+                if js.converts_to_celsius():
                     temp = f_to_c(want[key])
                 try:
                     assert status[key] == temp, f"{key}: {status[key]} != {temp}"  # type: ignore[literal-required]
@@ -307,7 +315,7 @@ class TestGetGrills:
                 if key not in msg or key not in want:
                     continue
                 temp = want[key]
-                if grill.control_board.name in _HAS_FTOC:
+                if js.converts_to_celsius():
                     temp = f_to_c(want[key])
                 try:
                     assert status[key] == temp, f"{key}: {status[key]} != {temp}"  # type: ignore[literal-required]
