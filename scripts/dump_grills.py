@@ -34,35 +34,52 @@ API_URL = "https://api-prod.dansonscorp.com/api/v1"
 async def get_grill_details(
     session: ClientSession, grill_id: int, attempts: int = 3
 ) -> dict[str, Any]:
-    """Fetches one grill definition, retrying dropped connections.
+    """Fetches one grill definition, or an empty dict if the API can't serve it.
 
-    The API hangs up on the occasional request part way through a full dump.
-    Without a retry that aborts the run, so the caller has to start over.
+    The ID space has gaps, and the API is inconsistent about how it reports
+    them: most return 404, but some return a persistent 500 (67 and 128 at the
+    time of writing, verified over repeated requests). It also hangs up on the
+    occasional request part way through a full sweep. None of these should
+    abort the whole run, so connection drops and server errors are retried, and
+    an ID that still won't load is skipped like a 404.
+
+    Client errors other than 404 are raised: a 401 means the credentials are
+    wrong, and retrying or skipping would quietly produce a partial catalogue.
     """
     _LOGGER.info("Fetching grill details for grill_id: %s", grill_id)
     for attempt in range(1, attempts + 1):
         try:
             resp = await session.get(f"{API_URL}/grills/{grill_id}")
-            try:
-                resp.raise_for_status()
-            except ClientResponseError as ex:
-                if ex.status == 404:
-                    _LOGGER.warning("Unknown grill ID: %s", grill_id)
-                    return {}
-                raise
+            resp.raise_for_status()
             resp_json = await resp.json()
-        except (ClientConnectionError, TimeoutError):
+        except ClientResponseError as ex:
+            if ex.status == 404:
+                _LOGGER.warning("Unknown grill ID: %s", grill_id)
+                return {}
+            if ex.status < 500:
+                raise
+            if attempt == attempts:
+                _LOGGER.warning(
+                    "Skipping grill ID %s: server returned %s on all %s attempts",
+                    grill_id,
+                    ex.status,
+                    attempts,
+                )
+                return {}
+            _LOGGER.warning("Server error %s for grill_id %s", ex.status, grill_id)
+        except (ClientConnectionError, TimeoutError) as ex:
             if attempt == attempts:
                 raise
-            delay = 2**attempt
-            _LOGGER.warning(
-                "Connection dropped for grill_id %s; retrying in %ss", grill_id, delay
-            )
-            await sleep(delay)
-            continue
-        if resp_json["status"] != "success":
-            raise Error(resp_json["message"])
-        return resp_json["data"]["grill"]
+            _LOGGER.warning("Connection dropped for grill_id %s: %s", grill_id, ex)
+        else:
+            if resp_json["status"] != "success":
+                raise Error(resp_json["message"])
+            return resp_json["data"]["grill"]
+
+        delay = 2**attempt
+        _LOGGER.info("Retrying grill_id %s in %ss", grill_id, delay)
+        await sleep(delay)
+
     raise Error(f"Could not fetch grill_id {grill_id}")
 
 
@@ -74,15 +91,24 @@ async def main():
             session, cfg["pitboss"]["username"], cfg["pitboss"]["password"]
         )
     grills = {}
+    skipped = []
     async with ClientSession(headers=auth_headers) as session:
         for i in range(1, 150):
             try:
                 grill = await get_grill_details(session, i)
                 if not grill:
+                    skipped.append(i)
                     continue
             except InvalidGrill:
                 break
             grills[grill["name"]] = grill
+
+    # Log a summary so a sweep that quietly collected less than usual is
+    # visible in the run output rather than only in the resulting diff.
+    if skipped:
+        _LOGGER.warning("Skipped %d grill IDs: %s", len(skipped), skipped)
+    _LOGGER.info("Collected %d grill definitions", len(grills))
+
     print(json.dumps(grills, indent=2, sort_keys=True))
 
 
