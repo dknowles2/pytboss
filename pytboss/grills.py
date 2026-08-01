@@ -232,12 +232,14 @@ class Command:
         """Creates a Command from a JSON dict.
 
         :param cmd_dict: A `control_board_commands` entry from `grills.json`,
-            with `slug`, `hexadecimal`, and `function` keys.
+            with a `slug` key and either a `hexadecimal` or a `function` key.
+            A command is built from one or the other, never both, so whichever
+            does not apply may be absent.
         """
-        js_func = _scrub_js(cmd_dict["function"])
+        js_func = _scrub_js(cmd_dict.get("function"))
         return cls(
             slug=cmd_dict["slug"],
-            _hex=cmd_dict["hexadecimal"],
+            _hex=cmd_dict.get("hexadecimal"),
             _js_func=js_func,
         )
 

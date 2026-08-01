@@ -35,9 +35,11 @@ API_URL = "https://api-prod.dansonscorp.com/api/v1"
 # on every grill, board and command, and the vendor touches rows without
 # changing anything that affects parsing. `description` is null on all but two
 # grills and three commands, and where it is set it says "N/A" or restates the
-# slug it sits on.
+# slug it sits on. The `id` is the vendor's own primary key: this script walks
+# the ID space to fetch grills, but nothing ever reads one back out of the
+# definitions, which are keyed by model name and reference boards by name.
 _DROPPED_FIELDS = frozenset(
-    {"created_at", "updated_at", "deleted_at", "description", "site_id"}
+    {"created_at", "updated_at", "deleted_at", "description", "id", "site_id"}
 )
 # The rest is storefront and app-presentation data: how the vendor's own app
 # renders a grill and how its store sells one. None of it describes the grill's
@@ -45,6 +47,7 @@ _DROPPED_FIELDS = frozenset(
 # is the only thing that ever exposed these.
 _DROPPED_GRILL_FIELDS = _DROPPED_FIELDS | {
     "app_layout",
+    "control_board_id",
     "friendly_name",
     "has_indicators",
     "has_mpc",
@@ -63,6 +66,10 @@ _DROPPED_GRILL_FIELDS = _DROPPED_FIELDS | {
 # by slug and nothing reads the human-readable `name`, which is only ever a
 # prettier spelling of the slug beside it.
 _DROPPED_COMMAND_FIELDS = _DROPPED_FIELDS | {"control_board_id", "name"}
+# A command is built either from a static hexadecimal string or from a JS
+# function, never both, so exactly one of these is null on every command. Which
+# one it is carries the meaning; storing the other as an explicit null does not.
+_EITHER_OR_COMMAND_FIELDS = ("function", "hexadecimal")
 
 
 def _drop(
@@ -72,14 +79,19 @@ def _drop(
     return {k: v for k, v in obj.items() if k not in fields} | replace
 
 
+def _trim_command(command: dict[str, Any]) -> dict[str, Any]:
+    """Returns the form of a control board command that gets written out."""
+    unset = {k for k in _EITHER_OR_COMMAND_FIELDS if command.get(k) is None}
+    return _drop(command, _DROPPED_COMMAND_FIELDS | unset)
+
+
 def _trim_board(board: dict[str, Any]) -> dict[str, Any]:
     """Returns the form of a control board that gets written out."""
     return _drop(
         board,
         _DROPPED_FIELDS,
         control_board_commands=[
-            _drop(command, _DROPPED_COMMAND_FIELDS)
-            for command in board["control_board_commands"]
+            _trim_command(command) for command in board["control_board_commands"]
         ],
     )
 

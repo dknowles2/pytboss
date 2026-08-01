@@ -36,6 +36,22 @@ class TestCommand:
         cmd = grills_lib.Command("my-command", "0C", None)
         assert cmd() == "0C"
 
+    @pytest.mark.parametrize(
+        "cmd_dict,want",
+        (
+            ({"slug": "my-command", "hexadecimal": "0C"}, "0C"),
+            ({"slug": "my-command", "function": "return '0C';"}, "0C"),
+        ),
+        ids=("hex", "function"),
+    )
+    def test_from_dict_omits_the_key_it_does_not_use(self, cmd_dict, want):
+        """A command is built from a hex string or a JS function, never both.
+
+        grills.json stores only whichever applies, so the other key is absent
+        rather than present and null.
+        """
+        assert grills_lib.Command.from_dict(cmd_dict)() == want
+
 
 class TestController:
     def parse_status(self):
