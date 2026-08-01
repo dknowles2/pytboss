@@ -33,8 +33,12 @@ API_URL = "https://api-prod.dansonscorp.com/api/v1"
 # Vendor bookkeeping the library never reads, dropped to keep the checked-in
 # definitions to a manageable size. The timestamps are the bulk of it: they sit
 # on every grill, board and command, and the vendor touches rows without
-# changing anything that affects parsing.
-_DROPPED_FIELDS = frozenset({"created_at", "updated_at", "deleted_at", "site_id"})
+# changing anything that affects parsing. `description` is null on all but two
+# grills and three commands, and where it is set it says "N/A" or restates the
+# slug it sits on.
+_DROPPED_FIELDS = frozenset(
+    {"created_at", "updated_at", "deleted_at", "description", "site_id"}
+)
 # The rest is storefront and app-presentation data: how the vendor's own app
 # renders a grill and how its store sells one. None of it describes the grill's
 # protocol, so none of it is reachable through `Grill`, whose `json` attribute
@@ -42,6 +46,7 @@ _DROPPED_FIELDS = frozenset({"created_at", "updated_at", "deleted_at", "site_id"
 _DROPPED_GRILL_FIELDS = _DROPPED_FIELDS | {
     "app_layout",
     "friendly_name",
+    "has_indicators",
     "has_mpc",
     "has_no_app_indicators",
     "image",

@@ -3,7 +3,6 @@
     "LBL": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 95,
@@ -11,7 +10,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 96,
@@ -19,7 +17,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 97,
@@ -27,7 +24,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 98,
@@ -35,7 +31,6 @@
           "slug": "set-prove-1-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 99,
@@ -43,7 +38,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 100,
@@ -51,7 +45,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 101,
@@ -59,7 +52,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 103,
@@ -67,7 +59,6 @@
           "slug": "turn-primer-motor-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 104,
@@ -85,7 +76,6 @@
     "LFS": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 105,
@@ -93,7 +83,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 106,
@@ -101,7 +90,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 107,
@@ -109,7 +97,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 109,
@@ -117,7 +104,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 110,
@@ -125,7 +111,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 111,
@@ -133,7 +118,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 113,
@@ -141,7 +125,6 @@
           "slug": "turn-primer-motor-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 114,
@@ -159,7 +142,6 @@
     "PBA": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 71,
@@ -167,7 +149,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 72,
@@ -175,7 +156,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 73,
@@ -183,7 +163,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 74,
@@ -191,7 +170,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 75,
@@ -199,7 +177,6 @@
           "slug": "set-probe-1-temperature"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 76,
@@ -207,7 +184,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 77,
@@ -215,7 +191,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 78,
@@ -223,7 +198,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 79,
@@ -231,7 +205,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 81,
@@ -239,7 +212,6 @@
           "slug": "turn-primer-motor-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 82,
@@ -247,7 +219,6 @@
           "slug": "turn-primer-motor-on"
         },
         {
-          "description": "set the target temperature of probe #2",
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0503'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 115,
@@ -265,7 +236,6 @@
     "PBB": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 83,
@@ -273,7 +243,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 84,
@@ -281,7 +250,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 85,
@@ -289,7 +257,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 86,
@@ -297,7 +264,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 87,
@@ -305,7 +271,6 @@
           "slug": "set-probe-1-temperature"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 88,
@@ -313,7 +278,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 89,
@@ -321,7 +285,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 90,
@@ -329,7 +292,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 91,
@@ -337,7 +299,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 93,
@@ -345,7 +306,6 @@
           "slug": "turn-primer-motor-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 94,
@@ -353,7 +313,6 @@
           "slug": "turn-primer-motor-on"
         },
         {
-          "description": "set the target temperature of probe #2",
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0503'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 116,
@@ -371,7 +330,6 @@
     "PBC": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 1,
@@ -379,7 +337,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 2,
@@ -387,7 +344,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 3,
@@ -395,7 +351,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 4,
@@ -403,7 +358,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 6,
@@ -411,7 +365,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 7,
@@ -419,7 +372,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 8,
@@ -427,7 +379,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 9,
@@ -435,7 +386,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 11,
@@ -443,7 +393,6 @@
           "slug": "turn-primer-motor-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 12,
@@ -461,7 +410,6 @@
     "PBC2": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 166,
@@ -469,7 +417,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 167,
@@ -477,7 +424,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 168,
@@ -485,7 +431,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 169,
@@ -493,7 +438,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 170,
@@ -501,7 +445,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 171,
@@ -509,7 +452,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 172,
@@ -517,7 +459,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 173,
@@ -525,7 +466,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 174,
@@ -533,7 +473,6 @@
           "slug": "turn-primer-motor-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 175,
@@ -551,7 +490,6 @@
     "PBD": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 118,
@@ -559,7 +497,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 119,
@@ -567,7 +504,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 120,
@@ -575,7 +511,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 121,
@@ -583,7 +518,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 122,
@@ -591,7 +525,6 @@
           "slug": "set-probe-1-temperature"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 123,
@@ -599,7 +532,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 124,
@@ -607,7 +539,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 125,
@@ -615,7 +546,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 126,
@@ -623,7 +553,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0503'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 127,
@@ -641,7 +570,6 @@
     "PBE": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 145,
@@ -649,7 +577,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 146,
@@ -657,7 +584,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 147,
@@ -665,7 +591,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 148,
@@ -673,7 +598,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 149,
@@ -681,7 +605,6 @@
           "slug": "set-probe-1-temperature"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 150,
@@ -689,7 +612,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 151,
@@ -697,7 +619,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 152,
@@ -705,7 +626,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 153,
@@ -713,7 +633,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0503'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 154,
@@ -731,7 +650,6 @@
     "PBG": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 13,
@@ -739,7 +657,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 14,
@@ -747,7 +664,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 15,
@@ -755,7 +671,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 16,
@@ -763,7 +678,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 18,
@@ -771,7 +685,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 19,
@@ -779,7 +692,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 20,
@@ -787,7 +699,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 21,
@@ -795,7 +706,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 23,
@@ -803,7 +713,6 @@
           "slug": "turn-primer-motor-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 24,
@@ -821,7 +730,6 @@
     "PBL": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 25,
@@ -829,7 +737,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 26,
@@ -837,7 +744,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 27,
@@ -845,7 +751,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 28,
@@ -853,7 +758,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 29,
@@ -861,7 +765,6 @@
           "slug": "set-probe-1-temperature"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 30,
@@ -869,7 +772,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0202FF",
           "id": 31,
@@ -877,7 +779,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 32,
@@ -885,7 +786,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 33,
@@ -893,7 +793,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 35,
@@ -901,7 +800,6 @@
           "slug": "turn-primer-motor-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 36,
@@ -919,7 +817,6 @@
     "PBL2": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 155,
@@ -927,7 +824,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 156,
@@ -935,7 +831,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 157,
@@ -943,7 +838,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 158,
@@ -951,7 +845,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 159,
@@ -959,7 +852,6 @@
           "slug": "set-probe-1-temperature"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 160,
@@ -967,7 +859,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0202FF",
           "id": 161,
@@ -975,7 +866,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 162,
@@ -983,7 +873,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 163,
@@ -991,7 +880,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 164,
@@ -999,7 +887,6 @@
           "slug": "turn-primer-motor-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 165,
@@ -1017,7 +904,6 @@
     "PBL3": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 198,
@@ -1025,7 +911,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 199,
@@ -1033,7 +918,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 200,
@@ -1041,7 +925,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 201,
@@ -1049,7 +932,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 202,
@@ -1057,7 +939,6 @@
           "slug": "set-probe-1-temperature"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 203,
@@ -1065,7 +946,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0202FF",
           "id": 204,
@@ -1073,7 +953,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 205,
@@ -1081,7 +960,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 206,
@@ -1089,7 +967,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 207,
@@ -1097,7 +974,6 @@
           "slug": "turn-primer-motor-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 208,
@@ -1115,7 +991,6 @@
     "PBM": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 37,
@@ -1123,7 +998,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 38,
@@ -1131,7 +1005,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 40,
@@ -1139,7 +1012,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 41,
@@ -1147,7 +1019,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 42,
@@ -1155,7 +1026,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 43,
@@ -1163,7 +1033,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 45,
@@ -1171,7 +1040,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 46,
@@ -1189,7 +1057,6 @@
     "PBM2": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 190,
@@ -1197,7 +1064,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 191,
@@ -1205,7 +1071,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 192,
@@ -1213,7 +1078,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 193,
@@ -1221,7 +1085,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 194,
@@ -1229,7 +1092,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 195,
@@ -1237,7 +1099,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 196,
@@ -1245,7 +1106,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 197,
@@ -1263,7 +1123,6 @@
     "PBP": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 128,
@@ -1271,7 +1130,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 129,
@@ -1279,7 +1137,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 130,
@@ -1287,7 +1144,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 131,
@@ -1295,7 +1151,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 132,
@@ -1303,7 +1158,6 @@
           "slug": "set-probe-1-temperature"
         },
         {
-          "description": null,
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 133,
@@ -1311,7 +1165,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0202FF",
           "id": 134,
@@ -1319,7 +1172,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 135,
@@ -1327,7 +1179,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 136,
@@ -1335,7 +1186,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 137,
@@ -1343,7 +1193,6 @@
           "slug": "turn-primer-motor-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 138,
@@ -1361,7 +1210,6 @@
     "PBT": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 59,
@@ -1369,7 +1217,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 60,
@@ -1377,7 +1224,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 61,
@@ -1385,7 +1231,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 62,
@@ -1393,7 +1238,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 63,
@@ -1401,7 +1245,6 @@
           "slug": "set-probe-1-temperature"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 64,
@@ -1409,7 +1252,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 65,
@@ -1417,7 +1259,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 66,
@@ -1425,7 +1266,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 67,
@@ -1433,7 +1273,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 69,
@@ -1441,7 +1280,6 @@
           "slug": "turn-primer-motor-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 70,
@@ -1449,7 +1287,6 @@
           "slug": "turn-primer-motor-on"
         },
         {
-          "description": "Set Probe 2 temperature",
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0503'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 117,
@@ -1467,7 +1304,6 @@
     "PBV": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 47,
@@ -1475,7 +1311,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 48,
@@ -1483,7 +1318,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 49,
@@ -1491,7 +1325,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 50,
@@ -1499,7 +1332,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 52,
@@ -1507,7 +1339,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 53,
@@ -1515,7 +1346,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 54,
@@ -1523,7 +1353,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 55,
@@ -1531,7 +1360,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 57,
@@ -1539,7 +1367,6 @@
           "slug": "turn-primer-motor-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 58,
@@ -1557,7 +1384,6 @@
     "PBV2": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 176,
@@ -1565,7 +1391,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 177,
@@ -1573,7 +1398,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 178,
@@ -1581,7 +1405,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 179,
@@ -1589,7 +1412,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 180,
@@ -1597,7 +1419,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 181,
@@ -1615,7 +1436,6 @@
     "PBVA": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 182,
@@ -1623,7 +1443,6 @@
           "slug": "get-status"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 183,
@@ -1631,7 +1450,6 @@
           "slug": "get-temperatures"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 184,
@@ -1639,7 +1457,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 185,
@@ -1647,7 +1464,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let temp = arguments[0];\r\nconst cval = [40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160];\r\nconst fval = [100, 115, 125, 135, 145, 150, 160, 170, 180, 190, 195, 205, 215, 225, 235, 240, 250, 260, 270, 280, 285, 290, 300, 310, 320];\r\n\r\nif (arguments[1] === false) {\r\n\tconst i = cval.indexOf(temp);\r\n  if (i < 0) {\r\n\t\ttemp = temp * 1.8 + 32;\r\n  } else {\r\n\t\ttemp = fval[i];\r\n  }\r\n}\r\n\r\nlet _hundreds = Math.floor(temp/100); \r\nlet _tens = Math.floor((temp % 100) / 10); \r\nlet _ones = Math.floor(temp % 10); \r\nreturn 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 186,
@@ -1655,7 +1471,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 187,
@@ -1663,7 +1478,6 @@
           "slug": "turn-light-off"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 188,
@@ -1671,7 +1485,6 @@
           "slug": "turn-light-on"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 189,
@@ -1689,7 +1502,6 @@
     "PBX1": {
       "control_board_commands": [
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 139,
@@ -1697,7 +1509,6 @@
           "slug": "set-celsius"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 140,
@@ -1705,7 +1516,6 @@
           "slug": "set-fahrenheit"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 141,
@@ -1713,7 +1523,6 @@
           "slug": "set-probe-1-temperature"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 142,
@@ -1721,7 +1530,6 @@
           "slug": "set-temperature"
         },
         {
-          "description": null,
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 143,
@@ -1729,7 +1537,6 @@
           "slug": "turn-off"
         },
         {
-          "description": null,
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0503'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 144,
@@ -1751,10 +1558,8 @@
       "celsius_temp_increment": null,
       "control_board": "LBL",
       "control_board_id": 8,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 79,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG0800BL.png",
@@ -1770,10 +1575,8 @@
       "celsius_temp_increment": null,
       "control_board": "LBL",
       "control_board_id": 8,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 80,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG1000BL.png",
@@ -1789,10 +1592,8 @@
       "celsius_temp_increment": null,
       "control_board": "LBL",
       "control_board_id": 8,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 81,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG1200BL.png",
@@ -1808,10 +1609,8 @@
       "celsius_temp_increment": null,
       "control_board": "LFS",
       "control_board_id": 9,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 85,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG1200FL.png",
@@ -1827,10 +1626,8 @@
       "celsius_temp_increment": null,
       "control_board": "LFS",
       "control_board_id": 9,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 87,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG1200FP.png",
@@ -1846,10 +1643,8 @@
       "celsius_temp_increment": null,
       "control_board": "LBL",
       "control_board_id": 8,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 82,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG300BL.png",
@@ -1865,10 +1660,8 @@
       "celsius_temp_increment": null,
       "control_board": "LFS",
       "control_board_id": 9,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 84,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG800FL.png",
@@ -1884,10 +1677,8 @@
       "celsius_temp_increment": null,
       "control_board": "LFS",
       "control_board_id": 9,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 86,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG800FP.png",
@@ -1903,10 +1694,8 @@
       "celsius_temp_increment": null,
       "control_board": "LBL",
       "control_board_id": 8,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 83,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LGV4BL.png",
@@ -1922,10 +1711,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 95,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/ghost%20grill.png",
@@ -1941,10 +1728,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 56,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/500sp-109.png",
@@ -1960,10 +1745,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 51,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB820sp.png",
@@ -1979,10 +1762,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 108,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/ghost%20grill.png",
@@ -1998,10 +1779,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 47,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1000NC1.png",
@@ -2017,10 +1796,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 93,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1000NX.png",
@@ -2036,10 +1813,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBG",
       "control_board_id": 3,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 1,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LAREDO-1000-2020-3-18-103.png",
@@ -2055,10 +1830,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 35,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1000R1.png",
@@ -2074,10 +1847,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 33,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1000R2-2019-11-29-abby-112.png",
@@ -2093,10 +1864,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 30,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1000S1.png",
@@ -2112,10 +1881,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 32,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1000SC-2019-7-4-Abby-34.png",
@@ -2131,10 +1898,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 48,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/pb1000sc2.png",
@@ -2150,10 +1915,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 50,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1000sp.png",
@@ -2169,10 +1932,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 31,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1000T1-2019-7-4-abby-35.png",
@@ -2188,10 +1949,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 34,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1000T2-2018-11-28-abby-36.png",
@@ -2207,10 +1966,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 43,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1000T3-117.png",
@@ -2226,10 +1983,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 49,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1000t4-115.png",
@@ -2245,10 +2000,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 40,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1000SC3-Front-101619.png",
@@ -2264,10 +2017,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 64,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/austin-xl.png",
@@ -2283,10 +2034,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 134,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB1020CS2.1.png",
@@ -2302,10 +2051,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBL3",
       "control_board_id": 21,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 147,
       "image_url": "Https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB1020DX.png",
@@ -2321,10 +2068,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 133,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB1020NX.png",
@@ -2340,10 +2085,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBE",
       "control_board_id": 15,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 117,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1100HTC.M-Line%20Heritage.png",
@@ -2359,10 +2102,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 38,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/1100ps.png",
@@ -2378,10 +2119,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 59,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1100PSC.png",
@@ -2397,10 +2136,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBL",
       "control_board_id": 1,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 1,
       "id": 6,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1100PSC-126.png",
@@ -2416,10 +2153,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBL",
       "control_board_id": 1,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 99,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1100PSC3.png",
@@ -2435,10 +2170,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 52,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1100sp.png",
@@ -2454,10 +2187,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC2",
       "control_board_id": 17,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 107,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1100SPW2.png",
@@ -2473,10 +2204,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBT",
       "control_board_id": 7,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 91,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1150PS3.png",
@@ -2492,10 +2221,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBL3",
       "control_board_id": 21,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 142,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1150DX.png",
@@ -2511,10 +2238,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBL2",
       "control_board_id": 16,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 103,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1150DX.png",
@@ -2530,10 +2255,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 54,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/Nav-1150.png",
@@ -2549,10 +2272,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBL",
       "control_board_id": 1,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 1,
       "id": 9,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1150PS2-2020-5-22-107.png",
@@ -2568,10 +2289,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBA",
       "control_board_id": 10,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 74,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1150PS3.png",
@@ -2587,10 +2306,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 58,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/pitboss-logo-transparent.png",
@@ -2606,10 +2323,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 72,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1230CS1-2021-9-17-tank-with-cover116.png",
@@ -2625,10 +2340,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 61,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1230G-2019-10-21-109.png",
@@ -2644,10 +2357,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 57,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1230sp-112.png",
@@ -2663,10 +2374,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBT",
       "control_board_id": 7,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 122,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB1250CS2.2.png",
@@ -2682,10 +2391,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBT",
       "control_board_id": 7,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 121,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1250NX.png",
@@ -2701,10 +2408,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBT",
       "control_board_id": 7,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 127,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1250PL.%20no%20shadow.png",
@@ -2720,10 +2425,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 68,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1250CS-2021-10-14-EN-124.png",
@@ -2739,10 +2442,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBA",
       "control_board_id": 10,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 119,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB1250CS2.2.png",
@@ -2758,10 +2459,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBA",
       "control_board_id": 10,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 116,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1250NX.png",
@@ -2777,10 +2476,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBA",
       "control_board_id": 10,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 101,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1250PL.%20no%20shadow.png",
@@ -2796,10 +2493,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBG",
       "control_board_id": 3,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 2,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1285KC-103.png",
@@ -2815,10 +2510,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBG",
       "control_board_id": 3,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 110,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1285PC.Rona.png",
@@ -2834,10 +2527,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBT",
       "control_board_id": 7,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 124,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1300M.png",
@@ -2853,10 +2544,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBT",
       "control_board_id": 7,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 126,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1300PS4.png",
@@ -2872,10 +2561,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBA",
       "control_board_id": 10,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 112,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1300M.png",
@@ -2891,10 +2578,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBA",
       "control_board_id": 10,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 104,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1300PS4.png",
@@ -2910,10 +2595,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 69,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1450CS-2021-10-14-124.png",
@@ -2929,10 +2612,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM2",
       "control_board_id": 20,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 144,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1500NX.png",
@@ -2948,10 +2629,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 94,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1500NX.png",
@@ -2967,10 +2646,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM2",
       "control_board_id": 20,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 136,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600CS-2021-10-14-EN-119.png",
@@ -2986,10 +2663,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBT",
       "control_board_id": 7,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 123,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB1600CS2.2.png",
@@ -3005,10 +2680,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBT",
       "control_board_id": 7,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 125,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600M.png",
@@ -3024,10 +2697,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBD",
       "control_board_id": 12,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 89,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS.Elite2024.png",
@@ -3043,10 +2714,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBT",
       "control_board_id": 7,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 129,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB1600AMB.png",
@@ -3062,10 +2731,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 70,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600CS-2021-10-14-EN-119.png",
@@ -3081,10 +2748,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBA",
       "control_board_id": 10,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 120,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB1600CS2.2.png",
@@ -3100,10 +2765,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBE",
       "control_board_id": 15,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 100,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600CST.png",
@@ -3119,10 +2782,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBA",
       "control_board_id": 10,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 113,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600M.png",
@@ -3138,10 +2799,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBL",
       "control_board_id": 1,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 1,
       "id": 5,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS1-2020-5-22-single-105.png",
@@ -3157,10 +2816,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBP",
       "control_board_id": 13,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 1,
       "id": 92,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS2-2021-8-17-120.png",
@@ -3176,10 +2833,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBL",
       "control_board_id": 1,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 1,
       "id": 73,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS2-2021-8-17-120.png",
@@ -3195,10 +2850,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBA",
       "control_board_id": 10,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 75,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS3.png",
@@ -3214,10 +2867,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBT",
       "control_board_id": 7,
-      "description": "<p>N/A</p>",
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 88,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS3.png",
@@ -3233,10 +2884,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBT",
       "control_board_id": 7,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 145,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB1600PS4.png",
@@ -3252,10 +2901,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBB",
       "control_board_id": 11,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 76,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS.Elite2024.png",
@@ -3271,10 +2918,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 98,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600SPW.png",
@@ -3290,10 +2935,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 115,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600SPW2.png",
@@ -3309,10 +2952,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBG",
       "control_board_id": 3,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 3,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB2180LK-2020-3-16-105.png",
@@ -3328,10 +2969,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 10,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB340.png",
@@ -3347,10 +2986,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 62,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB340TGW1-2018-9-20-abby-22.png",
@@ -3366,10 +3003,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 11,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB440D3-2019-4-18-abby.png",
@@ -3385,10 +3020,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 42,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB440D2-2019-1-7-abby-23.png",
@@ -3404,10 +3037,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 41,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/pb456d.png",
@@ -3423,10 +3054,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 12,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB440TG1.png",
@@ -3442,10 +3071,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 45,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB440TGNC1.png",
@@ -3461,10 +3088,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 13,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB440TGR1.png",
@@ -3480,10 +3105,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 60,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/550-nav-109.png",
@@ -3499,10 +3122,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 14,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB700D.Canada.png",
@@ -3518,10 +3139,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 19,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/pitboss700FB.png",
@@ -3537,10 +3156,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 20,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB700FBM2.png",
@@ -3556,10 +3173,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 63,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/Copper-classic-pb700-8.png",
@@ -3575,10 +3190,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 46,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/pb700nc1-110.png",
@@ -3594,10 +3207,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 15,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB700R1-2019-1-22-abby-21.png",
@@ -3613,10 +3224,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 22,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB700R2-2019-7-1-Abby-111.png",
@@ -3632,10 +3241,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 16,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/pb700s.png",
@@ -3651,10 +3258,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 17,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB700S1-26.png",
@@ -3670,10 +3275,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 23,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB700S2-2019-1-22-abby-27.png",
@@ -3689,10 +3292,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 21,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB700SC-2019-1-22-abby-125.png",
@@ -3708,10 +3309,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 18,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB700T1-114.png",
@@ -3727,10 +3326,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 71,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB820CS1-2021-7-20-28.png",
@@ -3746,10 +3343,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 24,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB820D.png",
@@ -3765,10 +3360,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 36,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB820D2-2019-1-7-abby-29.png",
@@ -3784,10 +3377,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 44,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB0820D3-2019-11-7-EN-AN-FR-116.png",
@@ -3803,10 +3394,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 55,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB820D4.png",
@@ -3822,10 +3411,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 27,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/pb820fb.png",
@@ -3841,10 +3428,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 28,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB820FBC.png",
@@ -3860,10 +3445,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 37,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/pb820ps1.png",
@@ -3879,10 +3462,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 26,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/pb_820S.png",
@@ -3898,10 +3479,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 29,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB820SC.png",
@@ -3917,10 +3496,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 25,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB820T1.png",
@@ -3936,10 +3513,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 39,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/820xl.png",
@@ -3955,10 +3530,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 130,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB850AMB.png",
@@ -3974,10 +3547,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 96,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB820CS1-2021-7-20-28.png",
@@ -3993,10 +3564,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM2",
       "control_board_id": 20,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 143,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB850CS2.2.png",
@@ -4012,10 +3581,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 118,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB850CS2.2.png",
@@ -4031,10 +3598,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBL3",
       "control_board_id": 21,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 141,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB850DX.png",
@@ -4050,10 +3615,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBL2",
       "control_board_id": 16,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 102,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB850DX.png",
@@ -4069,10 +3632,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 53,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/850-nav-109.png",
@@ -4088,10 +3649,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM2",
       "control_board_id": 20,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 146,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB850M.png",
@@ -4107,10 +3666,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBM",
       "control_board_id": 6,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 111,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB850M.png",
@@ -4126,10 +3683,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBL",
       "control_board_id": 1,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 1,
       "id": 8,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB850PS2-2020-5-26-107.png",
@@ -4145,10 +3700,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC2",
       "control_board_id": 17,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 106,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB850SPW2.png",
@@ -4164,10 +3717,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV2",
       "control_board_id": 18,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 138,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV3M.png",
@@ -4183,10 +3734,8 @@
       "celsius_temp_increment": "40/45/50/55/60/65/70/75/80/85/90/95/100/105/110/115/120/125/130/135/140/145/150",
       "control_board": "PBVA",
       "control_board_id": 19,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 131,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PBV30DS_DTC.png",
@@ -4202,10 +3751,8 @@
       "celsius_temp_increment": "40/45/50/55/60/65/70/75/80/85/90/95/100/105/110/115/120/125/130/135/140/145/150",
       "control_board": "PBVA",
       "control_board_id": 19,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 135,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PBV30DS_DX.png",
@@ -4221,10 +3768,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 105,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV3M.png",
@@ -4240,10 +3785,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV2",
       "control_board_id": 18,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 148,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PBV3NX.1.png",
@@ -4259,10 +3802,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 132,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PBV3NX.1.png",
@@ -4278,10 +3819,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBL3",
       "control_board_id": 21,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 140,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PBV4DX.png",
@@ -4297,10 +3836,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 109,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV4NX.png",
@@ -4316,10 +3853,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBL",
       "control_board_id": 1,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 1,
       "id": 7,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV4PS2.png",
@@ -4335,10 +3870,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV2",
       "control_board_id": 18,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 137,
       "image_url": "https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/ghost%20vertical.png",
@@ -4354,10 +3887,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 66,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV5CS1-2021-6-17-121.png",
@@ -4373,10 +3904,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 78,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/V5%20Competition.png",
@@ -4392,10 +3921,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBG",
       "control_board_id": 3,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 1,
       "has_recipe_functionality": 0,
       "id": 4,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV5PL-2020-5-6-Brunswick-104.png",
@@ -4411,10 +3938,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV2",
       "control_board_id": 18,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 139,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV6M.png",
@@ -4430,10 +3955,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBD",
       "control_board_id": 12,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 90,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/V6%20Elite.png",
@@ -4449,10 +3972,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV",
       "control_board_id": 4,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 114,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV6M.png",
@@ -4468,10 +3989,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBB",
       "control_board_id": 11,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 77,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/V6%20Elite.png",
@@ -4487,10 +4006,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBV2",
       "control_board_id": 18,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 149,
       "image_url": "Https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PBV7P2.png",
@@ -4506,10 +4023,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBC",
       "control_board_id": 5,
-      "description": null,
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 65,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV7PW1_Sportsman-2021-6-30-controller123.png",
@@ -4525,10 +4040,8 @@
       "celsius_temp_increment": null,
       "control_board": "PBX1",
       "control_board_id": 14,
-      "description": "<p>develpment</p>",
       "enabled": true,
       "has_fc_functionality": 1,
-      "has_indicators": 0,
       "has_recipe_functionality": 0,
       "id": 97,
       "image_url": "https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS3.png",
