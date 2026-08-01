@@ -29,13 +29,11 @@ def f_to_c(temp: int) -> int:
 
 class TestCommand:
     def test_call_func(self):
-        cmd = grills_lib.Command(
-            "My Command", "my-command", None, "return formatHex(arguments[0]);"
-        )
+        cmd = grills_lib.Command("my-command", None, "return formatHex(arguments[0]);")
         assert cmd(11) == "0b"
 
     def test_call_hex(self):
-        cmd = grills_lib.Command("My Command", "my-command", "0C", None)
+        cmd = grills_lib.Command("my-command", "0C", None)
         assert cmd() == "0C"
 
 

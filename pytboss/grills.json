@@ -6,63 +6,54 @@
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 95,
-          "name": "Set Temperature to Celcius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 96,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 97,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 98,
-          "name": "Set Probe 1 Temperature",
           "slug": "set-prove-1-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 99,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 100,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 101,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 103,
-          "name": "Turn Primer Motor Off",
           "slug": "turn-primer-motor-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 104,
-          "name": "Turn Primer Motor On",
           "slug": "turn-primer-motor-on"
         }
       ],
@@ -79,56 +70,48 @@
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 105,
-          "name": "Set Temperature to Celcius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 106,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 107,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 109,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 110,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 111,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 113,
-          "name": "Turn Primer Motor Off",
           "slug": "turn-primer-motor-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 114,
-          "name": "Turn Primer Motor On",
           "slug": "turn-primer-motor-on"
         }
       ],
@@ -145,84 +128,72 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 71,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 72,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 73,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 74,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 75,
-          "name": "Set Probe 1 Temperature",
           "slug": "set-probe-1-temperature"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 76,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 77,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 78,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 79,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 81,
-          "name": "Turn Primer Motor Off",
           "slug": "turn-primer-motor-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 82,
-          "name": "Turn Primer Motor On",
           "slug": "turn-primer-motor-on"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0503'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 115,
-          "name": "Set Probe 2 Temperature",
           "slug": "set-probe-2-temperature"
         }
       ],
@@ -239,84 +210,72 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 83,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 84,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 85,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 86,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 87,
-          "name": "Set Probe 1 Temperature",
           "slug": "set-probe-1-temperature"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 88,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 89,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 90,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 91,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 93,
-          "name": "Turn Primer Motor Off",
           "slug": "turn-primer-motor-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 94,
-          "name": "Turn Primer Motor On",
           "slug": "turn-primer-motor-on"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0503'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 116,
-          "name": "Set Probe 2 Temperature",
           "slug": "set-probe-2-temperature"
         }
       ],
@@ -333,70 +292,60 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 1,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 2,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 3,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 4,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 6,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 7,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 8,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 9,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 11,
-          "name": "Turn Primer Motor Off",
           "slug": "turn-primer-motor-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 12,
-          "name": "Turn Primer Motor On",
           "slug": "turn-primer-motor-on"
         }
       ],
@@ -413,70 +362,60 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 166,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 167,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 168,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 169,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 170,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 171,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 172,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 173,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 174,
-          "name": "Turn Primer Motor Off",
           "slug": "turn-primer-motor-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 175,
-          "name": "Turn Primer Motor On",
           "slug": "turn-primer-motor-on"
         }
       ],
@@ -493,70 +432,60 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 118,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 119,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 120,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 121,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 122,
-          "name": "Set Probe 1 Temperature",
           "slug": "set-probe-1-temperature"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 123,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 124,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 125,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 126,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0503'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 127,
-          "name": "Set Probe 2 Temperature",
           "slug": "set-probe-2-temperature"
         }
       ],
@@ -573,70 +502,60 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 145,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 146,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 147,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 148,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 149,
-          "name": "Set Probe 1 Temperature",
           "slug": "set-probe-1-temperature"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 150,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 151,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 152,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 153,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0503'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 154,
-          "name": "Set Probe 2 Temperature",
           "slug": "set-probe-2-temperature"
         }
       ],
@@ -653,70 +572,60 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 13,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 14,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 15,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 16,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 18,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 19,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 20,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 21,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 23,
-          "name": "Turn Primer Motor Off",
           "slug": "turn-primer-motor-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 24,
-          "name": "Turn Primer Motor On",
           "slug": "turn-primer-motor-on"
         }
       ],
@@ -733,77 +642,66 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 25,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 26,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 27,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 28,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 29,
-          "name": "Set Probe 1 Temperature",
           "slug": "set-probe-1-temperature"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 30,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0202FF",
           "id": 31,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 32,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 33,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 35,
-          "name": "Turn Primer Motor Off",
           "slug": "turn-primer-motor-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 36,
-          "name": "Turn Primer Motor On",
           "slug": "turn-primer-motor-on"
         }
       ],
@@ -820,77 +718,66 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 155,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 156,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 157,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 158,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 159,
-          "name": "Set Probe 1 Temperature",
           "slug": "set-probe-1-temperature"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 160,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0202FF",
           "id": 161,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 162,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 163,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 164,
-          "name": "Turn Primer Motor Off",
           "slug": "turn-primer-motor-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 165,
-          "name": "Turn Primer Motor On",
           "slug": "turn-primer-motor-on"
         }
       ],
@@ -907,77 +794,66 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 198,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 199,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 200,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 201,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 202,
-          "name": "Set Probe 1 Temperature",
           "slug": "set-probe-1-temperature"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 203,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0202FF",
           "id": 204,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 205,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 206,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 207,
-          "name": "Turn Primer Motor Off",
           "slug": "turn-primer-motor-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 208,
-          "name": "Turn Primer Motor On",
           "slug": "turn-primer-motor-on"
         }
       ],
@@ -994,56 +870,48 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 37,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 38,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 40,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 41,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 42,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 43,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 45,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 46,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         }
       ],
@@ -1060,56 +928,48 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 190,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 191,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 192,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 193,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 194,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 195,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 196,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 197,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         }
       ],
@@ -1126,77 +986,66 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 128,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 129,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 130,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 131,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 132,
-          "name": "Set Probe 1 Temperature",
           "slug": "set-probe-1-temperature"
         },
         {
           "function": "let _hundreds = Math.floor(arguments[0]/100); let _tens = Math.floor((arguments[0] % 100) / 10); let _ones = Math.floor(arguments[0] % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 133,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0202FF",
           "id": 134,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 135,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 136,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 137,
-          "name": "Turn Primer Motor Off",
           "slug": "turn-primer-motor-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 138,
-          "name": "Turn Primer Motor On",
           "slug": "turn-primer-motor-on"
         }
       ],
@@ -1213,84 +1062,72 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 59,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 60,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 61,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 62,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 63,
-          "name": "Set Probe 1 Temperature",
           "slug": "set-probe-1-temperature"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 64,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 65,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 66,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 67,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 69,
-          "name": "Turn Primer Motor Off",
           "slug": "turn-primer-motor-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 70,
-          "name": "Turn Primer Motor On",
           "slug": "turn-primer-motor-on"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0503'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 117,
-          "name": "Set Probe 2 Temperature",
           "slug": "set-probe-2-temperature"
         }
       ],
@@ -1307,70 +1144,60 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 47,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 48,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 49,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 50,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 52,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 53,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 54,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 55,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0800FF",
           "id": 57,
-          "name": "Turn Primer Motor Off",
           "slug": "turn-primer-motor-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0801FF",
           "id": 58,
-          "name": "Turn Primer Motor On",
           "slug": "turn-primer-motor-on"
         }
       ],
@@ -1387,42 +1214,36 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 176,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 177,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 178,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 179,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 180,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 181,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         }
       ],
@@ -1439,56 +1260,48 @@
           "function": null,
           "hexadecimal": "FE0B01FF",
           "id": 182,
-          "name": "Get Grill Status",
           "slug": "get-status"
         },
         {
           "function": null,
           "hexadecimal": "FE0C01FF",
           "id": 183,
-          "name": "Get Grill/Probes Temperatures",
           "slug": "get-temperatures"
         },
         {
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 184,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 185,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let temp = arguments[0];\r\nconst cval = [40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160];\r\nconst fval = [100, 115, 125, 135, 145, 150, 160, 170, 180, 190, 195, 205, 215, 225, 235, 240, 250, 260, 270, 280, 285, 290, 300, 310, 320];\r\n\r\nif (arguments[1] === false) {\r\n\tconst i = cval.indexOf(temp);\r\n  if (i < 0) {\r\n\t\ttemp = temp * 1.8 + 32;\r\n  } else {\r\n\t\ttemp = fval[i];\r\n  }\r\n}\r\n\r\nlet _hundreds = Math.floor(temp/100); \r\nlet _tens = Math.floor((temp % 100) / 10); \r\nlet _ones = Math.floor(temp % 10); \r\nreturn 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 186,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0200FF",
           "id": 187,
-          "name": "Turn Light Off",
           "slug": "turn-light-off"
         },
         {
           "function": null,
           "hexadecimal": "FE0201FF",
           "id": 188,
-          "name": "Turn Light On",
           "slug": "turn-light-on"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 189,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         }
       ],
@@ -1505,42 +1318,36 @@
           "function": null,
           "hexadecimal": "FE0902FF",
           "id": 139,
-          "name": "Set Temperature to Celsius",
           "slug": "set-celsius"
         },
         {
           "function": null,
           "hexadecimal": "FE0901FF",
           "id": 140,
-          "name": "Set Temperature to Fahrenheit",
           "slug": "set-fahrenheit"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0502'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 141,
-          "name": "Set Probe 1 Temperature",
           "slug": "set-probe-1-temperature"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0501'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 142,
-          "name": "Set Grill Temperature",
           "slug": "set-temperature"
         },
         {
           "function": null,
           "hexadecimal": "FE0102FF",
           "id": 143,
-          "name": "Turn Grill Off",
           "slug": "turn-off"
         },
         {
           "function": "let temp = arguments[1] === false ? Math.round(((arguments[0] * 1.8)+ 32)/5) * 5 : arguments[0]; let _hundreds = Math.floor(temp/100); let _tens = Math.floor((temp % 100) / 10); let _ones = Math.floor(temp % 10); return 'FE0503'+formatHex(_hundreds)+formatHex(_tens)+formatHex(_ones) + 'FF';",
           "hexadecimal": null,
           "id": 144,
-          "name": "Set Probe 2 Temperature",
           "slug": "set-probe-2-temperature"
         }
       ],

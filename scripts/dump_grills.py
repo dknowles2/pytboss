@@ -59,8 +59,10 @@ _DROPPED_GRILL_FIELDS = _DROPPED_FIELDS | {
     "sku",
 }
 # Commands are stored inside the board they belong to, so naming it again on
-# every one of them says nothing the position does not.
-_DROPPED_COMMAND_FIELDS = _DROPPED_FIELDS | {"control_board_id"}
+# every one of them says nothing the position does not. Commands are looked up
+# by slug and nothing reads the human-readable `name`, which is only ever a
+# prettier spelling of the slug beside it.
+_DROPPED_COMMAND_FIELDS = _DROPPED_FIELDS | {"control_board_id", "name"}
 
 
 def _drop(

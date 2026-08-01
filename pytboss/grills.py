@@ -218,9 +218,6 @@ def _drop_fields(state: StateDict | None, fields: Container[str]) -> StateDict |
 class Command:
     """A control board command."""
 
-    name: str
-    """Human readable name of the command."""
-
     slug: str
     """Serialized name of the command."""
 
@@ -235,11 +232,10 @@ class Command:
         """Creates a Command from a JSON dict.
 
         :param cmd_dict: A `control_board_commands` entry from `grills.json`,
-            with `name`, `slug`, `hexadecimal`, and `function` keys.
+            with `slug`, `hexadecimal`, and `function` keys.
         """
         js_func = _scrub_js(cmd_dict["function"])
         return cls(
-            name=cmd_dict["name"],
             slug=cmd_dict["slug"],
             _hex=cmd_dict["hexadecimal"],
             _js_func=js_func,
