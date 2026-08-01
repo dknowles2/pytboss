@@ -29,14 +29,28 @@ def f_to_c(temp: int) -> int:
 
 class TestCommand:
     def test_call_func(self):
-        cmd = grills_lib.Command(
-            "My Command", "my-command", None, "return formatHex(arguments[0]);"
-        )
+        cmd = grills_lib.Command("my-command", None, "return formatHex(arguments[0]);")
         assert cmd(11) == "0b"
 
     def test_call_hex(self):
-        cmd = grills_lib.Command("My Command", "my-command", "0C", None)
+        cmd = grills_lib.Command("my-command", "0C", None)
         assert cmd() == "0C"
+
+    @pytest.mark.parametrize(
+        "cmd_dict,want",
+        (
+            ({"slug": "my-command", "hexadecimal": "0C"}, "0C"),
+            ({"slug": "my-command", "function": "return '0C';"}, "0C"),
+        ),
+        ids=("hex", "function"),
+    )
+    def test_from_dict_omits_the_key_it_does_not_use(self, cmd_dict, want):
+        """A command is built from a hex string or a JS function, never both.
+
+        grills.json stores only whichever applies, so the other key is absent
+        rather than present and null.
+        """
+        assert grills_lib.Command.from_dict(cmd_dict)() == want
 
 
 class TestController:
@@ -166,6 +180,15 @@ class TestGetGrills:
     def test_js_commands(self, grill: grills_lib.Grill):
         for cmd in grill.control_board.commands.values():
             cmd(11)
+
+    @pytest.mark.parametrize("grill", all_variants(), ids=idfn)
+    def test_has_mpc_is_a_bool(self, grill: grills_lib.Grill):
+        """The vendor reports has_mpc as 0 or 1; it is exposed as a bool.
+
+        `is` rather than `==`, since 0 and 1 would satisfy equality and let
+        the raw int through unnoticed.
+        """
+        assert grill.has_mpc is True or grill.has_mpc is False
 
     @pytest.mark.parametrize("grill", all_variants(), ids=idfn)
     def test_parse_temperatures(self, grill: grills_lib.Grill):
