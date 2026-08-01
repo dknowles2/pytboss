@@ -2,7 +2,7 @@ name: Update grills.json
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Runs at 00:00 UTC every day
+    - cron: '0 0 * * 4' # Runs at 00:00 UTC every Thursday
   workflow_dispatch:
 
 permissions:
