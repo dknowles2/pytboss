@@ -213,6 +213,31 @@ async def test_init_bad_model(conn: FakeTransport):
         await pitboss.start()
 
 
+async def test_init_selects_the_given_control_board(conn: FakeTransport):
+    """PB850DX ships on two board generations that parse differently."""
+    default = api.PitBoss(conn, "PB850DX")
+    await default.start()
+    assert default.spec.control_board.name == "PBL3"
+
+    pbl2 = api.PitBoss(conn, "PB850DX", control_board="PBL2")
+    await pbl2.start()
+    assert pbl2.spec.control_board.name == "PBL2"
+
+    # Not merely a different label: PBL3 converts fahrenheit to celsius in its
+    # temperatures routine and PBL2 does not, so resolving one as the other
+    # converts a celsius reading twice.
+    assert (
+        default.spec.control_board._temperatures_js_func
+        != pbl2.spec.control_board._temperatures_js_func
+    )
+
+
+async def test_init_bad_control_board(conn: FakeTransport):
+    pitboss = api.PitBoss(conn, "PB850DX", control_board="PBV")
+    with pytest.raises(InvalidGrill):
+        await pitboss.start()
+
+
 async def test_on_state_received():
     conn = FakeTransport()
     pitboss = api.PitBoss(conn, "PBV4PS2")
