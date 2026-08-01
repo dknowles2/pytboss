@@ -1,5 +1,6 @@
 {
   "LG0800BL": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -115,6 +116,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 8,
       "name": "LBL",
       "platform_id": 1,
@@ -127,7 +129,7 @@
     "created_at": "2022-12-06T22:49:00.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -142,6 +144,7 @@
     "max_temp": "600",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "LG0800BL",
     "name_text_color": "#A1A1A1",
     "part_number": "LG0800BL",
@@ -153,6 +156,7 @@
     "updated_at": "2024-08-12T22:57:50.000000Z"
   },
   "LG1000BL": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -268,6 +272,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 8,
       "name": "LBL",
       "platform_id": 1,
@@ -280,7 +285,7 @@
     "created_at": "2022-12-06T15:52:22.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -295,6 +300,7 @@
     "max_temp": "600",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "LG1000BL",
     "name_text_color": "#A1A1A1",
     "part_number": "LG1000BL",
@@ -306,6 +312,7 @@
     "updated_at": "2024-08-12T22:59:26.000000Z"
   },
   "LG1200BL": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -421,6 +428,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 8,
       "name": "LBL",
       "platform_id": 1,
@@ -433,7 +441,7 @@
     "created_at": "2022-12-06T15:52:22.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -448,6 +456,7 @@
     "max_temp": "600",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "LG1200BL",
     "name_text_color": "#A1A1A1",
     "part_number": "LG1200BL",
@@ -459,6 +468,7 @@
     "updated_at": "2024-08-12T22:59:44.000000Z"
   },
   "LG1200FL": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -562,6 +572,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 9,
       "name": "LFS",
       "platform_id": 1,
@@ -574,7 +585,7 @@
     "created_at": "2022-12-06T15:52:22.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -589,6 +600,7 @@
     "max_temp": "600",
     "meat_probes": 4,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "LG1200FL",
     "name_text_color": "#A1A1A1",
     "part_number": "LG1200FL",
@@ -600,6 +612,7 @@
     "updated_at": "2024-08-12T23:01:39.000000Z"
   },
   "LG1200FP": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -703,6 +716,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 9,
       "name": "LFS",
       "platform_id": 1,
@@ -715,7 +729,7 @@
     "created_at": "2022-12-06T15:52:22.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -730,6 +744,7 @@
     "max_temp": "600",
     "meat_probes": 4,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "LG1200FP",
     "name_text_color": "#A1A1A1",
     "part_number": "LG1200FP",
@@ -741,6 +756,7 @@
     "updated_at": "2024-08-12T23:03:24.000000Z"
   },
   "LG300BL": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -856,6 +872,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 8,
       "name": "LBL",
       "platform_id": 1,
@@ -868,7 +885,7 @@
     "created_at": "2022-12-06T15:52:22.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -883,6 +900,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "LG300BL",
     "name_text_color": "#A1A1A1",
     "part_number": "LG300BL",
@@ -894,6 +912,7 @@
     "updated_at": "2024-08-12T22:59:56.000000Z"
   },
   "LG800FL": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -997,6 +1016,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 9,
       "name": "LFS",
       "platform_id": 1,
@@ -1009,7 +1029,7 @@
     "created_at": "2022-12-06T15:52:22.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -1024,6 +1044,7 @@
     "max_temp": "600",
     "meat_probes": 4,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "LG800FL",
     "name_text_color": "#A1A1A1",
     "part_number": "LG800FL",
@@ -1035,6 +1056,7 @@
     "updated_at": "2024-08-12T23:01:14.000000Z"
   },
   "LG800FP": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -1138,6 +1160,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 9,
       "name": "LFS",
       "platform_id": 1,
@@ -1150,7 +1173,7 @@
     "created_at": "2022-12-06T15:52:22.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -1165,6 +1188,7 @@
     "max_temp": "600",
     "meat_probes": 4,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "LG800FP",
     "name_text_color": "#A1A1A1",
     "part_number": "LG800FP",
@@ -1176,6 +1200,7 @@
     "updated_at": "2024-08-12T23:01:54.000000Z"
   },
   "LGV4BL": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -1291,6 +1316,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 8,
       "name": "LBL",
       "platform_id": 1,
@@ -1303,7 +1329,7 @@
     "created_at": "2022-12-06T15:52:22.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -1318,6 +1344,7 @@
     "max_temp": "420",
     "meat_probes": 2,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "LGV4BL",
     "name_text_color": "#A1A1A1",
     "part_number": "LGV4BL",
@@ -1329,6 +1356,7 @@
     "updated_at": "2024-08-12T23:00:14.000000Z"
   },
   "Lexington Wi-Fi Upgrade": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -1432,6 +1460,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 6,
       "name": "PBM",
       "platform_id": 1,
@@ -1444,7 +1473,7 @@
     "created_at": "2023-06-13T15:09:01.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -1459,6 +1488,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "Lexington Wi-Fi Upgrade",
     "name_text_color": "#A1A1A1",
     "part_number": "Lexington Wi-Fi Upgrade",
@@ -1470,6 +1500,7 @@
     "updated_at": "2024-08-12T23:08:17.000000Z"
   },
   "PB0500SP": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -1597,6 +1628,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -1609,7 +1641,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -1624,6 +1656,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB0500SP",
     "name_text_color": "#DC582A",
     "part_number": "PB0500SP",
@@ -1635,6 +1668,7 @@
     "updated_at": "2024-08-12T22:34:10.000000Z"
   },
   "PB0820SP/SPW": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -1762,6 +1796,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -1774,7 +1809,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -1789,6 +1824,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB0820SP/SPW",
     "name_text_color": "#DC582A",
     "part_number": "PB0820SP/SPW",
@@ -1800,6 +1836,7 @@
     "updated_at": "2024-08-12T22:32:34.000000Z"
   },
   "PB1000D3": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -1927,6 +1964,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -1939,7 +1977,7 @@
     "created_at": "2024-09-10T20:26:48.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -1954,6 +1992,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000D3",
     "name_text_color": "#2B77BC",
     "part_number": "PB1000D3",
@@ -1965,6 +2004,7 @@
     "updated_at": "2024-09-10T23:20:54.000000Z"
   },
   "PB1000NC1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -2092,6 +2132,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -2104,7 +2145,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -2119,6 +2160,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000NC1",
     "name_text_color": "#2B77BC",
     "part_number": "PB1000NC1",
@@ -2130,6 +2172,7 @@
     "updated_at": "2024-08-12T22:31:12.000000Z"
   },
   "PB1000NXW": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -2233,6 +2276,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 6,
       "name": "PBM",
       "platform_id": 1,
@@ -2245,7 +2289,7 @@
     "created_at": "2023-06-13T14:57:42.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -2260,6 +2304,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000NXW",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1000NXW",
@@ -2271,6 +2316,7 @@
     "updated_at": "2024-09-13T16:56:31.000000Z"
   },
   "PB1000PL": {
+    "app_layout": "standard",
     "category": "Wood Pellet",
     "celsius_temp_increment": null,
     "control_board": {
@@ -2398,6 +2444,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 3,
       "name": "PBG",
       "platform_id": 5,
@@ -2410,7 +2457,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -2425,6 +2472,7 @@
     "max_temp": "High",
     "meat_probes": 2,
     "min_temp": "Smoke",
+    "mpc_type": null,
     "name": "PB1000PL",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1000PL",
@@ -2436,6 +2484,7 @@
     "updated_at": "2024-08-12T19:50:43.000000Z"
   },
   "PB1000R1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -2563,6 +2612,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -2575,7 +2625,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -2590,6 +2640,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000R1",
     "name_text_color": "#2B77BC",
     "part_number": "PB1000R1",
@@ -2601,6 +2652,7 @@
     "updated_at": "2024-08-12T22:21:29.000000Z"
   },
   "PB1000R2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -2728,6 +2780,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -2740,7 +2793,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -2755,6 +2808,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000R2",
     "name_text_color": "#2B77BC",
     "part_number": "PB1000R2",
@@ -2766,6 +2820,7 @@
     "updated_at": "2024-08-12T22:19:30.000000Z"
   },
   "PB1000S1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -2893,6 +2948,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -2905,7 +2961,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -2920,6 +2976,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000S1",
     "name_text_color": "#2B77BC",
     "part_number": "PB1000S1",
@@ -2931,6 +2988,7 @@
     "updated_at": "2024-08-12T22:17:52.000000Z"
   },
   "PB1000SC1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -3058,6 +3116,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -3070,7 +3129,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -3085,6 +3144,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000SC1",
     "name_text_color": "#2B77BC",
     "part_number": "PB1000SC1",
@@ -3096,6 +3156,7 @@
     "updated_at": "2024-08-12T22:18:46.000000Z"
   },
   "PB1000SC2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -3223,6 +3284,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -3235,7 +3297,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -3250,6 +3312,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000SC2",
     "name_text_color": "#2B77BC",
     "part_number": "PB1000SC2",
@@ -3261,6 +3324,7 @@
     "updated_at": "2024-08-12T22:31:32.000000Z"
   },
   "PB1000SP": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -3388,6 +3452,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -3400,7 +3465,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -3415,6 +3480,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000SP",
     "name_text_color": "#DC582A",
     "part_number": "PB1000SP",
@@ -3426,6 +3492,7 @@
     "updated_at": "2024-08-12T22:32:15.000000Z"
   },
   "PB1000T1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -3553,6 +3620,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -3565,7 +3633,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -3580,6 +3648,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000T1",
     "name_text_color": "#2B77BC",
     "part_number": "PB1000T1",
@@ -3591,6 +3660,7 @@
     "updated_at": "2024-08-12T22:18:06.000000Z"
   },
   "PB1000T2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -3718,6 +3788,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -3730,7 +3801,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -3745,6 +3816,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000T2",
     "name_text_color": "#2B77BC",
     "part_number": "PB1000T2",
@@ -3756,6 +3828,7 @@
     "updated_at": "2024-08-12T22:20:41.000000Z"
   },
   "PB1000T3": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -3883,6 +3956,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -3895,7 +3969,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -3910,6 +3984,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000T3",
     "name_text_color": "#2B77BC",
     "part_number": "PB1000T3",
@@ -3921,6 +3996,7 @@
     "updated_at": "2024-08-12T22:28:39.000000Z"
   },
   "PB1000T4": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -4048,6 +4124,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -4060,7 +4137,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -4075,6 +4152,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000T4",
     "name_text_color": "#2B77BC",
     "part_number": "PB1000T4",
@@ -4086,6 +4164,7 @@
     "updated_at": "2024-08-12T22:31:59.000000Z"
   },
   "PB1000XL/PB1000SC3": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -4213,6 +4292,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -4225,7 +4305,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -4240,6 +4320,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000XL/PB1000SC3",
     "name_text_color": "#2B77BC",
     "part_number": "PB1000XL/PB1000SC3",
@@ -4251,6 +4332,7 @@
     "updated_at": "2024-08-12T22:25:32.000000Z"
   },
   "PB1000XLW1 (Austin XL)": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -4378,6 +4460,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -4390,7 +4473,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -4405,6 +4488,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1000XLW1 (Austin XL)",
     "name_text_color": "#AD6B4E",
     "part_number": "PB1000XLW1",
@@ -4416,6 +4500,7 @@
     "updated_at": "2024-08-12T22:41:01.000000Z"
   },
   "PB1020CS2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -4519,6 +4604,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 6,
       "name": "PBM",
       "platform_id": 1,
@@ -4531,7 +4617,7 @@
     "created_at": "2025-04-29T22:52:55.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -4546,6 +4632,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1020CS2",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1020CS2",
@@ -4557,6 +4644,7 @@
     "updated_at": "2025-04-29T22:52:55.000000Z"
   },
   "PB1020DX": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -4696,19 +4784,20 @@
       ],
       "created_at": "2025-06-26T21:27:12.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 21,
       "name": "PBL3",
-      "platform_id": 3,
+      "platform_id": 8,
       "site_id": 1,
       "status_function": "if (!message.startsWith(\"FE0B\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 44) {\r\n  return null;\r\n}\r\nconst status = {\r\n  /*p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  smokerActTemp: convertTemperature(parts, 17),*/\r\n  moduleIsOn: parts[24] === 1,\r\n  err1: parts[25] === 1,\r\n  err2: parts[26] === 1,\r\n  err3: parts[27] === 1,\r\n  highTempErr: parts[28] === 1,\r\n  fanErr: parts[29] === 1,\r\n  hotErr: parts[30] === 1,\r\n  motorErr: parts[31] === 1,\r\n  noPellets: parts[32] === 1,\r\n  erL: parts[33] === 1,\r\n  fanState: parts[34] === 1,\r\n  hotState: parts[35] === 1,\r\n  motorState: parts[36] === 1,\r\n  lightState: parts[37] === 1,\r\n  primeState: parts[38] === 1,\r\n//  isFahrenheit: parts[39] === 1,\r\n  recipeStep: parts[40],\r\n  recipeTime: parts[41] * 3600 + parts[42] * 60 + parts[43],\r\n};\r\n/*\r\nswitch (parts[23]) {\r\n  case 1:\r\n    status.grillSetTemp = convertTemperature(parts, 20);\r\n    break;\r\n  case 2:\r\n    status.grillTemp = convertTemperature(parts, 20);\r\n    break;\r\n} */\r\nreturn status;",
       "temperature_function": "if (!message.startsWith(\"FE0C\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 27) {\r\n  return null;\r\n}\r\nconst temps = {\r\n  p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  grillSetTemp: convertTemperature(parts, 20),\r\n  grillTemp: convertTemperature(parts, 23),\r\n  smokerActTemp: convertTemperature(parts, 17),\r\n  isFahrenheit: parts[26] === 1,\r\n};\r\nconsole.log(\"Temp function\", temps, temps.isFahrenheit);\r\nif (!temps.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if (typeof temp === \"undefined\" || temp === 960) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  temps.p1Temp = ftoc(temps.p1Temp);\r\n  temps.p2Temp = ftoc(temps.p2Temp);\r\n  temps.p3Temp = ftoc(temps.p3Temp);\r\n  temps.p4Temp = ftoc(temps.p4Temp);\r\n  temps.p1Target = ftoc(temps.p1Target);\r\n  temps.smokerActTemp = ftoc(temps.smokerActTemp);\r\n  temps.grillSetTemp = ftoc(temps.grillSetTemp);\r\n  temps.grillTemp = ftoc(temps.grillTemp);\r\n  console.log(\"Temp function - converted\", temps);\r\n\r\n}\r\n\r\nreturn temps;",
-      "updated_at": "2025-09-17T20:58:15.000000Z"
+      "updated_at": "2026-03-16T20:36:21.000000Z"
     },
     "control_board_id": 21,
     "created_at": "2025-09-17T16:51:42.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -4723,6 +4812,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1020DX",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1020DX",
@@ -4734,6 +4824,7 @@
     "updated_at": "2025-09-17T22:53:44.000000Z"
   },
   "PB1020NXW": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -4837,6 +4928,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 6,
       "name": "PBM",
       "platform_id": 1,
@@ -4849,7 +4941,7 @@
     "created_at": "2025-04-29T22:49:27.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -4864,6 +4956,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1020NXW",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1020NXW",
@@ -4875,6 +4968,7 @@
     "updated_at": "2025-04-29T22:49:27.000000Z"
   },
   "PB1100HTC": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -5002,19 +5096,20 @@
       ],
       "created_at": "2023-12-08T16:03:51.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 15,
       "name": "PBE",
-      "platform_id": 3,
+      "platform_id": 8,
       "site_id": 1,
       "status_function": "if (!message.startsWith(\"FE0B\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts.length < 47) {\r\n  return null;\r\n}\r\n//const p1Target = convertTemperature(parts, 2);\r\n//const p2Target = convertTemperature(parts, 5);\r\nconst status = {\r\n /* p1Target: p1Target !== 0 && p1Target !== 960 ? p1Target : null,\r\n  p2Target: p2Target !== 0 && p2Target !== 960 ? p2Target : null,\r\n  p1Temp: convertTemperature(parts, 8),\r\n  p2Temp: convertTemperature(parts, 11),\r\n  p3Temp: convertTemperature(parts, 14),\r\n  p4Temp: convertTemperature(parts, 17),\r\n  smokerActTemp: convertTemperature(parts, 20),*/\r\n  moduleIsOn: parts[27] === 1,\r\n  err1: parts[28] === 1,\r\n  err2: parts[29] === 1,\r\n  err3: parts[30] === 1,\r\n  highTempErr: parts[31] === 1,\r\n  fanErr: parts[32] === 1,\r\n  hotErr: parts[33] === 1,\r\n  motorErr: parts[34] === 1,\r\n  noPellets: parts[35] === 1,\r\n  erL: parts[36] === 1,\r\n  fanState: parts[37] === 1,\r\n  hotState: parts[38] === 1,\r\n  motorState: parts[39] === 1,\r\n  lightState: parts[40] === 1,\r\n  primeState: parts[41] === 1,\r\n // isFahrenheit: parts[42] === 1,\r\n  recipeStep: parts[43],\r\n  recipeTime: parts[44] * 3600 + parts[45] * 60 + parts[46],\r\n};\r\n/*\r\nswitch (parts[26]) {\r\n  case 1:\r\n    status.grillSetTemp = convertTemperature(parts, 23);\r\n    break;\r\n  case 2:\r\n    status.grillTemp = convertTemperature(parts, 23);\r\n    break;\r\n}\r\nif (!status.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if ((typeof temp === \"undefined\") || (temp === 960)) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  status.p1Temp = ftoc(status.p1Temp);\r\n  status.p2Temp = ftoc(status.p2Temp);\r\n  status.p3Temp = ftoc(status.p3Temp);\r\n  status.grillSetTemp = ftoc(status.grillSetTemp);\r\n  status.grillTemp = ftoc(status.grillTemp);\r\n  status.p1Target =  ftoc(status.p1Target);\r\n  status.p2Target =  ftoc(status.p2Target);\r\n}*/\r\n\r\nreturn status;",
       "temperature_function": "if (!message.startsWith(\"FE0C\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts.length < 30) {\r\n  return null;\r\n}\r\nconst p1Target = convertTemperature(parts, 2);\r\nconst p2Target = convertTemperature(parts, 5);\r\nconst  status = {\r\n  p1Target: p1Target !== 0 && p1Target !== 960 ? p1Target : null,\r\n  p2Target: p2Target !== 0 && p2Target !== 960 ? p2Target : null,\r\n  p1Temp: convertTemperature(parts, 8),\r\n  p2Temp: convertTemperature(parts, 11),\r\n  p3Temp: convertTemperature(parts, 14),\r\n  p4Temp: convertTemperature(parts, 17),\r\n  grillSetTemp: convertTemperature(parts, 23),\r\n  grillTemp: convertTemperature(parts, 26),\r\n  smokerActTemp: convertTemperature(parts, 20),\r\n  isFahrenheit: parts[29] === 1,\r\n};\r\n\r\nif (!status.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if ((typeof temp === \"undefined\") || (temp === 960)) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  status.p1Temp = ftoc(status.p1Temp);\r\n  status.p2Temp = ftoc(status.p2Temp);\r\n  status.p3Temp = ftoc(status.p3Temp);\r\n  status.grillSetTemp = ftoc(status.grillSetTemp);\r\n  status.grillTemp = ftoc(status.grillTemp);\r\n  status.p1Target =  ftoc(status.p1Target);\r\n  status.p2Target =  ftoc(status.p2Target);\r\n}\r\n\r\nreturn status;",
-      "updated_at": "2025-09-17T20:55:09.000000Z"
+      "updated_at": "2026-03-19T15:42:24.000000Z"
     },
     "control_board_id": 15,
     "created_at": "2024-11-14T21:56:38.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -5029,6 +5124,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "150",
+    "mpc_type": null,
     "name": "PB1100HTC",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1100HTC",
@@ -5040,6 +5136,7 @@
     "updated_at": "2024-11-14T21:56:38.000000Z"
   },
   "PB1100PS1": {
+    "app_layout": "standard",
     "category": "WiFi Upgrade /Legacy H1",
     "celsius_temp_increment": null,
     "control_board": {
@@ -5167,6 +5264,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -5179,7 +5277,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -5194,6 +5292,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1100PS1",
     "name_text_color": "#2B77BC",
     "part_number": "PB1100PS1",
@@ -5205,6 +5304,7 @@
     "updated_at": "2024-08-12T22:23:03.000000Z"
   },
   "PB1100PSC1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -5332,6 +5432,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -5344,7 +5445,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -5359,6 +5460,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1100PSC1",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1100PSC1",
@@ -5370,6 +5472,7 @@
     "updated_at": "2024-08-12T22:34:53.000000Z"
   },
   "PB1100PSC2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -5509,6 +5612,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 1,
       "name": "PBL",
       "platform_id": 5,
@@ -5521,7 +5625,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -5536,6 +5640,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1100PSC2",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1100PSC2",
@@ -5547,6 +5652,7 @@
     "updated_at": "2024-08-12T20:24:49.000000Z"
   },
   "PB1100PSC3": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -5686,6 +5792,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 1,
       "name": "PBL",
       "platform_id": 5,
@@ -5698,7 +5805,7 @@
     "created_at": "2023-10-16T22:32:12.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -5713,6 +5820,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1100PSC3",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1100PSC3",
@@ -5724,6 +5832,7 @@
     "updated_at": "2024-08-12T23:12:55.000000Z"
   },
   "PB1100SP/SPW": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -5851,6 +5960,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -5863,7 +5973,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -5878,6 +5988,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1100SP/SPW",
     "name_text_color": "#DC582A",
     "part_number": "PB1100SP/SPW",
@@ -5889,6 +6000,7 @@
     "updated_at": "2024-08-12T22:32:59.000000Z"
   },
   "PB1100SPW2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -6016,6 +6128,7 @@
       ],
       "created_at": "2024-09-10T15:21:29.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 17,
       "name": "PBC2",
       "platform_id": 8,
@@ -6028,7 +6141,7 @@
     "created_at": "2024-09-10T15:33:41.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -6043,6 +6156,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1100SPW2",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1100SPW2",
@@ -6054,6 +6168,7 @@
     "updated_at": "2024-09-10T18:25:40.000000Z"
   },
   "PB1150 PS3": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -6205,6 +6320,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 7,
       "name": "PBT",
       "platform_id": 8,
@@ -6217,7 +6333,7 @@
     "created_at": "2023-02-01T16:44:09.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -6232,6 +6348,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1150 PS3",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1150 PS3",
@@ -6243,6 +6360,7 @@
     "updated_at": "2024-08-12T23:18:50.000000Z"
   },
   "PB1150DX": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -6382,19 +6500,20 @@
       ],
       "created_at": "2025-06-26T21:27:12.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 21,
       "name": "PBL3",
-      "platform_id": 3,
+      "platform_id": 8,
       "site_id": 1,
       "status_function": "if (!message.startsWith(\"FE0B\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 44) {\r\n  return null;\r\n}\r\nconst status = {\r\n  /*p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  smokerActTemp: convertTemperature(parts, 17),*/\r\n  moduleIsOn: parts[24] === 1,\r\n  err1: parts[25] === 1,\r\n  err2: parts[26] === 1,\r\n  err3: parts[27] === 1,\r\n  highTempErr: parts[28] === 1,\r\n  fanErr: parts[29] === 1,\r\n  hotErr: parts[30] === 1,\r\n  motorErr: parts[31] === 1,\r\n  noPellets: parts[32] === 1,\r\n  erL: parts[33] === 1,\r\n  fanState: parts[34] === 1,\r\n  hotState: parts[35] === 1,\r\n  motorState: parts[36] === 1,\r\n  lightState: parts[37] === 1,\r\n  primeState: parts[38] === 1,\r\n//  isFahrenheit: parts[39] === 1,\r\n  recipeStep: parts[40],\r\n  recipeTime: parts[41] * 3600 + parts[42] * 60 + parts[43],\r\n};\r\n/*\r\nswitch (parts[23]) {\r\n  case 1:\r\n    status.grillSetTemp = convertTemperature(parts, 20);\r\n    break;\r\n  case 2:\r\n    status.grillTemp = convertTemperature(parts, 20);\r\n    break;\r\n} */\r\nreturn status;",
       "temperature_function": "if (!message.startsWith(\"FE0C\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 27) {\r\n  return null;\r\n}\r\nconst temps = {\r\n  p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  grillSetTemp: convertTemperature(parts, 20),\r\n  grillTemp: convertTemperature(parts, 23),\r\n  smokerActTemp: convertTemperature(parts, 17),\r\n  isFahrenheit: parts[26] === 1,\r\n};\r\nconsole.log(\"Temp function\", temps, temps.isFahrenheit);\r\nif (!temps.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if (typeof temp === \"undefined\" || temp === 960) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  temps.p1Temp = ftoc(temps.p1Temp);\r\n  temps.p2Temp = ftoc(temps.p2Temp);\r\n  temps.p3Temp = ftoc(temps.p3Temp);\r\n  temps.p4Temp = ftoc(temps.p4Temp);\r\n  temps.p1Target = ftoc(temps.p1Target);\r\n  temps.smokerActTemp = ftoc(temps.smokerActTemp);\r\n  temps.grillSetTemp = ftoc(temps.grillSetTemp);\r\n  temps.grillTemp = ftoc(temps.grillTemp);\r\n  console.log(\"Temp function - converted\", temps);\r\n\r\n}\r\n\r\nreturn temps;",
-      "updated_at": "2025-09-17T20:58:15.000000Z"
+      "updated_at": "2026-03-16T20:36:21.000000Z"
     },
     "control_board_id": 21,
     "created_at": "2025-07-17T19:32:19.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -6409,6 +6528,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1150DX",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1150DX",
@@ -6600,6 +6720,7 @@
     "updated_at": "2024-08-14T21:44:47.000000Z"
   },
   "PB1150G/GW": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -6727,6 +6848,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -6739,7 +6861,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -6754,6 +6876,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1150G/GW",
     "name_text_color": "#2B77BC",
     "part_number": "PB1150G/GW",
@@ -6765,6 +6888,7 @@
     "updated_at": "2024-08-12T22:33:27.000000Z"
   },
   "PB1150PS2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -6904,6 +7028,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 1,
       "name": "PBL",
       "platform_id": 5,
@@ -6916,7 +7041,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -6931,6 +7056,7 @@
     "max_temp": "500",
     "meat_probes": 4,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1150PS2",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1150PS2",
@@ -6942,6 +7068,7 @@
     "updated_at": "2024-08-12T20:26:16.000000Z"
   },
   "PB1150PS3": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -7093,6 +7220,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 10,
       "name": "PBA",
       "platform_id": 5,
@@ -7105,7 +7233,7 @@
     "created_at": "2022-11-09T23:16:07.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -7120,6 +7248,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1150PS3",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1150PS3",
@@ -7131,6 +7260,7 @@
     "updated_at": "2024-08-12T22:54:23.000000Z"
   },
   "PB1230": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -7258,6 +7388,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -7270,7 +7401,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -7285,6 +7416,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1230",
     "name_text_color": "#2B77BC",
     "part_number": "PB1230",
@@ -7296,6 +7428,7 @@
     "updated_at": "2024-08-12T22:34:39.000000Z"
   },
   "PB1230CS1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -7399,6 +7532,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 6,
       "name": "PBM",
       "platform_id": 1,
@@ -7411,7 +7545,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -7426,6 +7560,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1230CS1",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1230CS1",
@@ -7437,6 +7572,7 @@
     "updated_at": "2024-08-12T22:52:28.000000Z"
   },
   "PB1230G/GW": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -7564,6 +7700,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -7576,7 +7713,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -7591,6 +7728,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1230G/GW",
     "name_text_color": "#2B77BC",
     "part_number": "PB1230G/GW",
@@ -7602,6 +7740,7 @@
     "updated_at": "2024-08-12T22:35:29.000000Z"
   },
   "PB1230SP/SPW": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -7729,6 +7868,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -7741,7 +7881,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -7756,6 +7896,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1230SP/SPW",
     "name_text_color": "#DC582A",
     "part_number": "PB1230SP/SPW",
@@ -7767,6 +7908,7 @@
     "updated_at": "2024-08-12T22:34:28.000000Z"
   },
   "PB1250 CS2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -7918,6 +8060,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 7,
       "name": "PBT",
       "platform_id": 8,
@@ -7930,7 +8073,7 @@
     "created_at": "2025-03-17T22:28:05.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -7945,6 +8088,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1250 CS2",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1250 CS2",
@@ -7956,6 +8100,7 @@
     "updated_at": "2025-03-17T22:28:05.000000Z"
   },
   "PB1250 NX": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -8107,6 +8252,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 7,
       "name": "PBT",
       "platform_id": 8,
@@ -8119,7 +8265,7 @@
     "created_at": "2025-03-17T22:26:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -8134,6 +8280,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1250 NX",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1250 NX",
@@ -8145,6 +8292,7 @@
     "updated_at": "2025-03-17T22:26:24.000000Z"
   },
   "PB1250 PL": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -8296,6 +8444,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 7,
       "name": "PBT",
       "platform_id": 8,
@@ -8308,7 +8457,7 @@
     "created_at": "2025-03-27T18:59:55.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -8323,6 +8472,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1250 PL",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1250 PL",
@@ -8334,6 +8484,7 @@
     "updated_at": "2025-03-27T18:59:55.000000Z"
   },
   "PB1250CS": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -8437,6 +8588,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 6,
       "name": "PBM",
       "platform_id": 1,
@@ -8449,7 +8601,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -8464,6 +8616,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1250CS",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1250CS",
@@ -8475,6 +8628,7 @@
     "updated_at": "2024-08-12T22:48:45.000000Z"
   },
   "PB1250CS2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -8626,6 +8780,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 10,
       "name": "PBA",
       "platform_id": 5,
@@ -8638,7 +8793,7 @@
     "created_at": "2025-01-22T23:07:04.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -8653,6 +8808,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1250CS2",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1250CS2",
@@ -8664,6 +8820,7 @@
     "updated_at": "2025-01-22T23:13:22.000000Z"
   },
   "PB1250NX": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -8815,6 +8972,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 10,
       "name": "PBA",
       "platform_id": 5,
@@ -8827,7 +8985,7 @@
     "created_at": "2024-11-05T23:07:43.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -8842,6 +9000,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1250NX",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1250NX",
@@ -8853,6 +9012,7 @@
     "updated_at": "2024-11-05T23:07:43.000000Z"
   },
   "PB1250PL": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -9004,6 +9164,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 10,
       "name": "PBA",
       "platform_id": 5,
@@ -9016,7 +9177,7 @@
     "created_at": "2024-01-04T20:56:02.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -9031,6 +9192,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1250PL",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1250PL",
@@ -9042,6 +9204,7 @@
     "updated_at": "2024-08-12T23:15:17.000000Z"
   },
   "PB1285KC": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -9169,6 +9332,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 3,
       "name": "PBG",
       "platform_id": 5,
@@ -9181,7 +9345,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -9196,6 +9360,7 @@
     "max_temp": "High",
     "meat_probes": 2,
     "min_temp": "Smoke",
+    "mpc_type": null,
     "name": "PB1285KC",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1285KC",
@@ -9207,6 +9372,7 @@
     "updated_at": "2024-08-12T19:51:42.000000Z"
   },
   "PB1285PC": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -9334,6 +9500,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 3,
       "name": "PBG",
       "platform_id": 5,
@@ -9346,7 +9513,7 @@
     "created_at": "2024-09-13T21:25:53.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -9361,6 +9528,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1285PC",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1285PC",
@@ -9372,6 +9540,7 @@
     "updated_at": "2024-09-13T21:25:53.000000Z"
   },
   "PB1300 M": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -9523,6 +9692,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 7,
       "name": "PBT",
       "platform_id": 8,
@@ -9535,7 +9705,7 @@
     "created_at": "2025-03-17T22:33:33.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -9550,6 +9720,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1300 M",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1300 M",
@@ -9561,6 +9732,7 @@
     "updated_at": "2025-03-17T22:33:33.000000Z"
   },
   "PB1300 PS4": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -9712,6 +9884,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 7,
       "name": "PBT",
       "platform_id": 8,
@@ -9724,7 +9897,7 @@
     "created_at": "2025-03-17T22:37:22.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -9739,6 +9912,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1300 PS4",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1300 PS4",
@@ -9750,6 +9924,7 @@
     "updated_at": "2025-03-17T22:37:22.000000Z"
   },
   "PB1300M": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -9901,6 +10076,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 10,
       "name": "PBA",
       "platform_id": 5,
@@ -9913,7 +10089,7 @@
     "created_at": "2024-09-17T21:37:19.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -9928,6 +10104,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1300M",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1300M",
@@ -9939,6 +10116,7 @@
     "updated_at": "2025-03-17T22:32:14.000000Z"
   },
   "PB1300PS4": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -10090,6 +10268,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 10,
       "name": "PBA",
       "platform_id": 5,
@@ -10102,7 +10281,7 @@
     "created_at": "2024-08-27T17:32:23.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -10117,6 +10296,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1300PS4",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1300PS4",
@@ -10128,6 +10308,7 @@
     "updated_at": "2024-08-27T22:07:25.000000Z"
   },
   "PB1450CS": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -10231,6 +10412,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 6,
       "name": "PBM",
       "platform_id": 1,
@@ -10243,7 +10425,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -10258,6 +10440,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1450CS",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1450CS",
@@ -10269,6 +10452,7 @@
     "updated_at": "2024-08-12T22:49:10.000000Z"
   },
   "PB1500NXW": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -10372,6 +10556,7 @@
       ],
       "created_at": "2025-05-27T22:38:29.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 20,
       "name": "PBM2",
       "platform_id": 8,
@@ -10384,7 +10569,7 @@
     "created_at": "2025-07-28T21:12:43.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -10399,6 +10584,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1500NXW",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1500NXW",
@@ -10554,6 +10740,7 @@
     "updated_at": "2024-09-13T16:56:00.000000Z"
   },
   "PB1600 CS": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -10657,6 +10844,7 @@
       ],
       "created_at": "2025-05-27T22:38:29.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 20,
       "name": "PBM2",
       "platform_id": 8,
@@ -10669,7 +10857,7 @@
     "created_at": "2025-05-27T22:51:16.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -10684,6 +10872,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1600 CS",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600 CS",
@@ -10695,6 +10884,7 @@
     "updated_at": "2025-05-27T22:51:16.000000Z"
   },
   "PB1600 CS2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -10846,6 +11036,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 7,
       "name": "PBT",
       "platform_id": 8,
@@ -10858,7 +11049,7 @@
     "created_at": "2025-03-17T22:29:41.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -10873,6 +11064,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1600 CS2",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600 CS2",
@@ -10884,6 +11076,7 @@
     "updated_at": "2025-03-17T22:29:41.000000Z"
   },
   "PB1600 M": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -11035,6 +11228,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 7,
       "name": "PBT",
       "platform_id": 8,
@@ -11047,7 +11241,7 @@
     "created_at": "2025-03-17T22:35:27.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -11062,6 +11256,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1600 M",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600 M",
@@ -11073,6 +11268,7 @@
     "updated_at": "2025-03-17T22:35:27.000000Z"
   },
   "PB1600 PSE": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -11200,6 +11396,7 @@
       ],
       "created_at": "2023-01-25T11:59:54.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 12,
       "name": "PBD",
       "platform_id": 3,
@@ -11212,7 +11409,7 @@
     "created_at": "2023-01-25T12:01:10.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -11227,6 +11424,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "150",
+    "mpc_type": null,
     "name": "PB1600 PSE",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600PSE",
@@ -11238,6 +11436,7 @@
     "updated_at": "2024-08-13T16:16:49.000000Z"
   },
   "PB1600AMB": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -11389,6 +11588,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 7,
       "name": "PBT",
       "platform_id": 8,
@@ -11401,7 +11601,7 @@
     "created_at": "2025-04-23T21:44:10.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -11416,6 +11616,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1600AMB",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600AMB",
@@ -11427,6 +11628,7 @@
     "updated_at": "2025-04-24T15:22:06.000000Z"
   },
   "PB1600CS": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -11530,6 +11732,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 6,
       "name": "PBM",
       "platform_id": 1,
@@ -11542,7 +11745,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -11557,6 +11760,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1600CS",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600CS",
@@ -11568,6 +11772,7 @@
     "updated_at": "2024-08-12T22:49:34.000000Z"
   },
   "PB1600CS2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -11719,6 +11924,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 10,
       "name": "PBA",
       "platform_id": 5,
@@ -11731,7 +11937,7 @@
     "created_at": "2025-01-22T23:09:48.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -11746,6 +11952,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1600CS2",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600CS2",
@@ -11757,6 +11964,7 @@
     "updated_at": "2025-01-22T23:09:48.000000Z"
   },
   "PB1600CST": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -11884,19 +12092,20 @@
       ],
       "created_at": "2023-12-08T16:03:51.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 15,
       "name": "PBE",
-      "platform_id": 3,
+      "platform_id": 8,
       "site_id": 1,
       "status_function": "if (!message.startsWith(\"FE0B\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts.length < 47) {\r\n  return null;\r\n}\r\n//const p1Target = convertTemperature(parts, 2);\r\n//const p2Target = convertTemperature(parts, 5);\r\nconst status = {\r\n /* p1Target: p1Target !== 0 && p1Target !== 960 ? p1Target : null,\r\n  p2Target: p2Target !== 0 && p2Target !== 960 ? p2Target : null,\r\n  p1Temp: convertTemperature(parts, 8),\r\n  p2Temp: convertTemperature(parts, 11),\r\n  p3Temp: convertTemperature(parts, 14),\r\n  p4Temp: convertTemperature(parts, 17),\r\n  smokerActTemp: convertTemperature(parts, 20),*/\r\n  moduleIsOn: parts[27] === 1,\r\n  err1: parts[28] === 1,\r\n  err2: parts[29] === 1,\r\n  err3: parts[30] === 1,\r\n  highTempErr: parts[31] === 1,\r\n  fanErr: parts[32] === 1,\r\n  hotErr: parts[33] === 1,\r\n  motorErr: parts[34] === 1,\r\n  noPellets: parts[35] === 1,\r\n  erL: parts[36] === 1,\r\n  fanState: parts[37] === 1,\r\n  hotState: parts[38] === 1,\r\n  motorState: parts[39] === 1,\r\n  lightState: parts[40] === 1,\r\n  primeState: parts[41] === 1,\r\n // isFahrenheit: parts[42] === 1,\r\n  recipeStep: parts[43],\r\n  recipeTime: parts[44] * 3600 + parts[45] * 60 + parts[46],\r\n};\r\n/*\r\nswitch (parts[26]) {\r\n  case 1:\r\n    status.grillSetTemp = convertTemperature(parts, 23);\r\n    break;\r\n  case 2:\r\n    status.grillTemp = convertTemperature(parts, 23);\r\n    break;\r\n}\r\nif (!status.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if ((typeof temp === \"undefined\") || (temp === 960)) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  status.p1Temp = ftoc(status.p1Temp);\r\n  status.p2Temp = ftoc(status.p2Temp);\r\n  status.p3Temp = ftoc(status.p3Temp);\r\n  status.grillSetTemp = ftoc(status.grillSetTemp);\r\n  status.grillTemp = ftoc(status.grillTemp);\r\n  status.p1Target =  ftoc(status.p1Target);\r\n  status.p2Target =  ftoc(status.p2Target);\r\n}*/\r\n\r\nreturn status;",
       "temperature_function": "if (!message.startsWith(\"FE0C\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts.length < 30) {\r\n  return null;\r\n}\r\nconst p1Target = convertTemperature(parts, 2);\r\nconst p2Target = convertTemperature(parts, 5);\r\nconst  status = {\r\n  p1Target: p1Target !== 0 && p1Target !== 960 ? p1Target : null,\r\n  p2Target: p2Target !== 0 && p2Target !== 960 ? p2Target : null,\r\n  p1Temp: convertTemperature(parts, 8),\r\n  p2Temp: convertTemperature(parts, 11),\r\n  p3Temp: convertTemperature(parts, 14),\r\n  p4Temp: convertTemperature(parts, 17),\r\n  grillSetTemp: convertTemperature(parts, 23),\r\n  grillTemp: convertTemperature(parts, 26),\r\n  smokerActTemp: convertTemperature(parts, 20),\r\n  isFahrenheit: parts[29] === 1,\r\n};\r\n\r\nif (!status.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if ((typeof temp === \"undefined\") || (temp === 960)) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  status.p1Temp = ftoc(status.p1Temp);\r\n  status.p2Temp = ftoc(status.p2Temp);\r\n  status.p3Temp = ftoc(status.p3Temp);\r\n  status.grillSetTemp = ftoc(status.grillSetTemp);\r\n  status.grillTemp = ftoc(status.grillTemp);\r\n  status.p1Target =  ftoc(status.p1Target);\r\n  status.p2Target =  ftoc(status.p2Target);\r\n}\r\n\r\nreturn status;",
-      "updated_at": "2025-09-17T20:55:09.000000Z"
+      "updated_at": "2026-03-19T15:42:24.000000Z"
     },
     "control_board_id": 15,
     "created_at": "2023-12-08T17:07:55.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -11911,6 +12120,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "150",
+    "mpc_type": null,
     "name": "PB1600CST",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600CST",
@@ -11922,6 +12132,7 @@
     "updated_at": "2024-08-12T23:13:26.000000Z"
   },
   "PB1600M": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -12073,6 +12284,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 10,
       "name": "PBA",
       "platform_id": 5,
@@ -12085,7 +12297,7 @@
     "created_at": "2024-09-17T21:42:01.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -12100,6 +12312,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1600M",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600M",
@@ -12111,6 +12324,7 @@
     "updated_at": "2024-09-17T21:42:01.000000Z"
   },
   "PB1600PS1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -12250,6 +12464,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 1,
       "name": "PBL",
       "platform_id": 5,
@@ -12262,7 +12477,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -12277,6 +12492,7 @@
     "max_temp": "500",
     "meat_probes": 4,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1600PS1",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600PS1",
@@ -12288,6 +12504,7 @@
     "updated_at": "2024-08-12T20:24:28.000000Z"
   },
   "PB1600PS2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -12427,6 +12644,7 @@
       ],
       "created_at": "2023-03-20T11:44:59.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 13,
       "name": "PBP",
       "platform_id": 1,
@@ -12439,7 +12657,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -12454,6 +12672,7 @@
     "max_temp": "500",
     "meat_probes": 4,
     "min_temp": "150",
+    "mpc_type": null,
     "name": "PB1600PS2",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600PS2",
@@ -12645,6 +12864,7 @@
     "updated_at": "2024-08-12T22:53:05.000000Z"
   },
   "PB1600PS3": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -12796,6 +13016,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 10,
       "name": "PBA",
       "platform_id": 5,
@@ -12808,7 +13029,7 @@
     "created_at": "2022-11-09T23:18:25.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -12823,6 +13044,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1600PS3",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600PS3",
@@ -12834,6 +13056,7 @@
     "updated_at": "2024-08-12T22:54:42.000000Z"
   },
   "PB1600PS3_": {
+    "app_layout": "standard",
     "category": "N/A",
     "celsius_temp_increment": null,
     "control_board": {
@@ -12985,6 +13208,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 7,
       "name": "PBT",
       "platform_id": 8,
@@ -12997,7 +13221,7 @@
     "created_at": "2023-01-10T11:58:26.000000Z",
     "deleted_at": null,
     "description": "<p>N/A</p>",
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -13012,6 +13236,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1600PS3_",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600PS3",
@@ -13023,6 +13248,7 @@
     "updated_at": "2024-08-13T16:23:57.000000Z"
   },
   "PB1600PS4": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -13174,6 +13400,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 7,
       "name": "PBT",
       "platform_id": 8,
@@ -13186,7 +13413,7 @@
     "created_at": "2025-09-17T16:34:30.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -13201,6 +13428,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1600PS4",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600PS4",
@@ -13212,6 +13440,7 @@
     "updated_at": "2025-09-17T22:54:38.000000Z"
   },
   "PB1600PSE": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -13363,6 +13592,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 11,
       "name": "PBB",
       "platform_id": 2,
@@ -13375,7 +13605,7 @@
     "created_at": "2022-11-09T23:20:07.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -13390,6 +13620,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "150",
+    "mpc_type": null,
     "name": "PB1600PSE",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600PSE",
@@ -13401,6 +13632,7 @@
     "updated_at": "2024-08-12T22:55:48.000000Z"
   },
   "PB1600SPW": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -13504,6 +13736,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 6,
       "name": "PBM",
       "platform_id": 1,
@@ -13516,7 +13749,7 @@
     "created_at": "2023-09-27T18:20:06.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -13531,6 +13764,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1600SPW",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600SPW",
@@ -13542,6 +13776,7 @@
     "updated_at": "2024-08-14T21:46:36.000000Z"
   },
   "PB1600SPW2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -13645,6 +13880,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 6,
       "name": "PBM",
       "platform_id": 1,
@@ -13657,7 +13893,7 @@
     "created_at": "2024-11-05T23:05:54.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -13672,6 +13908,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB1600SPW2",
     "name_text_color": "#A1A1A1",
     "part_number": "PB1600SPW2",
@@ -13683,6 +13920,7 @@
     "updated_at": "2024-11-05T23:05:54.000000Z"
   },
   "PB2180LK": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -13810,6 +14048,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 3,
       "name": "PBG",
       "platform_id": 5,
@@ -13822,7 +14061,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -13837,6 +14076,7 @@
     "max_temp": "High",
     "meat_probes": 4,
     "min_temp": "Smoke",
+    "mpc_type": null,
     "name": "PB2180LK",
     "name_text_color": "#A1A1A1",
     "part_number": "PB2180LK",
@@ -13848,6 +14088,7 @@
     "updated_at": "2024-08-12T20:18:29.000000Z"
   },
   "PB340": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -13975,6 +14216,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -13987,7 +14229,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -14002,6 +14244,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB340",
     "name_text_color": "#2B77BC",
     "part_number": "PB340",
@@ -14013,6 +14256,7 @@
     "updated_at": "2024-08-12T20:35:55.000000Z"
   },
   "PB340TGW1 (Tailgator)": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -14140,6 +14384,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -14152,7 +14397,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -14167,6 +14412,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB340TGW1 (Tailgator)",
     "name_text_color": "#AD6B4E",
     "part_number": "PB340TGW1",
@@ -14178,6 +14424,7 @@
     "updated_at": "2024-08-12T22:40:30.000000Z"
   },
   "PB440D": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -14305,6 +14552,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -14317,7 +14565,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -14332,6 +14580,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB440D",
     "name_text_color": "#2B77BC",
     "part_number": "PB440D",
@@ -14343,6 +14592,7 @@
     "updated_at": "2024-08-12T20:36:39.000000Z"
   },
   "PB440D2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -14470,6 +14720,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -14482,7 +14733,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -14497,6 +14748,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB440D2",
     "name_text_color": "#2B77BC",
     "part_number": "PB440D2",
@@ -14508,6 +14760,7 @@
     "updated_at": "2024-08-12T22:26:09.000000Z"
   },
   "PB440D3/PB456D": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -14635,6 +14888,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -14647,7 +14901,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -14662,6 +14916,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB440D3/PB456D",
     "name_text_color": "#2B77BC",
     "part_number": "PB440D3(PB456D)",
@@ -14673,6 +14928,7 @@
     "updated_at": "2024-08-12T22:25:51.000000Z"
   },
   "PB440TG1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -14800,6 +15056,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -14812,7 +15069,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -14827,6 +15084,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB440TG1",
     "name_text_color": "#2B77BC",
     "part_number": "PB440TG1",
@@ -14838,6 +15096,7 @@
     "updated_at": "2024-08-12T20:36:53.000000Z"
   },
   "PB440TGNC1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -14965,6 +15224,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -14977,7 +15237,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -14992,6 +15252,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB440TGNC1",
     "name_text_color": "#2B77BC",
     "part_number": "PB440TGNC1",
@@ -15003,6 +15264,7 @@
     "updated_at": "2024-08-12T22:29:20.000000Z"
   },
   "PB440TGR1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -15130,6 +15392,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -15142,7 +15405,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -15157,6 +15420,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB440TGR1",
     "name_text_color": "#2B77BC",
     "part_number": "PB440TGR1",
@@ -15168,6 +15432,7 @@
     "updated_at": "2024-08-12T20:37:40.000000Z"
   },
   "PB550G": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -15295,6 +15560,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -15307,7 +15573,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -15322,6 +15588,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB550G",
     "name_text_color": "#2B77BC",
     "part_number": "PB550G",
@@ -15333,6 +15600,7 @@
     "updated_at": "2024-08-12T22:35:17.000000Z"
   },
   "PB700D": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -15460,6 +15728,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -15472,7 +15741,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -15487,6 +15756,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB700D",
     "name_text_color": "#2B77BC",
     "part_number": "PB700D",
@@ -15498,6 +15768,7 @@
     "updated_at": "2024-08-12T20:37:53.000000Z"
   },
   "PB700FB": {
+    "app_layout": "standard",
     "category": "Wood Pellet",
     "celsius_temp_increment": null,
     "control_board": {
@@ -15625,6 +15896,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -15637,7 +15909,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -15652,6 +15924,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB700FB",
     "name_text_color": "#2B77BC",
     "part_number": "PB700FB",
@@ -15663,6 +15936,7 @@
     "updated_at": "2024-08-12T21:12:38.000000Z"
   },
   "PB700FBM2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -15790,6 +16064,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -15802,7 +16077,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -15817,6 +16092,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB700FBM2",
     "name_text_color": "#2B77BC",
     "part_number": "PB700FBM2",
@@ -15828,6 +16104,7 @@
     "updated_at": "2024-08-12T21:13:05.000000Z"
   },
   "PB700FBW2 (Classic)": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -15955,6 +16232,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -15967,7 +16245,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -15982,6 +16260,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB700FBW2 (Classic)",
     "name_text_color": "#AD6B4E",
     "part_number": "PB700FBW2",
@@ -15993,6 +16272,7 @@
     "updated_at": "2024-08-12T22:40:44.000000Z"
   },
   "PB700NC1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -16120,6 +16400,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -16132,7 +16413,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -16147,6 +16428,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB700NC1",
     "name_text_color": "#2B77BC",
     "part_number": "PB700NC1",
@@ -16158,6 +16440,7 @@
     "updated_at": "2024-08-12T22:29:40.000000Z"
   },
   "PB700R1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -16285,6 +16568,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -16297,7 +16581,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -16312,6 +16596,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB700R1",
     "name_text_color": "#2B77BC",
     "part_number": "PB700R1",
@@ -16323,6 +16608,7 @@
     "updated_at": "2024-08-12T20:38:11.000000Z"
   },
   "PB700R2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -16450,6 +16736,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -16462,7 +16749,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -16477,6 +16764,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB700R2",
     "name_text_color": "#2B77BC",
     "part_number": "PB700R2",
@@ -16488,6 +16776,7 @@
     "updated_at": "2024-08-12T21:13:56.000000Z"
   },
   "PB700S": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -16615,6 +16904,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -16627,7 +16917,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -16642,6 +16932,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB700S",
     "name_text_color": "#2B77BC",
     "part_number": "PB700S",
@@ -16653,6 +16944,7 @@
     "updated_at": "2024-08-12T20:39:05.000000Z"
   },
   "PB700S1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -16780,6 +17072,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -16792,7 +17085,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -16807,6 +17100,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB700S1",
     "name_text_color": "#2B77BC",
     "part_number": "PB700S1",
@@ -16818,6 +17112,7 @@
     "updated_at": "2024-08-12T20:39:18.000000Z"
   },
   "PB700S2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -16945,6 +17240,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -16957,7 +17253,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -16972,6 +17268,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB700S2",
     "name_text_color": "#2B77BC",
     "part_number": "PB700S2",
@@ -16983,6 +17280,7 @@
     "updated_at": "2024-08-12T21:14:15.000000Z"
   },
   "PB700SC": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -17110,6 +17408,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -17122,7 +17421,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -17137,6 +17436,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB700SC",
     "name_text_color": "#2B77BC",
     "part_number": "PB700SC",
@@ -17148,6 +17448,7 @@
     "updated_at": "2024-08-12T21:13:42.000000Z"
   },
   "PB700T1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -17275,6 +17576,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -17287,7 +17589,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -17302,6 +17604,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB700T1",
     "name_text_color": "#2B77BC",
     "part_number": "PB700T1",
@@ -17313,6 +17616,7 @@
     "updated_at": "2024-08-12T21:12:21.000000Z"
   },
   "PB820CS1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -17416,6 +17720,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 6,
       "name": "PBM",
       "platform_id": 1,
@@ -17428,7 +17733,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -17443,6 +17748,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB820CS1",
     "name_text_color": "#A1A1A1",
     "part_number": "PB820CS1",
@@ -17454,6 +17760,7 @@
     "updated_at": "2024-08-12T22:51:02.000000Z"
   },
   "PB820D": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -17581,6 +17888,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -17593,7 +17901,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -17608,6 +17916,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB820D",
     "name_text_color": "#2B77BC",
     "part_number": "PB820D",
@@ -17619,6 +17928,7 @@
     "updated_at": "2024-08-12T21:14:44.000000Z"
   },
   "PB820D2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -17746,6 +18056,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -17758,7 +18069,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -17773,6 +18084,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB820D2",
     "name_text_color": "#2B77BC",
     "part_number": "PB820D2",
@@ -17784,6 +18096,7 @@
     "updated_at": "2022-10-31T14:42:07.000000Z"
   },
   "PB820D3": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -17911,6 +18224,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -17923,7 +18237,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -17938,6 +18252,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB820D3",
     "name_text_color": "#2B77BC",
     "part_number": "PB820D3",
@@ -17949,6 +18264,7 @@
     "updated_at": "2024-08-12T22:28:59.000000Z"
   },
   "PB820D4": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -18076,6 +18392,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -18088,7 +18405,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -18103,6 +18420,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB820D4",
     "name_text_color": "#2B77BC",
     "part_number": "PB820D4",
@@ -18114,6 +18432,7 @@
     "updated_at": "2024-08-12T22:33:56.000000Z"
   },
   "PB820FB": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -18241,6 +18560,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -18253,7 +18573,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -18268,6 +18588,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB820FB",
     "name_text_color": "#2B77BC",
     "part_number": "PB820FB",
@@ -18279,6 +18600,7 @@
     "updated_at": "2024-08-12T22:16:15.000000Z"
   },
   "PB820FBC": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -18406,6 +18728,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -18418,7 +18741,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -18433,6 +18756,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB820FBC",
     "name_text_color": "#2B77BC",
     "part_number": "PB820FBC",
@@ -18444,6 +18768,7 @@
     "updated_at": "2024-08-12T22:16:32.000000Z"
   },
   "PB820PS1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -18571,6 +18896,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -18583,7 +18909,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -18598,6 +18924,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB820PS1",
     "name_text_color": "#2B77BC",
     "part_number": "PB820PS1",
@@ -18609,6 +18936,7 @@
     "updated_at": "2024-08-12T22:22:07.000000Z"
   },
   "PB820S": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -18736,6 +19064,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -18748,7 +19077,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -18763,6 +19092,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB820S",
     "name_text_color": "#2B77BC",
     "part_number": "PB820S",
@@ -18774,6 +19104,7 @@
     "updated_at": "2024-08-12T22:15:45.000000Z"
   },
   "PB820SC": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -18901,6 +19232,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -18913,7 +19245,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -18928,6 +19260,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB820SC",
     "name_text_color": "#2B77BC",
     "part_number": "PB820SC",
@@ -18939,6 +19272,7 @@
     "updated_at": "2024-08-12T22:17:09.000000Z"
   },
   "PB820T1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -19066,6 +19400,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -19078,7 +19413,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -19093,6 +19428,7 @@
     "max_temp": "500",
     "meat_probes": 3,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB820T1",
     "name_text_color": "#2B77BC",
     "part_number": "PB820T1",
@@ -19104,6 +19440,7 @@
     "updated_at": "2024-08-12T21:17:25.000000Z"
   },
   "PB820XL/PB820ME": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -19231,6 +19568,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -19243,7 +19581,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -19258,6 +19596,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB820XL/PB820ME",
     "name_text_color": "#2B77BC",
     "part_number": "PB820XL/PB820ME",
@@ -19269,6 +19608,7 @@
     "updated_at": "2024-08-12T22:24:08.000000Z"
   },
   "PB850AMB": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -19372,6 +19712,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 6,
       "name": "PBM",
       "platform_id": 1,
@@ -19384,7 +19725,7 @@
     "created_at": "2025-04-23T21:48:42.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -19399,6 +19740,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB850AMB",
     "name_text_color": "#A1A1A1",
     "part_number": "PB850AMB",
@@ -19410,6 +19752,7 @@
     "updated_at": "2025-04-24T15:57:40.000000Z"
   },
   "PB850CS1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -19513,6 +19856,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 6,
       "name": "PBM",
       "platform_id": 1,
@@ -19525,7 +19869,7 @@
     "created_at": "2023-07-06T08:48:37.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -19540,6 +19884,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB850CS1",
     "name_text_color": "#A1A1A1",
     "part_number": "PB850CS1",
@@ -19551,6 +19896,7 @@
     "updated_at": "2024-08-12T23:11:37.000000Z"
   },
   "PB850CS2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -19654,6 +20000,7 @@
       ],
       "created_at": "2025-05-27T22:38:29.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 20,
       "name": "PBM2",
       "platform_id": 8,
@@ -19666,7 +20013,7 @@
     "created_at": "2025-07-28T21:12:02.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -19681,6 +20028,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB850CS2",
     "name_text_color": "#A1A1A1",
     "part_number": "PB850CS2",
@@ -19836,6 +20184,7 @@
     "updated_at": "2025-01-22T23:01:26.000000Z"
   },
   "PB850DX": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -19975,19 +20324,20 @@
       ],
       "created_at": "2025-06-26T21:27:12.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 21,
       "name": "PBL3",
-      "platform_id": 3,
+      "platform_id": 8,
       "site_id": 1,
       "status_function": "if (!message.startsWith(\"FE0B\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 44) {\r\n  return null;\r\n}\r\nconst status = {\r\n  /*p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  smokerActTemp: convertTemperature(parts, 17),*/\r\n  moduleIsOn: parts[24] === 1,\r\n  err1: parts[25] === 1,\r\n  err2: parts[26] === 1,\r\n  err3: parts[27] === 1,\r\n  highTempErr: parts[28] === 1,\r\n  fanErr: parts[29] === 1,\r\n  hotErr: parts[30] === 1,\r\n  motorErr: parts[31] === 1,\r\n  noPellets: parts[32] === 1,\r\n  erL: parts[33] === 1,\r\n  fanState: parts[34] === 1,\r\n  hotState: parts[35] === 1,\r\n  motorState: parts[36] === 1,\r\n  lightState: parts[37] === 1,\r\n  primeState: parts[38] === 1,\r\n//  isFahrenheit: parts[39] === 1,\r\n  recipeStep: parts[40],\r\n  recipeTime: parts[41] * 3600 + parts[42] * 60 + parts[43],\r\n};\r\n/*\r\nswitch (parts[23]) {\r\n  case 1:\r\n    status.grillSetTemp = convertTemperature(parts, 20);\r\n    break;\r\n  case 2:\r\n    status.grillTemp = convertTemperature(parts, 20);\r\n    break;\r\n} */\r\nreturn status;",
       "temperature_function": "if (!message.startsWith(\"FE0C\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 27) {\r\n  return null;\r\n}\r\nconst temps = {\r\n  p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  grillSetTemp: convertTemperature(parts, 20),\r\n  grillTemp: convertTemperature(parts, 23),\r\n  smokerActTemp: convertTemperature(parts, 17),\r\n  isFahrenheit: parts[26] === 1,\r\n};\r\nconsole.log(\"Temp function\", temps, temps.isFahrenheit);\r\nif (!temps.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if (typeof temp === \"undefined\" || temp === 960) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  temps.p1Temp = ftoc(temps.p1Temp);\r\n  temps.p2Temp = ftoc(temps.p2Temp);\r\n  temps.p3Temp = ftoc(temps.p3Temp);\r\n  temps.p4Temp = ftoc(temps.p4Temp);\r\n  temps.p1Target = ftoc(temps.p1Target);\r\n  temps.smokerActTemp = ftoc(temps.smokerActTemp);\r\n  temps.grillSetTemp = ftoc(temps.grillSetTemp);\r\n  temps.grillTemp = ftoc(temps.grillTemp);\r\n  console.log(\"Temp function - converted\", temps);\r\n\r\n}\r\n\r\nreturn temps;",
-      "updated_at": "2025-09-17T20:58:15.000000Z"
+      "updated_at": "2026-03-16T20:36:21.000000Z"
     },
     "control_board_id": 21,
     "created_at": "2025-07-17T19:17:03.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -20002,6 +20352,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB850DX",
     "name_text_color": "#A1A1A1",
     "part_number": "PB850DX",
@@ -20193,6 +20544,7 @@
     "updated_at": "2026-06-08T21:05:07.000000Z"
   },
   "PB850G/GW": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -20320,6 +20672,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -20332,7 +20685,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -20347,6 +20700,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB850G/GW",
     "name_text_color": "#2B77BC",
     "part_number": "PB850G/GW",
@@ -20358,6 +20712,7 @@
     "updated_at": "2024-08-12T22:33:14.000000Z"
   },
   "PB850M": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -20461,6 +20816,7 @@
       ],
       "created_at": "2025-05-27T22:38:29.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 20,
       "name": "PBM2",
       "platform_id": 8,
@@ -20473,7 +20829,7 @@
     "created_at": "2025-09-17T16:44:05.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -20488,6 +20844,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB850M",
     "name_text_color": "#A1A1A1",
     "part_number": "PB850M",
@@ -20643,6 +21000,7 @@
     "updated_at": "2024-09-17T21:34:20.000000Z"
   },
   "PB850PS2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -20782,6 +21140,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 1,
       "name": "PBL",
       "platform_id": 5,
@@ -20794,7 +21153,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -20809,6 +21168,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB850PS2",
     "name_text_color": "#A1A1A1",
     "part_number": "PB850PS2",
@@ -20820,6 +21180,7 @@
     "updated_at": "2024-08-12T20:25:42.000000Z"
   },
   "PB850SPW2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -20947,6 +21308,7 @@
       ],
       "created_at": "2024-09-10T15:21:29.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 17,
       "name": "PBC2",
       "platform_id": 8,
@@ -20959,7 +21321,7 @@
     "created_at": "2024-09-10T15:28:26.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -20974,6 +21336,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PB850SPW2",
     "name_text_color": "#A1A1A1",
     "part_number": "PB850SPW2",
@@ -20985,6 +21348,7 @@
     "updated_at": "2024-09-10T18:24:56.000000Z"
   },
   "PBV3 M": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -21064,6 +21428,7 @@
       ],
       "created_at": "2025-04-24T17:09:50.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 18,
       "name": "PBV2",
       "platform_id": 8,
@@ -21076,7 +21441,7 @@
     "created_at": "2025-06-09T16:32:25.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -21091,6 +21456,7 @@
     "max_temp": "420",
     "meat_probes": 3,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "PBV3 M",
     "name_text_color": "#A1A1A1",
     "part_number": "PBV3 M",
@@ -21102,6 +21468,7 @@
     "updated_at": "2025-06-09T16:32:25.000000Z"
   },
   "PBV30DS": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": "40/45/50/55/60/65/70/75/80/85/90/95/100/105/110/115/120/125/130/135/140/145/150",
     "control_board": {
@@ -21205,6 +21572,7 @@
       ],
       "created_at": "2025-05-12T21:39:48.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 19,
       "name": "PBVA",
       "platform_id": 8,
@@ -21217,7 +21585,7 @@
     "created_at": "2025-04-24T17:26:07.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -21232,6 +21600,7 @@
     "max_temp": "320",
     "meat_probes": 2,
     "min_temp": "100",
+    "mpc_type": null,
     "name": "PBV30DS",
     "name_text_color": "#2B77BC",
     "part_number": "PBV30DS",
@@ -21243,6 +21612,7 @@
     "updated_at": "2025-11-11T16:47:42.000000Z"
   },
   "PBV30DX": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": "40/45/50/55/60/65/70/75/80/85/90/95/100/105/110/115/120/125/130/135/140/145/150",
     "control_board": {
@@ -21346,6 +21716,7 @@
       ],
       "created_at": "2025-05-12T21:39:48.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 19,
       "name": "PBVA",
       "platform_id": 8,
@@ -21358,7 +21729,7 @@
     "created_at": "2025-05-15T18:57:54.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -21373,6 +21744,7 @@
     "max_temp": "320",
     "meat_probes": 2,
     "min_temp": "100",
+    "mpc_type": null,
     "name": "PBV30DX",
     "name_text_color": "#2B77BC",
     "part_number": "PBV30DX",
@@ -21384,6 +21756,7 @@
     "updated_at": "2025-11-11T16:48:26.000000Z"
   },
   "PBV3M": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -21511,6 +21884,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -21523,7 +21897,7 @@
     "created_at": "2024-08-29T23:09:07.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -21538,6 +21912,7 @@
     "max_temp": "420",
     "meat_probes": 3,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "PBV3M",
     "name_text_color": "#2B77BC",
     "part_number": "PBV3M",
@@ -21549,6 +21924,7 @@
     "updated_at": "2024-09-18T15:30:09.000000Z"
   },
   "PBV3NX": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -21628,6 +22004,7 @@
       ],
       "created_at": "2025-04-24T17:09:50.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 18,
       "name": "PBV2",
       "platform_id": 8,
@@ -21640,7 +22017,7 @@
     "created_at": "2025-09-23T16:19:31.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -21655,6 +22032,7 @@
     "max_temp": "420",
     "meat_probes": 3,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "PBV3NX",
     "name_text_color": "#2B77BC",
     "part_number": "PBV3NX",
@@ -21834,6 +22212,7 @@
     "updated_at": "2025-04-29T22:43:05.000000Z"
   },
   "PBV4DX": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -21973,20 +22352,21 @@
       ],
       "created_at": "2025-06-26T21:27:12.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 21,
       "name": "PBL3",
-      "platform_id": 3,
+      "platform_id": 8,
       "site_id": 1,
       "status_function": "if (!message.startsWith(\"FE0B\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 44) {\r\n  return null;\r\n}\r\nconst status = {\r\n  /*p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  smokerActTemp: convertTemperature(parts, 17),*/\r\n  moduleIsOn: parts[24] === 1,\r\n  err1: parts[25] === 1,\r\n  err2: parts[26] === 1,\r\n  err3: parts[27] === 1,\r\n  highTempErr: parts[28] === 1,\r\n  fanErr: parts[29] === 1,\r\n  hotErr: parts[30] === 1,\r\n  motorErr: parts[31] === 1,\r\n  noPellets: parts[32] === 1,\r\n  erL: parts[33] === 1,\r\n  fanState: parts[34] === 1,\r\n  hotState: parts[35] === 1,\r\n  motorState: parts[36] === 1,\r\n  lightState: parts[37] === 1,\r\n  primeState: parts[38] === 1,\r\n//  isFahrenheit: parts[39] === 1,\r\n  recipeStep: parts[40],\r\n  recipeTime: parts[41] * 3600 + parts[42] * 60 + parts[43],\r\n};\r\n/*\r\nswitch (parts[23]) {\r\n  case 1:\r\n    status.grillSetTemp = convertTemperature(parts, 20);\r\n    break;\r\n  case 2:\r\n    status.grillTemp = convertTemperature(parts, 20);\r\n    break;\r\n} */\r\nreturn status;",
       "temperature_function": "if (!message.startsWith(\"FE0C\")) {\r\n  return null;\r\n}\r\nconst parts = parseHexMessage(message);\r\nif (parts < 27) {\r\n  return null;\r\n}\r\nconst temps = {\r\n  p1Target: convertTemperature(parts, 2),\r\n  p1Temp: convertTemperature(parts, 5),\r\n  p2Temp: convertTemperature(parts, 8),\r\n  p3Temp: convertTemperature(parts, 11),\r\n  p4Temp: convertTemperature(parts, 14),\r\n  grillSetTemp: convertTemperature(parts, 20),\r\n  grillTemp: convertTemperature(parts, 23),\r\n  smokerActTemp: convertTemperature(parts, 17),\r\n  isFahrenheit: parts[26] === 1,\r\n};\r\nconsole.log(\"Temp function\", temps, temps.isFahrenheit);\r\nif (!temps.isFahrenheit) {\r\n  const ftoc = function (temp) {\r\n    if (typeof temp === \"undefined\" || temp === 960) {\r\n      return temp;\r\n    }\r\n    return Math.floor((temp - 32) / 1.8);\r\n  };\r\n  temps.p1Temp = ftoc(temps.p1Temp);\r\n  temps.p2Temp = ftoc(temps.p2Temp);\r\n  temps.p3Temp = ftoc(temps.p3Temp);\r\n  temps.p4Temp = ftoc(temps.p4Temp);\r\n  temps.p1Target = ftoc(temps.p1Target);\r\n  temps.smokerActTemp = ftoc(temps.smokerActTemp);\r\n  temps.grillSetTemp = ftoc(temps.grillSetTemp);\r\n  temps.grillTemp = ftoc(temps.grillTemp);\r\n  console.log(\"Temp function - converted\", temps);\r\n\r\n}\r\n\r\nreturn temps;",
-      "updated_at": "2025-09-17T20:58:15.000000Z"
+      "updated_at": "2026-03-16T20:36:21.000000Z"
     },
     "control_board_id": 21,
     "created_at": "2025-06-26T21:32:02.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
-    "friendly_name": null,
+    "enabled": true,
+    "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
     "has_mpc": 0,
@@ -22000,6 +22380,7 @@
     "max_temp": "420",
     "meat_probes": 2,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "PBV4DX",
     "name_text_color": "#A1A1A1",
     "part_number": "PBV4DX",
@@ -22008,9 +22389,10 @@
     "site_id": 1,
     "sku": null,
     "temp_increment": "130/135/140/145/150/155/160/165/170/175/180/185/190/195/200/205/210/215/220/225/230/235/240/245/250/255/260/265/270/275/280/285/290/295/300/305/310/315/320/325/330/335/340/345/350/355/360/365/370/375/380/385/390/395/400/405/410/415/420",
-    "updated_at": "2025-06-27T15:20:09.000000Z"
+    "updated_at": "2026-07-21T21:20:53.000000Z"
   },
   "PBV4NXW": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -22138,6 +22520,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -22150,7 +22533,7 @@
     "created_at": "2024-09-10T22:40:49.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -22165,6 +22548,7 @@
     "max_temp": "420",
     "meat_probes": 3,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "PBV4NXW",
     "name_text_color": "#2B77BC",
     "part_number": "PBV4NXW",
@@ -22176,6 +22560,7 @@
     "updated_at": "2024-09-13T16:48:43.000000Z"
   },
   "PBV4PS2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -22315,6 +22700,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 1,
       "name": "PBL",
       "platform_id": 5,
@@ -22327,7 +22713,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -22342,6 +22728,7 @@
     "max_temp": "420",
     "meat_probes": 2,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "PBV4PS2",
     "name_text_color": "#A1A1A1",
     "part_number": "PBV4PS2",
@@ -22353,6 +22740,7 @@
     "updated_at": "2024-08-12T20:25:22.000000Z"
   },
   "PBV5 P2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -22432,6 +22820,7 @@
       ],
       "created_at": "2025-04-24T17:09:50.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 18,
       "name": "PBV2",
       "platform_id": 8,
@@ -22444,7 +22833,7 @@
     "created_at": "2025-06-03T20:43:35.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -22459,6 +22848,7 @@
     "max_temp": "420",
     "meat_probes": 3,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "PBV5 P2",
     "name_text_color": "#A1A1A1",
     "part_number": "PBV5 P2",
@@ -22470,6 +22860,7 @@
     "updated_at": "2025-09-24T17:36:29.000000Z"
   },
   "PBV5CS": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -22597,6 +22988,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -22609,7 +23001,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -22624,6 +23016,7 @@
     "max_temp": "420",
     "meat_probes": 2,
     "min_temp": "150",
+    "mpc_type": null,
     "name": "PBV5CS",
     "name_text_color": "#A1A1A1",
     "part_number": "PBV5CS",
@@ -22635,6 +23028,7 @@
     "updated_at": "2024-08-12T22:43:23.000000Z"
   },
   "PBV5P2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -22762,6 +23156,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -22774,7 +23169,7 @@
     "created_at": "2022-11-30T12:05:56.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -22789,6 +23184,7 @@
     "max_temp": "420",
     "meat_probes": 3,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "PBV5P2",
     "name_text_color": "#2B77BC",
     "part_number": "PBV5P2",
@@ -22800,6 +23196,7 @@
     "updated_at": "2024-09-17T22:06:02.000000Z"
   },
   "PBV5PL": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -22927,6 +23324,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 3,
       "name": "PBG",
       "platform_id": 5,
@@ -22939,7 +23337,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 1,
@@ -22954,6 +23352,7 @@
     "max_temp": "420",
     "meat_probes": 2,
     "min_temp": "150",
+    "mpc_type": null,
     "name": "PBV5PL",
     "name_text_color": "#A1A1A1",
     "part_number": "PBV5PL",
@@ -22965,6 +23364,7 @@
     "updated_at": "2024-08-12T20:19:39.000000Z"
   },
   "PBV6 M": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -23044,6 +23444,7 @@
       ],
       "created_at": "2025-04-24T17:09:50.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 18,
       "name": "PBV2",
       "platform_id": 8,
@@ -23056,7 +23457,7 @@
     "created_at": "2025-06-09T16:34:42.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -23071,6 +23472,7 @@
     "max_temp": "420",
     "meat_probes": 3,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "PBV6 M",
     "name_text_color": "#2B77BC",
     "part_number": "PBV6 M",
@@ -23082,6 +23484,7 @@
     "updated_at": "2025-06-09T16:34:42.000000Z"
   },
   "PBV6 PSE": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -23209,6 +23612,7 @@
       ],
       "created_at": "2023-01-25T11:59:54.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 12,
       "name": "PBD",
       "platform_id": 3,
@@ -23221,7 +23625,7 @@
     "created_at": "2023-02-01T16:41:44.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -23236,6 +23640,7 @@
     "max_temp": "420",
     "meat_probes": 2,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "PBV6 PSE",
     "name_text_color": "#A1A1A1",
     "part_number": "PBV6 PSE",
@@ -23247,6 +23652,7 @@
     "updated_at": "2024-08-13T16:25:31.000000Z"
   },
   "PBV6M": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -23374,6 +23780,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 4,
       "name": "PBV",
       "platform_id": 5,
@@ -23386,7 +23793,7 @@
     "created_at": "2024-09-17T22:03:15.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -23401,6 +23808,7 @@
     "max_temp": "420",
     "meat_probes": 3,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "PBV6M",
     "name_text_color": "#2B77BC",
     "part_number": "PBV6M",
@@ -23412,6 +23820,7 @@
     "updated_at": "2024-09-17T22:03:15.000000Z"
   },
   "PBV6PSE": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -23563,6 +23972,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 11,
       "name": "PBB",
       "platform_id": 2,
@@ -23575,7 +23985,7 @@
     "created_at": "2022-11-09T23:21:31.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -23590,6 +24000,7 @@
     "max_temp": "420",
     "meat_probes": 2,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "PBV6PSE",
     "name_text_color": "#A1A1A1",
     "part_number": "PBV6PSE",
@@ -23601,6 +24012,7 @@
     "updated_at": "2024-08-12T22:56:03.000000Z"
   },
   "PBV7P2": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -23680,6 +24092,7 @@
       ],
       "created_at": "2025-04-24T17:09:50.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 18,
       "name": "PBV2",
       "platform_id": 8,
@@ -23692,7 +24105,7 @@
     "created_at": "2025-09-23T16:46:51.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": null,
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -23707,6 +24120,7 @@
     "max_temp": "420",
     "meat_probes": 3,
     "min_temp": "130",
+    "mpc_type": null,
     "name": "PBV7P2",
     "name_text_color": "#A1A1A1",
     "part_number": "PBV7P2",
@@ -23718,6 +24132,7 @@
     "updated_at": "2025-09-24T15:58:50.000000Z"
   },
   "PBV7PW1": {
+    "app_layout": "standard",
     "category": null,
     "celsius_temp_increment": null,
     "control_board": {
@@ -23845,6 +24260,7 @@
       ],
       "created_at": "2022-06-27T00:00:00.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 5,
       "name": "PBC",
       "platform_id": 1,
@@ -23857,7 +24273,7 @@
     "created_at": "2022-07-13T04:29:24.000000Z",
     "deleted_at": null,
     "description": null,
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -23872,6 +24288,7 @@
     "max_temp": "420",
     "meat_probes": 2,
     "min_temp": "150",
+    "mpc_type": null,
     "name": "PBV7PW1",
     "name_text_color": "#2B77BC",
     "part_number": "PBV7PW1",
@@ -23883,6 +24300,7 @@
     "updated_at": "2024-08-12T23:12:00.000000Z"
   },
   "PBX - test 1": {
+    "app_layout": "standard",
     "category": "N/A",
     "celsius_temp_increment": null,
     "control_board": {
@@ -23962,6 +24380,7 @@
       ],
       "created_at": "2023-09-21T18:52:45.000000Z",
       "deleted_at": null,
+      "device_status_function": null,
       "id": 14,
       "name": "PBX1",
       "platform_id": 4,
@@ -23974,7 +24393,7 @@
     "created_at": "2023-09-21T18:56:38.000000Z",
     "deleted_at": null,
     "description": "<p>develpment</p>",
-    "enabled": 1,
+    "enabled": true,
     "friendly_name": "",
     "has_fc_functionality": 1,
     "has_indicators": 0,
@@ -23989,6 +24408,7 @@
     "max_temp": "500",
     "meat_probes": 2,
     "min_temp": "180",
+    "mpc_type": null,
     "name": "PBX - test 1",
     "name_text_color": "#FFFFFF",
     "part_number": "xxxx",
