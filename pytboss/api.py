@@ -32,17 +32,30 @@ class PitBoss:
     config: Config
     """Configuration operations."""
 
-    def __init__(self, conn: Transport, grill_model: str, password: str = "") -> None:
+    def __init__(
+        self,
+        conn: Transport,
+        grill_model: str,
+        password: str = "",
+        control_board: str | None = None,
+    ) -> None:
         """Initializes the class.
 
         :param conn: Connection transport for the grill.
         :param grill_model: The grill model. This is necessary to determine all
             supported commands and cannot be determined automatically.
         :param password: The grill password.
+        :param control_board: The control board the grill ships with, for the
+            few models sold on two board generations. Callers that know it --
+            it is the prefix a grill advertises over Bluetooth -- should pass
+            it, since the boards do not always parse identically. Omitting it
+            selects the board the vendor lists most recently, which is what
+            happens without this argument.
         """
         self.fs = FileSystem(conn)
         self.config = Config(conn)
         self._grill_model = grill_model
+        self._control_board = control_board
         self._conn = conn
         self._conn.set_state_callback(self._on_state_received)
         self._conn.set_vdata_callback(self._on_vdata_received)
@@ -62,8 +75,13 @@ class PitBoss:
         """Sets up the API for use.
 
         Required to be called before the API can be used.
+
+        :raise pytboss.exceptions.InvalidGrill: If the grill model is unknown,
+            or has no variant on the control board given to the constructor.
         """
-        self.spec: Grill = await asyncio.to_thread(get_grill, self._grill_model)
+        self.spec: Grill = await asyncio.to_thread(
+            get_grill, self._grill_model, self._control_board
+        )
         await self._conn.connect()
 
     async def stop(self) -> None:
