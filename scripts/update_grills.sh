@@ -1,25 +1,16 @@
 #!/usr/bin/env bash
 
 function get_diff() {
-	OLD=$(git show HEAD:pytboss/grills.json 2>/dev/null | jq -r '.grills | keys[]' | sort)
-	NEW=$(git show :pytboss/grills.json 2>/dev/null | jq -r '.grills | keys[]' | sort)
+	local old new
+	old="$(mktemp)"
+	new="$(mktemp)"
+	# shellcheck disable=SC2064
+	trap "rm -f '$old' '$new'" RETURN
 
-	ADDED=$(comm -13 <(echo "$OLD") <(echo "$NEW"))
-	REMOVED=$(comm -23 <(echo "$OLD") <(echo "$NEW"))
+	git show HEAD:pytboss/grills.json >"$old" 2>/dev/null || echo '{}' >"$old"
+	git show :pytboss/grills.json >"$new" 2>/dev/null || echo '{}' >"$new"
 
-	if [[ -n "$ADDED" ]]; then
-		echo "### Adds support for grills:"
-		echo
-		echo "$ADDED" | sed 's/^/* /'
-		echo
-	fi
-
-	if [[ -n "$REMOVED" ]]; then
-		echo "### Removes support for grills:"
-		echo
-		echo "$REMOVED" | sed 's/^/* /'
-		echo
-	fi
+	python3 -m scripts.grills_diff "$old" "$new"
 }
 
 function get_commit_message() {
