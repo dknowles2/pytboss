@@ -150,6 +150,15 @@ The following models should be supported. Note however that only the `PBV4PS2` m
 
 <!-- GRILLS START -->
 
+*  [LG0800BL](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG0800BL.png)
+*  [LG1000BL](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG1000BL.png)
+*  [LG1200BL](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG1200BL.png)
+*  [LG1200FL](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG1200FL.png)
+*  [LG1200FP](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG1200FP.png)
+*  [LG300BL](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG300BL.png)
+*  [LG800FL](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG800FL.png)
+*  [LG800FP](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LG800FP.png)
+*  [LGV4BL](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/LGV4BL.png)
 *  [Lexington Wi-Fi Upgrade](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/ghost%20grill.png)
 *  [PB0500SP](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/500sp-109.png)
 *  [PB0820SP/SPW](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB820sp.png)
@@ -170,6 +179,7 @@ The following models should be supported. Note however that only the `PBV4PS2` m
 *  [PB1000XL/PB1000SC3](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1000SC3-Front-101619.png)
 *  [PB1000XLW1 (Austin XL)](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/austin-xl.png)
 *  [PB1020CS2](https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB1020CS2.1.png)
+*  [PB1020DX](Https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB1020DX.png)
 *  [PB1020NXW](https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB1020NX.png)
 *  [PB1100HTC](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1100HTC.M-Line%20Heritage.png)
 *  [PB1100PS1](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/1100ps.png)
@@ -215,6 +225,7 @@ The following models should be supported. Note however that only the `PBV4PS2` m
 *  [PB1600PS2](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS2-2021-8-17-120.png)
 *  [PB1600PS3](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS3.png)
 *  [PB1600PS3_](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS3.png)
+*  [PB1600PS4](https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PB1600PS4.png)
 *  [PB1600PSE](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600PS.Elite2024.png)
 *  [PB1600SPW](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600SPW.png)
 *  [PB1600SPW2](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PB1600SPW2.png)
@@ -266,7 +277,7 @@ The following models should be supported. Note however that only the `PBV4PS2` m
 *  [PBV4DX](https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PBV4DX.png)
 *  [PBV4NXW](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV4NX.png)
 *  [PBV4PS2](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV4PS2.png)
-*  [PBV5 P2](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/V5%20Competition.png)
+*  [PBV5 P2](https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/ghost%20vertical.png)
 *  [PBV5CS](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV5CS1-2021-6-17-121.png)
 *  [PBV5P2](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/V5%20Competition.png)
 *  [PBV5PL](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV5PL-2020-5-6-Brunswick-104.png)
@@ -274,6 +285,7 @@ The following models should be supported. Note however that only the `PBV4PS2` m
 *  [PBV6 PSE](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/V6%20Elite.png)
 *  [PBV6M](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV6M.png)
 *  [PBV6PSE](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/V6%20Elite.png)
+*  [PBV7P2](Https://dansons-mobile.s3.dualstack.us-east-1.amazonaws.com/grill-images/PBV7P2.png)
 *  [PBV7PW1](https://dansons-mobile.s3.us-east-1.amazonaws.com/grill-images/PBV7PW1_Sportsman-2021-6-30-controller123.png)
 
 <!-- GRILLS END -->
