@@ -956,7 +956,6 @@
   "grills": {
     "LG0800BL": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "LBL",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -971,7 +970,6 @@
     },
     "LG1000BL": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "LBL",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -986,7 +984,6 @@
     },
     "LG1200BL": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "LBL",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1001,7 +998,6 @@
     },
     "LG1200FL": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "LFS",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1016,7 +1012,6 @@
     },
     "LG1200FP": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "LFS",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1031,7 +1026,6 @@
     },
     "LG300BL": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "LBL",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1046,7 +1040,6 @@
     },
     "LG800FL": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "LFS",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1061,7 +1054,6 @@
     },
     "LG800FP": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "LFS",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1076,7 +1068,6 @@
     },
     "LGV4BL": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "LBL",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1091,7 +1082,6 @@
     },
     "Lexington Wi-Fi Upgrade": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1106,7 +1096,6 @@
     },
     "PB0500SP": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1121,7 +1110,6 @@
     },
     "PB0820SP/SPW": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1136,7 +1124,6 @@
     },
     "PB1000D3": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1151,7 +1138,6 @@
     },
     "PB1000NC1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1166,7 +1152,6 @@
     },
     "PB1000NXW": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1181,7 +1166,6 @@
     },
     "PB1000PL": {
       "category": "Wood Pellet",
-      "celsius_temp_increment": null,
       "control_board": "PBG",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1196,7 +1180,6 @@
     },
     "PB1000R1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1211,7 +1194,6 @@
     },
     "PB1000R2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1226,7 +1208,6 @@
     },
     "PB1000S1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1241,7 +1222,6 @@
     },
     "PB1000SC1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1256,7 +1236,6 @@
     },
     "PB1000SC2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1271,7 +1250,6 @@
     },
     "PB1000SP": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1286,7 +1264,6 @@
     },
     "PB1000T1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1301,7 +1278,6 @@
     },
     "PB1000T2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1316,7 +1292,6 @@
     },
     "PB1000T3": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1331,7 +1306,6 @@
     },
     "PB1000T4": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1346,7 +1320,6 @@
     },
     "PB1000XL/PB1000SC3": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1361,7 +1334,6 @@
     },
     "PB1000XLW1 (Austin XL)": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1376,7 +1348,6 @@
     },
     "PB1020CS2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1391,7 +1362,6 @@
     },
     "PB1020DX": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBL3",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1406,7 +1376,6 @@
     },
     "PB1020NXW": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1421,7 +1390,6 @@
     },
     "PB1100HTC": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBE",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1436,7 +1404,6 @@
     },
     "PB1100PS1": {
       "category": "WiFi Upgrade /Legacy H1",
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1451,7 +1418,6 @@
     },
     "PB1100PSC1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1466,7 +1432,6 @@
     },
     "PB1100PSC2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBL",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1481,7 +1446,6 @@
     },
     "PB1100PSC3": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBL",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1496,7 +1460,6 @@
     },
     "PB1100SP/SPW": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1511,7 +1474,6 @@
     },
     "PB1100SPW2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC2",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1526,7 +1488,6 @@
     },
     "PB1150 PS3": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBT",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1541,7 +1502,6 @@
     },
     "PB1150DX": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBL3",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1556,7 +1516,6 @@
     },
     "PB1150DX (PBL2)": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBL2",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1571,7 +1530,6 @@
     },
     "PB1150G/GW": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1586,7 +1544,6 @@
     },
     "PB1150PS2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBL",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1601,7 +1558,6 @@
     },
     "PB1150PS3": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBA",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1616,7 +1572,6 @@
     },
     "PB1230": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1631,7 +1586,6 @@
     },
     "PB1230CS1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1646,7 +1600,6 @@
     },
     "PB1230G/GW": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1661,7 +1614,6 @@
     },
     "PB1230SP/SPW": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1676,7 +1628,6 @@
     },
     "PB1250 CS2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBT",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1691,7 +1642,6 @@
     },
     "PB1250 NX": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBT",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1706,7 +1656,6 @@
     },
     "PB1250 PL": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBT",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1721,7 +1670,6 @@
     },
     "PB1250CS": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1736,7 +1684,6 @@
     },
     "PB1250CS2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBA",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1751,7 +1698,6 @@
     },
     "PB1250NX": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBA",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1766,7 +1712,6 @@
     },
     "PB1250PL": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBA",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1781,7 +1726,6 @@
     },
     "PB1285KC": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBG",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1796,7 +1740,6 @@
     },
     "PB1285PC": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBG",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1811,7 +1754,6 @@
     },
     "PB1300 M": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBT",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1826,7 +1768,6 @@
     },
     "PB1300 PS4": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBT",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1841,7 +1782,6 @@
     },
     "PB1300M": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBA",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1856,7 +1796,6 @@
     },
     "PB1300PS4": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBA",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1871,7 +1810,6 @@
     },
     "PB1450CS": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1886,7 +1824,6 @@
     },
     "PB1500NXW": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM2",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1901,7 +1838,6 @@
     },
     "PB1500NXW (PBM)": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1916,7 +1852,6 @@
     },
     "PB1600 CS": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM2",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1931,7 +1866,6 @@
     },
     "PB1600 CS2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBT",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1946,7 +1880,6 @@
     },
     "PB1600 M": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBT",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1961,7 +1894,6 @@
     },
     "PB1600 PSE": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBD",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1976,7 +1908,6 @@
     },
     "PB1600AMB": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBT",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -1991,7 +1922,6 @@
     },
     "PB1600CS": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2006,7 +1936,6 @@
     },
     "PB1600CS2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBA",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2021,7 +1950,6 @@
     },
     "PB1600CST": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBE",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2036,7 +1964,6 @@
     },
     "PB1600M": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBA",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2051,7 +1978,6 @@
     },
     "PB1600PS1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBL",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2066,7 +1992,6 @@
     },
     "PB1600PS2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBP",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2081,7 +2006,6 @@
     },
     "PB1600PS2 (PBL)": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBL",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2096,7 +2020,6 @@
     },
     "PB1600PS3": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBA",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2111,7 +2034,6 @@
     },
     "PB1600PS3_": {
       "category": "N/A",
-      "celsius_temp_increment": null,
       "control_board": "PBT",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2126,7 +2048,6 @@
     },
     "PB1600PS4": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBT",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2141,7 +2062,6 @@
     },
     "PB1600PSE": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBB",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2156,7 +2076,6 @@
     },
     "PB1600SPW": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2171,7 +2090,6 @@
     },
     "PB1600SPW2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2186,7 +2104,6 @@
     },
     "PB2180LK": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBG",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2201,7 +2118,6 @@
     },
     "PB340": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2216,7 +2132,6 @@
     },
     "PB340TGW1 (Tailgator)": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2231,7 +2146,6 @@
     },
     "PB440D": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2246,7 +2160,6 @@
     },
     "PB440D2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2261,7 +2174,6 @@
     },
     "PB440D3/PB456D": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2276,7 +2188,6 @@
     },
     "PB440TG1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2291,7 +2202,6 @@
     },
     "PB440TGNC1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2306,7 +2216,6 @@
     },
     "PB440TGR1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2321,7 +2230,6 @@
     },
     "PB550G": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2336,7 +2244,6 @@
     },
     "PB700D": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2351,7 +2258,6 @@
     },
     "PB700FB": {
       "category": "Wood Pellet",
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2366,7 +2272,6 @@
     },
     "PB700FBM2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2381,7 +2286,6 @@
     },
     "PB700FBW2 (Classic)": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2396,7 +2300,6 @@
     },
     "PB700NC1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2411,7 +2314,6 @@
     },
     "PB700R1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2426,7 +2328,6 @@
     },
     "PB700R2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2441,7 +2342,6 @@
     },
     "PB700S": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2456,7 +2356,6 @@
     },
     "PB700S1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2471,7 +2370,6 @@
     },
     "PB700S2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2486,7 +2384,6 @@
     },
     "PB700SC": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2501,7 +2398,6 @@
     },
     "PB700T1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2516,7 +2412,6 @@
     },
     "PB820CS1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2531,7 +2426,6 @@
     },
     "PB820D": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2546,7 +2440,6 @@
     },
     "PB820D2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2561,7 +2454,6 @@
     },
     "PB820D3": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2576,7 +2468,6 @@
     },
     "PB820D4": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2591,7 +2482,6 @@
     },
     "PB820FB": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2606,7 +2496,6 @@
     },
     "PB820FBC": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2621,7 +2510,6 @@
     },
     "PB820PS1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2636,7 +2524,6 @@
     },
     "PB820S": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2651,7 +2538,6 @@
     },
     "PB820SC": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2666,7 +2552,6 @@
     },
     "PB820T1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2681,7 +2566,6 @@
     },
     "PB820XL/PB820ME": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2696,7 +2580,6 @@
     },
     "PB850AMB": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2711,7 +2594,6 @@
     },
     "PB850CS1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2726,7 +2608,6 @@
     },
     "PB850CS2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM2",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2741,7 +2622,6 @@
     },
     "PB850CS2 (PBM)": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2756,7 +2636,6 @@
     },
     "PB850DX": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBL3",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2771,7 +2650,6 @@
     },
     "PB850DX (PBL2)": {
       "category": "grill",
-      "celsius_temp_increment": null,
       "control_board": "PBL2",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2786,7 +2664,6 @@
     },
     "PB850G/GW": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2801,7 +2678,6 @@
     },
     "PB850M": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM2",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2816,7 +2692,6 @@
     },
     "PB850M (PBM)": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBM",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2831,7 +2706,6 @@
     },
     "PB850PS2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBL",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2846,7 +2720,6 @@
     },
     "PB850SPW2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC2",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2861,7 +2734,6 @@
     },
     "PBV3 M": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV2",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2876,7 +2748,6 @@
     },
     "PBV30DS": {
       "category": null,
-      "celsius_temp_increment": "40/45/50/55/60/65/70/75/80/85/90/95/100/105/110/115/120/125/130/135/140/145/150",
       "control_board": "PBVA",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2891,7 +2762,6 @@
     },
     "PBV30DX": {
       "category": null,
-      "celsius_temp_increment": "40/45/50/55/60/65/70/75/80/85/90/95/100/105/110/115/120/125/130/135/140/145/150",
       "control_board": "PBVA",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2906,7 +2776,6 @@
     },
     "PBV3M": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2921,7 +2790,6 @@
     },
     "PBV3NX": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV2",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2936,7 +2804,6 @@
     },
     "PBV3NX (PBV)": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2951,7 +2818,6 @@
     },
     "PBV4DX": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBL3",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2966,7 +2832,6 @@
     },
     "PBV4NXW": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2981,7 +2846,6 @@
     },
     "PBV4PS2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBL",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -2996,7 +2860,6 @@
     },
     "PBV5 P2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV2",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -3011,7 +2874,6 @@
     },
     "PBV5CS": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -3026,7 +2888,6 @@
     },
     "PBV5P2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -3041,7 +2902,6 @@
     },
     "PBV5PL": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBG",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -3056,7 +2916,6 @@
     },
     "PBV6 M": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV2",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -3071,7 +2930,6 @@
     },
     "PBV6 PSE": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBD",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -3086,7 +2944,6 @@
     },
     "PBV6M": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -3101,7 +2958,6 @@
     },
     "PBV6PSE": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBB",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -3116,7 +2972,6 @@
     },
     "PBV7P2": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBV2",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -3131,7 +2986,6 @@
     },
     "PBV7PW1": {
       "category": null,
-      "celsius_temp_increment": null,
       "control_board": "PBC",
       "enabled": true,
       "has_fc_functionality": 1,
@@ -3146,7 +3000,6 @@
     },
     "PBX - test 1": {
       "category": "N/A",
-      "celsius_temp_increment": null,
       "control_board": "PBX1",
       "enabled": true,
       "has_fc_functionality": 1,

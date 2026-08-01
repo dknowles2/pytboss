@@ -45,8 +45,14 @@ _DROPPED_FIELDS = frozenset(
 # renders a grill and how its store sells one. None of it describes the grill's
 # protocol, so none of it is reachable through `Grill`, whose `json` attribute
 # is the only thing that ever exposed these.
+#
+# `celsius_temp_increment` is the exception worth naming, since its fahrenheit
+# counterpart is kept: it is null on all but two grills, and where it is set it
+# only restates `temp_increment` in celsius, which TemperatureConverter already
+# derives.
 _DROPPED_GRILL_FIELDS = _DROPPED_FIELDS | {
     "app_layout",
+    "celsius_temp_increment",
     "control_board_id",
     "friendly_name",
     "has_indicators",
