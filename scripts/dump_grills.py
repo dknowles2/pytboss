@@ -56,7 +56,6 @@ _DROPPED_GRILL_FIELDS = _DROPPED_FIELDS | {
     "control_board_id",
     "friendly_name",
     "has_indicators",
-    "has_mpc",
     "has_no_app_indicators",
     "image",
     "manual_url",

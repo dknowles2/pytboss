@@ -338,6 +338,15 @@ class Grill:
     has_lights: bool = False
     """Whether the grill has lights."""
 
+    has_mpc: bool = False
+    """Whether the vendor's catalogue flags this grill as having MPC.
+
+    What MPC is, the vendor does not say. No parsing routine or command
+    mentions it, and the companion `mpc_type` field is null on every model.
+    It is set on 34 of 147 grills and does not track the probe count, so it
+    is passed through as the vendor reports it rather than interpreted.
+    """
+
     min_temp: int | None = None
     """Minimum grill temperature supported."""
 
@@ -358,8 +367,8 @@ class Grill:
         """Creates a Grill from a JSON dict.
 
         :param grill_dict: A top-level entry from `grills.json`, with `name`,
-            `control_board`, `meat_probes`, `temp_increment`, `min_temp`, and
-            `max_temp` keys.
+            `control_board`, `lights`, `has_mpc`, `meat_probes`,
+            `temp_increment`, `min_temp`, and `max_temp` keys.
         """
         min_temp = None
         try:
@@ -378,6 +387,7 @@ class Grill:
         return cls(
             name=grill_dict["name"],
             has_lights=grill_dict["lights"] > 0,
+            has_mpc=bool(grill_dict["has_mpc"]),
             min_temp=min_temp,
             max_temp=max_temp,
             meat_probes=grill_dict["meat_probes"],

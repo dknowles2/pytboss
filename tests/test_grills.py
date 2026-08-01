@@ -182,6 +182,15 @@ class TestGetGrills:
             cmd(11)
 
     @pytest.mark.parametrize("grill", all_variants(), ids=idfn)
+    def test_has_mpc_is_a_bool(self, grill: grills_lib.Grill):
+        """The vendor reports has_mpc as 0 or 1; it is exposed as a bool.
+
+        `is` rather than `==`, since 0 and 1 would satisfy equality and let
+        the raw int through unnoticed.
+        """
+        assert grill.has_mpc is True or grill.has_mpc is False
+
+    @pytest.mark.parametrize("grill", all_variants(), ids=idfn)
     def test_parse_temperatures(self, grill: grills_lib.Grill):
         assert grill.control_board._temperatures_js_func is not None
         js = JSFunc(grill.control_board._temperatures_js_func)
