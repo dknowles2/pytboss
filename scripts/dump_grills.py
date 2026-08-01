@@ -130,7 +130,33 @@ async def main():
         _LOGGER.warning("Skipped %d grill IDs: %s", len(skipped), skipped)
     _LOGGER.info("Collected %d grill definitions", len(grills))
 
-    print(json.dumps(grills, indent=2, sort_keys=True))
+    # Store each control board once and reference it by name. Twenty boards are
+    # shared across every model, so inlining them more than tripled the file.
+    control_boards: dict[str, Any] = {}
+    for grill in grills.values():
+        board = grill["control_board"]
+        name = board["name"]
+        if name in control_boards and control_boards[name] != board:
+            raise Error(
+                f"Control board {name} has two different definitions. Storing "
+                "boards once by name would discard one of them."
+            )
+        control_boards[name] = board
+    _LOGGER.info("Collected %d control boards", len(control_boards))
+
+    print(
+        json.dumps(
+            {
+                "control_boards": control_boards,
+                "grills": {
+                    name: {**grill, "control_board": grill["control_board"]["name"]}
+                    for name, grill in grills.items()
+                },
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
 
 
 if __name__ == "__main__":

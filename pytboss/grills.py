@@ -15,7 +15,21 @@ from .exceptions import InvalidGrill
 
 @cache
 def _get_grills() -> dict[str, Any]:
-    return json.loads(resources.files(__package__).joinpath("grills.json").read_text())
+    """Loads grill definitions, resolving their control board references.
+
+    grills.json stores each control board once and has grills reference it by
+    name. Twenty boards are shared across 147 models, and inlining them made
+    the file more than three times larger than it needed to be. Attach the
+    shared board object rather than a copy: every model on a board had a
+    byte-identical definition anyway, so callers see the structure they always
+    have, and models on one board now share a single dict.
+    """
+    data = json.loads(resources.files(__package__).joinpath("grills.json").read_text())
+    control_boards = data["control_boards"]
+    grills = data["grills"]
+    for grill in grills.values():
+        grill["control_board"] = control_boards[grill["control_board"]]
+    return grills
 
 
 UNSUPPORTED_MODELS = (

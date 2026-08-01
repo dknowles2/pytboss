@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 function get_diff() {
-	OLD=$(git show HEAD:pytboss/grills.json 2>/dev/null | jq -r 'keys[]' | sort)
-	NEW=$(git show :pytboss/grills.json 2>/dev/null | jq -r 'keys[]' | sort)
+	OLD=$(git show HEAD:pytboss/grills.json 2>/dev/null | jq -r '.grills | keys[]' | sort)
+	NEW=$(git show :pytboss/grills.json 2>/dev/null | jq -r '.grills | keys[]' | sort)
 
 	ADDED=$(comm -13 <(echo "$OLD") <(echo "$NEW"))
 	REMOVED=$(comm -23 <(echo "$OLD") <(echo "$NEW"))
