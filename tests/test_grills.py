@@ -58,6 +58,11 @@ class JSFunc:
             f"{i:3} {line}" for i, line in enumerate(self._js.splitlines())
         )
 
+    def _live(self):
+        """The routine with commented-out code removed."""
+        js = re.sub(r"/\*.*?\*/", "", self._js, flags=re.DOTALL)
+        return re.sub(r"//.*", "", js)
+
     def converts_to_celsius(self):
         """Whether this routine converts fahrenheit to celsius itself.
 
@@ -68,18 +73,35 @@ class JSFunc:
         introduce a board that converts, and the two routines for one board
         do not always agree -- PBL3 converts in its temperatures reply but
         not in its status reply.
+
+        Only live code counts. PBL2 ships the same conversion block as PBL3
+        with the whole thing commented out, which is the difference between
+        the two boards.
         """
-        return "ftoc" in self._js
+        return "ftoc" in self._live()
 
     def has_key(self, k, ignore_comments=True):
-        if ignore_comments:
-            for comment_block in re.findall(r"/\*.*?\*/", self._js, flags=re.DOTALL):
-                if k in comment_block:
-                    return False
-            for comment_line in re.findall(r"//.*", self._js):
-                if k in comment_line:
-                    return False
-        return k in self._js
+        """Whether the routine reports `k`.
+
+        With `ignore_comments`, this asks whether live code assigns `k` in the
+        object it returns. Two cheaper checks both get it wrong:
+
+        * Rejecting any key named inside a comment anywhere. Some routines
+          parse a field and also name it in a commented-out block -- PBL2
+          comments out a whole conversion block that mentions p4Temp, which it
+          very much does parse. Treating those as absent builds a frame with no
+          bytes for that field, shifting every offset after it.
+        * Plain membership in comment-stripped source. LFS comments p1Target
+          out of its object literal but still has a live
+          `status.p1Target = ftoc(status.p1Target)`, which converts undefined
+          and reports nothing.
+
+        Without `ignore_comments`, the question is instead whether the frame
+        carries bytes for `k` at all, which a commented-out field still does.
+        """
+        if not ignore_comments:
+            return k in self._js
+        return re.search(rf"\b{k}\s*:", self._live()) is not None
 
 
 @contextmanager
@@ -120,6 +142,17 @@ def idfn(arg):
         return f"{grill.control_board.name} {grill.name}"
 
 
+def all_variants() -> list[grills_lib.Grill]:
+    """Every model/control board pairing, not one entry per model.
+
+    A handful of models are sold on two board generations. get_grills() without
+    a filter yields each model once so that callers listing supported models do
+    not see duplicates, which would leave the second board untested.
+    """
+    boards = {g["control_board"]["name"] for g in grills_lib._get_grills().values()}
+    return [grill for board in sorted(boards) for grill in grills_lib.get_grills(board)]
+
+
 class TestGetGrills:
     def test_plain(self):
         grills = list(grills_lib.get_grills())
@@ -129,12 +162,12 @@ class TestGetGrills:
         grills = list(grills_lib.get_grills("PBL"))
         assert len(grills) > 0
 
-    @pytest.mark.parametrize("grill", list(grills_lib.get_grills()), ids=idfn)
+    @pytest.mark.parametrize("grill", all_variants(), ids=idfn)
     def test_js_commands(self, grill: grills_lib.Grill):
         for cmd in grill.control_board.commands.values():
             cmd(11)
 
-    @pytest.mark.parametrize("grill", list(grills_lib.get_grills()), ids=idfn)
+    @pytest.mark.parametrize("grill", all_variants(), ids=idfn)
     def test_parse_temperatures(self, grill: grills_lib.Grill):
         assert grill.control_board._temperatures_js_func is not None
         js = JSFunc(grill.control_board._temperatures_js_func)
@@ -201,7 +234,7 @@ class TestGetGrills:
                         continue
                     raise
 
-    @pytest.mark.parametrize("grill", list(grills_lib.get_grills()), ids=idfn)
+    @pytest.mark.parametrize("grill", all_variants(), ids=idfn)
     def test_parse_state(self, grill: grills_lib.Grill):
         msg = Message()
         assert grill.control_board._status_js_func is not None

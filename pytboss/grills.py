@@ -381,18 +381,29 @@ def get_grills(control_board: str | None = None) -> Iterable[Grill]:
     Grills with no status-parsing routine, or whose name is listed in
     `UNSUPPORTED_MODELS`, are silently excluded.
 
+    A few models are sold on two control board generations and appear once per
+    board. Without `control_board` each model is yielded once, so callers
+    listing every supported model do not see duplicates; with it, the models
+    yielded are those that ship with that particular board.
+
     :param control_board: If specified, returns only grills with this control board.
     """
+    seen = set()
     for grill in _get_grills().values():
         if not grill["control_board"].get("status_function"):
             continue
         if grill["name"] in UNSUPPORTED_MODELS:
             continue
-        if control_board is None or grill["control_board"]["name"] == control_board:
-            yield Grill.from_dict(grill)
+        if control_board is None:
+            if grill["name"] in seen:
+                continue
+            seen.add(grill["name"])
+        elif grill["control_board"]["name"] != control_board:
+            continue
+        yield Grill.from_dict(grill)
 
 
-def get_grill(grill_name: str) -> Grill:
+def get_grill(grill_name: str, control_board: str | None = None) -> Grill:
     """Retrieves a grill specification.
 
     Unlike `get_grills()`, this does not exclude names listed in
@@ -400,10 +411,27 @@ def get_grill(grill_name: str) -> Grill:
     but its control board's `parse_status`/`parse_temperatures` may raise
     `NotImplementedError` when actually used.
 
+    A few models are sold on two control board generations, and the two boards
+    do not always parse identically. Pass `control_board` -- the prefix the
+    grill advertises over Bluetooth -- to select the right one. Without it, the
+    board the vendor lists most recently is returned.
+
     :param grill_name: The name of the grill specification to retrieve.
+    :param control_board: If specified, returns the variant of this model that
+        ships with this control board.
     :raise pytboss.exceptions.InvalidGrill: If `grill_name` is not a known
-        grill model.
+        grill model, or has no variant on `control_board`.
     """
+    if control_board is not None:
+        for candidate in _get_grills().values():
+            if (
+                candidate["name"] == grill_name
+                and candidate["control_board"]["name"] == control_board
+            ):
+                return Grill.from_dict(candidate)
+        raise InvalidGrill(
+            f"Unknown grill name for control board {control_board}: {grill_name}"
+        )
     if (grill := _get_grills().get(grill_name, None)) is None:
         raise InvalidGrill(f"Unknown grill name: {grill_name}")
     return Grill.from_dict(grill)

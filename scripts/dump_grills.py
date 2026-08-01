@@ -101,7 +101,28 @@ async def main():
                     continue
             except InvalidGrill:
                 break
-            grills[grill["name"]] = grill
+
+            # Some models are served twice, on two control board generations.
+            # Keying by name alone lets the higher ID silently overwrite the
+            # other board's definition, which hides that model from grills
+            # advertising the older board -- and in PBL2's case discarded the
+            # only rows that board appears in at all. Keep both, with the
+            # higher ID under the plain model name.
+            name = grill["name"]
+            board = grill["control_board"]["name"]
+            if (prev := grills.get(name)) is not None:
+                prev_board = prev["control_board"]["name"]
+                if prev_board == board:
+                    _LOGGER.warning("Duplicate row for %s on board %s", name, board)
+                else:
+                    _LOGGER.info(
+                        "%s is served on boards %s and %s; keeping both",
+                        name,
+                        prev_board,
+                        board,
+                    )
+                    grills[f"{name} ({prev_board})"] = prev
+            grills[name] = grill
 
     # Log a summary so a sweep that quietly collected less than usual is
     # visible in the run output rather than only in the resulting diff.
