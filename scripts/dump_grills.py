@@ -34,8 +34,25 @@ API_URL = "https://api-prod.dansonscorp.com/api/v1"
 # definitions to a manageable size. The timestamps are the bulk of it: they sit
 # on every grill, board and command, and the vendor touches rows without
 # changing anything that affects parsing.
-_DROPPED_FIELDS = frozenset({"created_at", "updated_at", "deleted_at"})
-_DROPPED_GRILL_FIELDS = _DROPPED_FIELDS | {"app_layout", "manual_url"}
+_DROPPED_FIELDS = frozenset({"created_at", "updated_at", "deleted_at", "site_id"})
+# The rest is storefront and app-presentation data: how the vendor's own app
+# renders a grill and how its store sells one. None of it describes the grill's
+# protocol, so none of it is reachable through `Grill`, whose `json` attribute
+# is the only thing that ever exposed these.
+_DROPPED_GRILL_FIELDS = _DROPPED_FIELDS | {
+    "app_layout",
+    "friendly_name",
+    "has_mpc",
+    "has_no_app_indicators",
+    "image",
+    "manual_url",
+    "mpc_type",
+    "name_text_color",
+    "part_number",
+    "screen_orientation",
+    "shopify_product_id",
+    "sku",
+}
 # Commands are stored inside the board they belong to, so naming it again on
 # every one of them says nothing the position does not.
 _DROPPED_COMMAND_FIELDS = _DROPPED_FIELDS | {"control_board_id"}
@@ -46,6 +63,18 @@ def _drop(
 ) -> dict[str, Any]:
     """Copies `obj` without `fields`, applying any `replace` overrides."""
     return {k: v for k, v in obj.items() if k not in fields} | replace
+
+
+def _trim_board(board: dict[str, Any]) -> dict[str, Any]:
+    """Returns the form of a control board that gets written out."""
+    return _drop(
+        board,
+        _DROPPED_FIELDS,
+        control_board_commands=[
+            _drop(command, _DROPPED_COMMAND_FIELDS)
+            for command in board["control_board_commands"]
+        ],
+    )
 
 
 async def get_grill_details(
@@ -151,7 +180,10 @@ async def main():
     # shared across every model, so inlining them more than tripled the file.
     control_boards: dict[str, Any] = {}
     for grill in grills.values():
-        board = grill["control_board"]
+        # Compare the trimmed form, not the raw row. Two rows differing only in
+        # a field this script drops are not two different definitions, and
+        # failing the whole sweep over one would be a false alarm.
+        board = _trim_board(grill["control_board"])
         name = board["name"]
         if name in control_boards and control_boards[name] != board:
             raise Error(
@@ -164,17 +196,7 @@ async def main():
     print(
         json.dumps(
             {
-                "control_boards": {
-                    name: _drop(
-                        board,
-                        _DROPPED_FIELDS,
-                        control_board_commands=[
-                            _drop(command, _DROPPED_COMMAND_FIELDS)
-                            for command in board["control_board_commands"]
-                        ],
-                    )
-                    for name, board in control_boards.items()
-                },
+                "control_boards": control_boards,
                 "grills": {
                     name: _drop(
                         grill,
