@@ -30,6 +30,23 @@ _LOGGER = logging.getLogger(__name__)
 
 API_URL = "https://api-prod.dansonscorp.com/api/v1"
 
+# Vendor bookkeeping the library never reads, dropped to keep the checked-in
+# definitions to a manageable size. The timestamps are the bulk of it: they sit
+# on every grill, board and command, and the vendor touches rows without
+# changing anything that affects parsing.
+_DROPPED_FIELDS = frozenset({"created_at", "updated_at", "deleted_at"})
+_DROPPED_GRILL_FIELDS = _DROPPED_FIELDS | {"app_layout", "manual_url"}
+# Commands are stored inside the board they belong to, so naming it again on
+# every one of them says nothing the position does not.
+_DROPPED_COMMAND_FIELDS = _DROPPED_FIELDS | {"control_board_id"}
+
+
+def _drop(
+    obj: dict[str, Any], fields: frozenset[str], **replace: Any
+) -> dict[str, Any]:
+    """Copies `obj` without `fields`, applying any `replace` overrides."""
+    return {k: v for k, v in obj.items() if k not in fields} | replace
+
 
 async def get_grill_details(
     session: ClientSession, grill_id: int, attempts: int = 3
@@ -147,9 +164,23 @@ async def main():
     print(
         json.dumps(
             {
-                "control_boards": control_boards,
+                "control_boards": {
+                    name: _drop(
+                        board,
+                        _DROPPED_FIELDS,
+                        control_board_commands=[
+                            _drop(command, _DROPPED_COMMAND_FIELDS)
+                            for command in board["control_board_commands"]
+                        ],
+                    )
+                    for name, board in control_boards.items()
+                },
                 "grills": {
-                    name: {**grill, "control_board": grill["control_board"]["name"]}
+                    name: _drop(
+                        grill,
+                        _DROPPED_GRILL_FIELDS,
+                        control_board=grill["control_board"]["name"],
+                    )
                     for name, grill in grills.items()
                 },
             },
