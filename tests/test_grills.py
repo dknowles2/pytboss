@@ -131,6 +131,11 @@ class TestGetGrills:
         assert grill.control_board._temperatures_js_func is not None
         js = JSFunc(grill.control_board._temperatures_js_func)
         msg = Message()
+        # A dropped field reads bytes that don't hold it, so the frame reserves
+        # none for it.
+        dropped = grills_lib.DROPPED_TEMPERATURE_FIELDS.get(
+            grill.control_board.name, frozenset()
+        )
 
         # WARNING! THE ORDER HERE MATTERS!
         msg.add("prefix", "FE0C")
@@ -142,7 +147,7 @@ class TestGetGrills:
         msg.add("p3Temp", "010603")
         if js.has_key("p4Temp"):
             msg.add("p4Temp", "010604")
-        if js.has_key("smokerActTemp"):
+        if js.has_key("smokerActTemp") and "smokerActTemp" not in dropped:
             msg.add("smokerActTemp", "020100")
         msg.add("grillSetTemp", "020205")
         msg.add("grillTemp", "020105")
@@ -164,7 +169,7 @@ class TestGetGrills:
             want["p2Target"] = 192
         if js.has_key("p4Temp"):
             want["p4Temp"] = 164
-        if js.has_key("smokerActTemp"):
+        if js.has_key("smokerActTemp") and "smokerActTemp" not in dropped:
             want["smokerActTemp"] = 210
 
         with debug_js(js):
@@ -193,6 +198,11 @@ class TestGetGrills:
         msg = Message()
         assert grill.control_board._status_js_func is not None
         js = JSFunc(grill.control_board._status_js_func)
+        # A dropped field reads bytes that don't hold it, so the frame reserves
+        # none for it.
+        dropped = grills_lib.DROPPED_STATUS_FIELDS.get(
+            grill.control_board.name, frozenset()
+        )
 
         # WARNING! THE ORDER HERE MATTERS!
         msg.add("prefix", "FE0B")
@@ -204,7 +214,10 @@ class TestGetGrills:
         msg.add("p3Temp", "010603")
         if js.has_key("p4Temp", ignore_comments=False):
             msg.add("p4Temp", "010604")
-        if js.has_key("smokerActTemp", ignore_comments=False):
+        if (
+            js.has_key("smokerActTemp", ignore_comments=False)
+            and "smokerActTemp" not in dropped
+        ):
             msg.add("smokerActTemp", "020200")
         msg.add("grillTemp", "020205")
         msg.add("condGrillTemp", "01")
@@ -254,6 +267,18 @@ class TestGetGrills:
             want["erL"] = False
         if js.has_key("primeState"):
             want["primeState"] = False
+        # Most boards report probe temperatures only in the FE0C reply, but a
+        # few parse them out of the FE0B status frame as well.
+        if js.has_key("isFahrenheit"):
+            want["isFahrenheit"] = True
+        if js.has_key("p1Target"):
+            want["p1Target"] = 191
+        if js.has_key("p1Temp"):
+            want["p1Temp"] = 161
+            want["p2Temp"] = 162
+            want["p3Temp"] = 163
+        if js.has_key("p4Temp"):
+            want["p4Temp"] = 164
 
         with debug_js(js):
             assert status == dict(want)

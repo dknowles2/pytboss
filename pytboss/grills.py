@@ -2,11 +2,11 @@
 
 import json
 import re
-from collections.abc import Iterable
+from collections.abc import Container, Iterable
 from dataclasses import dataclass, field
 from functools import cache
 from importlib import resources
-from typing import Any, TypedDict
+from typing import Any, TypedDict, cast
 
 from dukpy import evaljs
 
@@ -20,18 +20,44 @@ def _get_grills() -> dict[str, Any]:
 
 UNSUPPORTED_MODELS = (
     "PBX - test 1",  # Nonstandard data format
-    "LG0800BL",  # Bad parsing routine
-    "LG1000BL",  # Bad parsing routine
-    "LG1200BL",  # Bad parsing routine
-    "LG1200FL",  # Bad parsing routine
-    "LG1200FP",  # Bad parsing routine
-    "LG300BL",  # Bad parsing routine
-    "LG800FL",  # Bad parsing routine
-    "LG800FP",  # Bad parsing routine
-    "LGV4BL",  # Bad parsing routine
     "PBV30DS",  # Nonstandard data format
     "PBV30DX",  # Nonstandard data format
 )
+
+# The Louisiana Grills boards (LBL, LFS) ship parsing routines derived from the
+# PitBoss ones without adjusting for their shorter frame, which has no dedicated
+# smoker temperature field. Two fields are dropped as a result:
+#
+#   * smokerActTemp reads no bytes of its own. It duplicates p4Temp's offset in
+#     the FE0B frame but the grill setpoint's in FE0C, so the merged value would
+#     flip depending on which frame arrived last. Neither reading holds up: the
+#     LFS models carry four meat probes, so p4Temp there is a real probe rather
+#     than a chamber sensor, and the LBL models carry two, so it reads 960 (None)
+#     regardless.
+#   * The grill temperature block spans bytes 20-22, overlapping moduleIsOn (21)
+#     and err1 (22). These frames are digit-per-byte, so no frame can satisfy
+#     both readings.
+#
+# Both are discarded after parsing rather than rewritten to guessed offsets, so
+# the vendor routines stay byte-identical to what grills.json ships. Grill
+# temperatures come from the FE0C reply instead, which is how every other board
+# already works -- PBL comments the same switch block out of its own status
+# routine.
+DROPPED_STATUS_FIELDS = {
+    "LBL": frozenset({"smokerActTemp", "grillSetTemp", "grillTemp"}),
+    "LFS": frozenset({"smokerActTemp", "grillSetTemp", "grillTemp"}),
+}
+
+DROPPED_TEMPERATURE_FIELDS = {
+    "LBL": frozenset({"smokerActTemp"}),
+    "LFS": frozenset({"smokerActTemp"}),
+}
+
+# Typos in the vendor's command slugs, mapped to the canonical slug.
+_COMMAND_SLUG_OVERRIDES = {
+    "set-prove-1-temperature": "set-probe-1-temperature",
+}
+
 
 _COMMAND_JS_TMPL = """\
 function command() {
@@ -167,6 +193,13 @@ class StateDict(TypedDict, total=False):
     """The time remaining for this recipe step (in seconds)."""
 
 
+def _drop_fields(state: StateDict | None, fields: Container[str]) -> StateDict | None:
+    """Removes fields a control board reads from bytes that don't hold them."""
+    if state is None:
+        return None
+    return cast(StateDict, {k: v for k, v in state.items() if k not in fields})
+
+
 @dataclass
 class Command:
     """A control board command."""
@@ -240,7 +273,7 @@ class ControlBoard:
         return cls(
             name=ctrl_dict["name"],
             commands={
-                c["slug"]: Command.from_dict(c)
+                _COMMAND_SLUG_OVERRIDES.get(c["slug"], c["slug"]): Command.from_dict(c)
                 for c in ctrl_dict["control_board_commands"]
             },
             _status_js_func=_scrub_js(ctrl_dict["status_function"]),
@@ -260,7 +293,10 @@ class ControlBoard:
         """
         if not self._status_js_func:
             raise NotImplementedError
-        return self._evaljs(self._status_js_func, message)
+        return _drop_fields(
+            self._evaljs(self._status_js_func, message),
+            DROPPED_STATUS_FIELDS.get(self.name, frozenset()),
+        )
 
     def parse_temperatures(self, message: str) -> StateDict | None:
         """Parses a temperatures message.
@@ -271,7 +307,10 @@ class ControlBoard:
         """
         if not self._temperatures_js_func:
             raise NotImplementedError
-        return self._evaljs(self._temperatures_js_func, message)
+        return _drop_fields(
+            self._evaljs(self._temperatures_js_func, message),
+            DROPPED_TEMPERATURE_FIELDS.get(self.name, frozenset()),
+        )
 
 
 @dataclass(frozen=True)
