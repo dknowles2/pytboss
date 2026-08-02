@@ -492,3 +492,15 @@ async def test_ping():
     ) as send_command:
         assert await pitboss.ping(timeout=5.0) == {}
         send_command.assert_awaited_once_with("RPC.Ping", {}, timeout=5.0)
+
+
+async def test_get_state_updates_the_cached_state(conn: FakeTransport, password: str):
+    """A polling-only connection must still keep the cache current."""
+    pitboss = api.PitBoss(conn, "PBV4PS2", password)
+    await pitboss.start()
+    assert pitboss._state == {}
+
+    await pitboss.get_state()
+    want: dict[str, Any] = STATE_DICT.copy()
+    want.update(TEMPS_DICT)
+    assert pitboss._state == want

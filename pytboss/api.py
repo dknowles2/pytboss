@@ -246,15 +246,19 @@ class PitBoss:
     async def get_state(self) -> StateDict:
         """Issues a live RPC to fetch and return the current grill state.
 
-        Unlike `subscribe_state()`, this does not use the cached state
-        maintained from prior pushed updates; it always queries the grill
-        directly.
+        Unlike `subscribe_state()`, this always queries the grill rather than
+        returning the cached state. The reply does update that cache, so
+        anything relying on it stays correct on a connection that only ever
+        polls.
         """
         resp = await self._conn.send_command(
             "PB.GetState", await self._authenticate({})
         )
         status = self.spec.control_board.parse_status(resp["sc_11"]) or {}
         status.update(self.spec.control_board.parse_temperatures(resp["sc_12"]) or {})
+        if status:
+            async with self._lock:
+                self._state.update(status)
         return status
 
     async def get_firmware_version(self) -> dict:
