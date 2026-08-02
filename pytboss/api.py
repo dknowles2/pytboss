@@ -457,7 +457,12 @@ class PitBoss:
         if self._last_uptime is None or now - self._last_uptime_check > _UPTIME_TTL:
             result = await self._conn.send_command("PB.GetTime", {})
             self._last_uptime = result.get("time", 0.0)
-            self._last_uptime_check = now
+            # Stamped after the reply: the grill computed its uptime then,
+            # not when the request went out. Stamping before the round trip
+            # inflates every later extrapolation by the RTT, and timed_key
+            # rounds to 10-second windows, so a slow link (BLE via a proxy)
+            # can push an authenticated command into the wrong window.
+            self._last_uptime_check = monotonic()
             return self._last_uptime
         return self._last_uptime + (now - self._last_uptime_check)
 

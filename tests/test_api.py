@@ -404,6 +404,27 @@ async def test_get_uptime_is_extrapolated_between_reads(pitboss: api.PitBoss):
         assert await pitboss.get_uptime() == first + sum(steps)
 
 
+async def test_get_uptime_extrapolation_excludes_the_rpc_round_trip():
+    """The grill computes its uptime when it replies, not when we ask.
+
+    The cache timestamp therefore has to be taken after the round trip;
+    taking it before inflates every extrapolation by the RTT.
+    """
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with freeze_time("2025-06-01 00:00:00") as ft:
+
+        def slow_get_time(params: dict) -> dict:
+            ft.tick(5)  # the reply takes 5 seconds to arrive
+            return {"time": 100.0}
+
+        conn._get_time = slow_get_time  # type: ignore[method-assign]
+        assert await pitboss.get_uptime() == 100.0
+        # No time has passed since the reply, so nothing to extrapolate.
+        assert await pitboss.get_uptime() == 100.0
+
+
 async def test_get_uptime_is_re_read_once_the_cache_is_stale(pitboss: api.PitBoss):
     """The fake grill counts up per read, so a fresh read is far lower."""
     with freeze_time("2025-06-01 00:00:00") as ft:
