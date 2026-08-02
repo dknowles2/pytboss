@@ -391,12 +391,16 @@ class Grill:
     temp_increments: list[int] | None = field(default_factory=list)
     """Supported temperature increments, in Fahrenheit."""
 
-    celsius_temp_increments: list[int] | None = field(default_factory=list)
-    """Supported temperature increments in Celsius, where the grill declares
-    its own list. Most do not; theirs is derived from `temp_increments`."""
-
     json: dict[str, Any] = field(default_factory=dict)
     """The raw JSON returned by the PitBoss API."""
+
+    celsius_temp_increments: list[int] | None = field(default_factory=list)
+    """Supported temperature increments in Celsius, where the grill declares
+    its own list. Most do not; theirs is derived from `temp_increments`.
+
+    Declared after `json` rather than beside `temp_increments`: `Grill` is not
+    `kw_only`, so inserting a field earlier would shift every positional
+    argument after it and silently change what an existing caller passes."""
 
     @classmethod
     def from_dict(cls, grill_dict) -> "Grill":
