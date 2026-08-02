@@ -46,13 +46,16 @@ _DROPPED_FIELDS = frozenset(
 # protocol, so none of it is reachable through `Grill`, whose `json` attribute
 # is the only thing that ever exposed these.
 #
-# `celsius_temp_increment` is the exception worth naming, since its fahrenheit
-# counterpart is kept: it is null on all but two grills, and where it is set it
-# only restates `temp_increment` in celsius, which TemperatureConverter already
-# derives.
+# `celsius_temp_increment` was dropped here once and should not be again. It is
+# null on all but two grills -- PBV30DS and PBV30DX -- and the reasoning was
+# that where set it merely restates `temp_increment` in celsius. It does not:
+# those two declare 40..150 in steps of 5, where deriving it from the
+# fahrenheit list gives 37..148 at irregular intervals, so the two disagree at
+# nearly every entry. That is presumably why the vendor publishes one at all.
+# ha-pitboss reads it to decide which setpoints the board will honour, so
+# dropping it silently offered those grills values their board ignores.
 _DROPPED_GRILL_FIELDS = _DROPPED_FIELDS | {
     "app_layout",
-    "celsius_temp_increment",
     "control_board_id",
     "friendly_name",
     "has_indicators",
