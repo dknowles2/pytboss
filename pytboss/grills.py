@@ -258,6 +258,13 @@ class Command:
         return evaljs(_COMMAND_JS_TMPL % self._js_func, args=args)
 
 
+def _live_code(js: str | None) -> str:
+    """The routine with commented-out code removed."""
+    if not js:
+        return ""
+    return re.sub(r"//.*", "", re.sub(r"/\*.*?\*/", "", js, flags=re.DOTALL))
+
+
 @dataclass(frozen=True)
 class ControlBoard:
     """Specifications for a control board connected via UART."""
@@ -295,6 +302,31 @@ class ControlBoard:
     def _evaljs(self, js_func: str, message: str) -> StateDict | None:
         js = _CONTROLLER_JS_TMPL % js_func
         return evaljs(js, message=message)
+
+    @property
+    def converts_temperatures_to_celsius(self) -> bool:
+        """Whether the temperatures routine converts fahrenheit itself.
+
+        Most boards convert internally and report whichever unit the grill is
+        set to; some report fahrenheit always and convert with an `ftoc()`
+        helper in their JS. Consumers deciding what unit a value is in, or
+        what unit to send, need to know which.
+
+        Read off the routine rather than a list of board names: a definitions
+        refresh can introduce a converting board, and only live code counts --
+        PBL2 ships PBL3's conversion block entirely commented out, which is
+        the whole difference between those two boards.
+        """
+        return "ftoc" in _live_code(self._temperatures_js_func)
+
+    @property
+    def converts_status_to_celsius(self) -> bool:
+        """Whether the status routine converts fahrenheit itself.
+
+        The two routines for one board do not always agree: PBL3 converts in
+        its temperatures reply but not in its status reply.
+        """
+        return "ftoc" in _live_code(self._status_js_func)
 
     def parse_status(self, message: str) -> StateDict | None:
         """Parses a status message.
