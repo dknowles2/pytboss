@@ -14,7 +14,7 @@ from typing import Any, Protocol, Self
 
 from mypy_extensions import DefaultNamedArg
 
-from .exceptions import RPCError
+from .exceptions import RPCError, Unauthorized
 
 DEFAULT_TIMEOUT = 30.0
 """Seconds to wait for a reply before giving up."""
@@ -36,6 +36,19 @@ SendCommandFn = Callable[
     Awaitable[dict[Any, Any] | None],
 ]
 """Signature shared by `Transport.send_command` and `send_command_without_answer`."""
+
+
+UNAUTHORIZED_CODE = 401
+"""The code the firmware answers with when the password is wrong or missing."""
+
+
+def _rpc_error(error: dict) -> RPCError:
+    """Build the exception for an error payload from the device."""
+    message = error.get("message", "Unknown error")
+    code = error.get("code")
+    if code == UNAUTHORIZED_CODE:
+        return Unauthorized(message, code)
+    return RPCError(message, code)
 
 
 class Transport(ABC):
@@ -92,6 +105,8 @@ class Transport(ABC):
         :param params: Parameters to send with the command.
         :param timeout: Timeout for the call. Pass `None` to wait forever.
         :raise pytboss.exceptions.RPCError: If the device returns an error response.
+        :raise pytboss.exceptions.Unauthorized: If the device rejects the
+            password. This is an `RPCError`, so catching that still works.
         :raise TimeoutError: If `timeout` elapses before a response is received.
         """
         cmd = await self._prepare_command(method, params)
@@ -138,9 +153,7 @@ class Transport(ABC):
             return False
         if not future.cancelled():
             if "error" in payload:
-                future.set_exception(
-                    RPCError(payload["error"].get("message", "Unknown error"))
-                )
+                future.set_exception(_rpc_error(payload["error"]))
             else:
                 future.set_result(payload["result"])
         return True
