@@ -404,11 +404,14 @@ async def test_get_uptime_is_extrapolated_between_reads(pitboss: api.PitBoss):
         assert await pitboss.get_uptime() == first + sum(steps)
 
 
-async def test_get_uptime_extrapolation_excludes_the_rpc_round_trip():
-    """The grill computes its uptime when it replies, not when we ask.
+async def test_get_uptime_extrapolation_runs_ahead_not_behind():
+    """The RPC round trip biases extrapolations ahead of the grill, on purpose.
 
-    The cache timestamp therefore has to be taken after the round trip;
-    taking it before inflates every extrapolation by the RTT.
+    The firmware's checkPassword accepts a key built from its current
+    10-second bucket or the next one (x or x + 1, never x - 1), so an
+    estimate that runs ahead is forgiven and one that runs behind is
+    rejected. The cache timestamp is therefore taken before the request
+    goes out; stamping it after the reply would flip the bias behind.
     """
     conn = FakeTransport()
     pitboss = api.PitBoss(conn, "PBV4PS2")
@@ -416,13 +419,13 @@ async def test_get_uptime_extrapolation_excludes_the_rpc_round_trip():
     with freeze_time("2025-06-01 00:00:00") as ft:
 
         def slow_get_time(params: dict) -> dict:
-            ft.tick(5)  # the reply takes 5 seconds to arrive
+            ft.tick(5)  # the request takes 5 seconds to reach the grill
             return {"time": 100.0}
 
         conn._get_time = slow_get_time  # type: ignore[method-assign]
         assert await pitboss.get_uptime() == 100.0
-        # No time has passed since the reply, so nothing to extrapolate.
-        assert await pitboss.get_uptime() == 100.0
+        # The grill is at ~100s; the extrapolation must not lag behind it.
+        assert await pitboss.get_uptime() >= 100.0 + 5.0
 
 
 async def test_get_uptime_is_re_read_once_the_cache_is_stale(pitboss: api.PitBoss):
