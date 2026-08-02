@@ -7,6 +7,7 @@ import logging
 from collections.abc import Awaitable, Callable
 from math import floor
 from time import monotonic
+from typing import Any
 
 from .codec import encode, timed_key
 from .config import Config
@@ -51,6 +52,19 @@ def _from_fahrenheit(temp: float, want_fahrenheit: bool) -> int:
     return round((temp - 32) * 5 / 9)
 
 
+async def _invoke(callback: Callable[[Any], Awaitable[None] | None], arg: Any) -> None:
+    """Call a subscriber, awaiting the result when there is one to await.
+
+    Decided from the returned value rather than the callback:
+    `inspect.iscoroutinefunction` cannot see through `functools.partial` or
+    an object with an `async __call__`, and calling those without awaiting
+    silently discards their coroutine.
+    """
+    result = callback(arg)
+    if inspect.isawaitable(result):
+        await result
+
+
 class PitBoss:
     """API for interacting with PitBoss grills over Bluetooth LE."""
 
@@ -88,7 +102,8 @@ class PitBoss:
         self._conn.set_state_callback(self._on_state_received)
         self._conn.set_vdata_callback(self._on_vdata_received)
         self._password = password.encode("utf-8")
-        self._lock = asyncio.Lock()  # protects callbacks and state.
+        self._lock = asyncio.Lock()  # protects state and the subscriber lists.
+        self._callback_lock = asyncio.Lock()  # serializes subscriber dispatch.
         self._state_callbacks: list[StateCallback] = []
         self._vdata_callbacks: list[VDataCallback] = []
         self._state = StateDict()
@@ -168,25 +183,27 @@ class PitBoss:
 
         async with self._lock:
             self._state.update(state)
+            callbacks = list(self._state_callbacks)
+        # Dispatched outside `_lock`: a subscriber that calls back into the
+        # API (`get_state()` takes the same lock) would otherwise deadlock.
+        # The dedicated lock keeps one update's callbacks from interleaving
+        # with the next one's, which holding `_lock` used to guarantee.
+        async with self._callback_lock:
             # TODO: Run callbacks concurrently
             # TODO: Send copies of state so subscribers can't modify it
-            for callback in self._state_callbacks:
-                if inspect.iscoroutinefunction(callback):
-                    await callback(self._state)
-                else:
-                    callback(self._state)
+            for callback in callbacks:
+                await _invoke(callback, self._state)
 
     async def _on_vdata_received(self, payload: str):
         vdata = json.loads(payload)
         _LOGGER.debug("VData received: %s", vdata)
         async with self._lock:
+            callbacks = list(self._vdata_callbacks)
+        async with self._callback_lock:
             # TODO: Run callbacks concurrently
             # TODO: Send copies of state so subscribers can't modify it
-            for callback in self._vdata_callbacks:
-                if inspect.iscoroutinefunction(callback):
-                    await callback(vdata)
-                else:
-                    callback(vdata)
+            for callback in callbacks:
+                await _invoke(callback, vdata)
 
     async def _authenticate(self, params: dict) -> dict:
         """Return `params` with the encoded password added.

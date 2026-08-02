@@ -1,3 +1,4 @@
+import asyncio
 import json
 from collections.abc import Generator
 from itertools import count
@@ -481,6 +482,57 @@ async def test_on_state_received_async_callback():
     await pitboss.subscribe_state(cb)
     await conn.send_state(STATE_HEX)
     assert received == [STATE_DICT]
+
+
+async def test_state_callback_may_call_back_into_the_api():
+    """`get_state()` takes the api lock, so dispatch must not hold it."""
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    seen = []
+
+    async def cb(state):
+        seen.append(await pitboss.get_state())
+
+    await pitboss.subscribe_state(cb)
+    await asyncio.wait_for(conn.send_state(STATE_HEX), timeout=5)
+    assert len(seen) == 1
+
+
+async def test_state_callback_may_subscribe_another():
+    """`subscribe_state()` takes the api lock, so dispatch must not hold it."""
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+
+    async def late(state):
+        pass
+
+    async def cb(state):
+        await pitboss.subscribe_state(late)
+
+    await pitboss.subscribe_state(cb)
+    await asyncio.wait_for(conn.send_state(STATE_HEX), timeout=5)
+    assert late in pitboss._state_callbacks
+
+
+async def test_state_subscriber_with_async_call_method():
+    """`iscoroutinefunction` cannot see through an `async __call__`."""
+
+    class Subscriber:
+        def __init__(self):
+            self.seen = []
+
+        async def __call__(self, state):
+            self.seen.append(dict(state))
+
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    subscriber = Subscriber()
+    await pitboss.subscribe_state(subscriber)
+    await conn.send_state(STATE_HEX)
+    assert subscriber.seen == [STATE_DICT]
 
 
 async def test_on_vdata_received():
