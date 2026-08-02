@@ -33,6 +33,14 @@ to run tests/ruff/mypy locally.
   must stay at the repo root (not moved into `fake_firmware/`) for the
   Mongoose OS VSCode plugin to find it.
 
+- **Releases reach ha-pitboss through two pins, not one**: a new public
+  attribute here is unreachable downstream until both `requirements.txt` and
+  `custom_components/pitboss/manifest.json` move there. Dependabot opens only
+  the first, and neither repo's CI catches the gap — downstream CI installs
+  from `requirements.txt` while users install from the manifest, so a consumer
+  reading the new attribute passes every check and fails at runtime. See
+  [REVIEW.md](REVIEW.md#releasing).
+
 ## Before committing
 
 Run the same checks CI runs, and make sure all three pass cleanly:
