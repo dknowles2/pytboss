@@ -1,4 +1,4 @@
-from asyncio import Event, Queue, create_task
+from asyncio import Event, Queue, create_task, sleep, timeout
 from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, call, patch
 
@@ -38,7 +38,12 @@ async def fake_server(
 
         async def pump_status():
             while True:
-                await ws.send_json(await state_payloads.get())
+                payload = await state_payloads.get()
+                if isinstance(payload, str):
+                    # A raw frame, for exercising malformed payloads.
+                    await ws.send_str(payload)
+                else:
+                    await ws.send_json(payload)
                 state_payloads.task_done()
 
         task = create_task(pump_status())
@@ -122,8 +127,8 @@ async def test_connect_server_error(session: ClientSession) -> None:
             await conn.connect()
 
 
-@patch("asyncio.sleep")
-async def test_reconnect_backoff(mock_sleep: AsyncMock, session: ClientSession) -> None:
+@patch.object(wss.WebSocketConnection, "_backoff_wait")
+async def test_reconnect_backoff(mock_wait: AsyncMock, session: ClientSession) -> None:
     responses = [True, False, False, False, False, False, False, False, True]
 
     async def handler(request: Request):
@@ -154,7 +159,7 @@ async def test_reconnect_backoff(mock_sleep: AsyncMock, session: ClientSession) 
         await conn.connect()
         await done.wait()
         await conn.disconnect()
-    mock_sleep.assert_has_awaits(
+    mock_wait.assert_has_awaits(
         [call(1.0), call(2.0), call(4.0), call(8.0), call(16.0), call(30.0), call(30.0)]
     )
 
@@ -216,6 +221,87 @@ async def test_command_wrong_app_id(
 
     state_callback.assert_not_awaited()
     vdata_callback.assert_not_awaited()
+
+
+async def test_malformed_payload_does_not_kill_the_stream(
+    conn: wss.WebSocketConnection, state_payloads: Queue
+) -> None:
+    state_callback = MockCallback(1)
+    conn.set_state_callback(state_callback)
+    async with conn:
+        await state_payloads.put("this is not json")
+        await state_payloads.put({"status": ["state"]})
+        async with timeout(5):
+            await state_callback.wait()
+    state_callback.assert_awaited_once_with("state")
+
+
+async def test_subscriber_exception_does_not_kill_the_stream(
+    conn: wss.WebSocketConnection, state_payloads: Queue
+) -> None:
+    state_callback = MockCallback(2)
+    state_callback.mock.side_effect = [RuntimeError("boom"), None]
+    conn.set_state_callback(state_callback)
+    async with conn:
+        await state_payloads.put({"status": ["first"]})
+        await state_payloads.put({"status": ["second"]})
+        async with timeout(5):
+            await state_callback.wait()
+    assert state_callback.mock.await_count == 2
+
+
+async def test_state_callback_may_send_commands(
+    conn: wss.WebSocketConnection,
+    state_payloads: Queue,
+) -> None:
+    """The receive loop must not hold the send lock while dispatching.
+
+    Awaiting the *response* inside a callback can never complete -- the
+    response is read by the very loop the callback is blocking -- but the
+    send itself must go through rather than deadlock the stream forever.
+    """
+    done = Event()
+
+    async def state_cb(
+        status_payload: str | None, temperatures_payload: str | None = None
+    ) -> None:
+        await conn.send_command_without_answer("cmd", {})
+        done.set()
+
+    conn.set_state_callback(state_cb)
+    async with conn:
+        await state_payloads.put({"status": ["state"]})
+        async with timeout(5):
+            await done.wait()
+
+
+async def test_send_when_the_socket_is_gone_raises_not_connected(
+    conn: wss.WebSocketConnection,
+) -> None:
+    async with conn:
+        sock = conn._sock
+        # Simulate the subscribe loop having dropped the socket.
+        conn._sock = None
+        with raises(NotConnectedError):
+            await conn.send_command("cmd", {}, timeout=1)
+        conn._sock = sock  # so disconnect() can close it cleanly
+
+
+async def test_disconnect_does_not_wait_out_the_backoff(
+    fake_server: TestServer, session: ClientSession
+) -> None:
+    async with fake_server, session:
+        conn = make_conn(fake_server, session)
+        await conn.connect()
+        assert conn._sock is not None
+        # Make the server unreachable so the subscribe loop enters a backoff
+        # sleep after the socket drops.
+        with patch.object(conn, "_ws_connect", side_effect=GrillUnavailable("gone")):
+            await conn._sock.close()
+            await sleep(0.2)  # let the loop reach the backoff wait
+            # The first backoff is 1.0s; disconnect() must not wait it out.
+            async with timeout(0.5):
+                await conn.disconnect()
 
 
 async def test_external_session_not_closed():

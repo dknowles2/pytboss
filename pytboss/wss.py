@@ -3,12 +3,14 @@
 import asyncio
 import logging
 from asyncio import AbstractEventLoop, Event, Lock, Task
+from contextlib import suppress
 from typing import Any
 from uuid import uuid4
 
 from aiohttp import (
     ClientSession,
     ClientWebSocketResponse,
+    WSMsgType,
     WSServerHandshakeError,
 )
 
@@ -54,12 +56,14 @@ class WebSocketConnection(Transport):
         self._app_id = app_id or str(uuid4()).split("-")[-1]
         self._subscribe_task: Task | None = None
         self._subscribed = Event()
+        self._stopping = Event()
         self._keep_running = False
 
     async def connect(self) -> None:
         """Starts the connection to the device."""
         self._sock = await self._ws_connect()
         self._keep_running = True
+        self._stopping.clear()
         self._subscribe_task = self._loop.create_task(self._subscribe())
         await self._subscribed.wait()
 
@@ -71,6 +75,9 @@ class WebSocketConnection(Transport):
         for the background reconnect/subscribe task to finish.
         """
         self._keep_running = False
+        # Wake the subscribe task if it is waiting out a reconnect backoff;
+        # otherwise this call blocks for the remainder of that sleep.
+        self._stopping.set()
         if self._sock:
             await self._sock.close()
         # Only close the session if we created it (not if it was provided externally)
@@ -99,7 +106,7 @@ class WebSocketConnection(Transport):
                 except GrillUnavailable as ex:
                     _LOGGER.debug("Failed to connect (attempt %d): %s", attempt, ex)
                     _LOGGER.debug("Will try again in %.2fs", backoff)
-                    await asyncio.sleep(backoff)
+                    await self._backoff_wait(backoff)
                     attempt += 1
                     backoff = min(_MAX_BACKOFF_TIME, backoff * 2)
                     continue
@@ -111,10 +118,24 @@ class WebSocketConnection(Transport):
                 _LOGGER.debug("Waiting for payloads")
                 self._subscribed.set()
                 async for msg in self._sock:
-                    async with self._sock_lock:
+                    # One bad payload or subscriber must not tear down the
+                    # stream: an exception escaping this loop would end the
+                    # task, and with it the automatic reconnects this class
+                    # promises, while leaving in-flight commands to wait out
+                    # their full timeout.
+                    if msg.type is not WSMsgType.TEXT:
+                        _LOGGER.debug("Ignoring %s frame", msg.type.name)
+                        continue
+                    try:
                         payload = msg.json()
-                        _LOGGER.debug("WSS payload: %s", payload)
+                    except ValueError:
+                        _LOGGER.warning("Ignoring malformed payload: %s", msg.data)
+                        continue
+                    _LOGGER.debug("WSS payload: %s", payload)
+                    try:
                         await self._handle_message(payload)
+                    except Exception:
+                        _LOGGER.exception("Error handling payload: %s", payload)
                 _LOGGER.debug("WebSocket closed")
 
             self._sock = None
@@ -124,6 +145,17 @@ class WebSocketConnection(Transport):
             self._loop.is_running(),
             self._keep_running,
         )
+
+    async def _backoff_wait(self, backoff: float) -> None:
+        """Wait out a reconnect backoff.
+
+        Interruptible: `disconnect()` sets `_stopping` so it does not have to
+        wait for the remainder of the backoff, which reaches
+        `_MAX_BACKOFF_TIME` seconds.
+        """
+        with suppress(TimeoutError):
+            async with asyncio.timeout(backoff):
+                await self._stopping.wait()
 
     async def _handle_message(self, payload: dict[str, Any]) -> None:
         if "app_id" in payload and payload["app_id"] != self._app_id:
@@ -156,9 +188,13 @@ class WebSocketConnection(Transport):
         return self._sock is not None and not self._sock.closed
 
     async def _send_prepared_command(self, cmd: dict) -> None:
-        if not self.is_connected():
-            raise NotConnectedError
         cmd["app_id"] = self._app_id
         _LOGGER.debug("Sending command: %s", cmd)
         async with self._sock_lock:
-            await self._sock.send_json(cmd)  # type: ignore
+            # Re-read under the lock: the subscribe loop clears `_sock` when
+            # the stream ends, so a check made before acquiring the lock can
+            # be stale by the time the send happens.
+            sock = self._sock
+            if sock is None or sock.closed:
+                raise NotConnectedError
+            await sock.send_json(cmd)
