@@ -391,3 +391,28 @@ class TestGetGrill:
     def test_invalid(self):
         with pytest.raises(InvalidGrill):
             grills_lib.get_grill("unknown-grill")
+
+
+def test_converts_to_celsius_reads_the_routine():
+    """Live code only: a commented-out conversion does not count."""
+    converting = grills_lib.ControlBoard(
+        "PBx", {}, "", "var ftoc = function (t) { return t; };"
+    )
+    assert converting.converts_temperatures_to_celsius is True
+
+    commented = grills_lib.ControlBoard(
+        "PBx", {}, "", "/* var ftoc = function (t) { return t; }; */"
+    )
+    assert commented.converts_temperatures_to_celsius is False
+
+    line_commented = grills_lib.ControlBoard(
+        "PBx", {}, "", "// var ftoc = function (t) { return t; };"
+    )
+    assert line_commented.converts_temperatures_to_celsius is False
+
+
+def test_converts_to_celsius_is_per_routine():
+    """One board's two routines need not agree; PBL3 is the real example."""
+    board = grills_lib.ControlBoard("PBx", {}, "return {};", "ftoc(1);")
+    assert board.converts_temperatures_to_celsius is True
+    assert board.converts_status_to_celsius is False
