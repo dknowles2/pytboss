@@ -1,8 +1,11 @@
+import builtins
 import re
+import threading
 from contextlib import contextmanager
 from math import floor
 
 import pytest
+from dukpy import JSRuntimeError
 
 from pytboss import grills as grills_lib
 from pytboss.exceptions import InvalidGrill
@@ -416,3 +419,71 @@ def test_converts_to_celsius_is_per_routine():
     board = grills_lib.ControlBoard("PBx", {}, "return {};", "ftoc(1);")
     assert board.converts_temperatures_to_celsius is True
     assert board.converts_status_to_celsius is False
+
+
+@contextmanager
+def _count_js_reads():
+    """Count reads of dukpy's runtime `.js` assets."""
+    reads: list[str] = []
+    real_open = builtins.open
+
+    def counting_open(path, *args, **kwargs):
+        if str(path).endswith(".js"):
+            reads.append(str(path))
+        return real_open(path, *args, **kwargs)
+
+    builtins.open = counting_open
+    try:
+        yield reads
+    finally:
+        builtins.open = real_open
+
+
+def test_the_interpreter_is_reused_across_parses():
+    """A fresh interpreter per parse reads three runtime files each time."""
+    board = grills_lib.get_grill("PBV4PS2").control_board
+    message = "FE0B" + "0" * 60
+    board.parse_status(message)  # warm this thread's interpreter
+
+    with _count_js_reads() as reads:
+        for _ in range(10):
+            board.parse_status(message)
+    assert reads == []
+
+
+def test_reuse_does_not_change_the_result():
+    board = grills_lib.get_grill("PBV4PS2").control_board
+    message = "FE0B" + "0" * 60
+    first = board.parse_status(message)
+    assert [board.parse_status(message) for _ in range(20)] == [first] * 20
+
+
+def test_the_interpreter_survives_a_failed_evaluation():
+    """One bad message must not poison every parse that follows."""
+    board = grills_lib.get_grill("PBV4PS2").control_board
+    message = "FE0B" + "0" * 60
+    expected = board.parse_status(message)
+
+    with pytest.raises(JSRuntimeError):
+        grills_lib._run_js("throw new Error('boom');")
+
+    assert board.parse_status(message) == expected
+
+
+def test_each_thread_gets_its_own_interpreter():
+    """`get_grill` runs under `asyncio.to_thread`, so parsing can move."""
+    board = grills_lib.get_grill("PBV4PS2").control_board
+    message = "FE0B" + "0" * 60
+    expected = board.parse_status(message)
+    results: list[object] = []
+
+    def parse_on_this_thread() -> None:
+        results.append(board.parse_status(message))
+
+    threads = [threading.Thread(target=parse_on_this_thread) for _ in range(4)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert results == [expected] * 4
