@@ -5,7 +5,7 @@ import inspect
 import json
 import logging
 from collections.abc import Awaitable, Callable
-from time import time
+from time import monotonic
 
 from .codec import encode, timed_key
 from .config import Config
@@ -13,6 +13,16 @@ from .exceptions import UnsupportedOperation
 from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
 from .transport import Transport
+
+_UPTIME_TTL = 60.0
+"""Seconds before the cached uptime is re-read rather than extrapolated.
+
+Kept short because a grill that restarts resets its uptime, and no transport
+routes its reconnect through `PitBoss` -- `ble` and `wss` both reconnect
+internally -- so nothing invalidates the cache when that happens. Until the
+re-read, `timed_key` would be built from an uptime minutes too high, and every
+authenticated command on a password-protected grill would be rejected. This
+bounds that window to a minute while still saving most of the round trips."""
 
 _LOGGER = logging.getLogger("pytboss")
 
@@ -65,7 +75,7 @@ class PitBoss:
         self._vdata_callbacks: list[VDataCallback] = []
         self._state = StateDict()
         self._last_uptime: float | None = None
-        self._last_uptime_check: int | None = None
+        self._last_uptime_check: float = 0.0
 
     def is_connected(self) -> bool:
         """Returns whether we are actively connected to the grill."""
@@ -305,17 +315,19 @@ class PitBoss:
     async def get_uptime(self) -> float:
         """Returns the device's uptime, in seconds.
 
-        Cached for up to 5 seconds between RPCs.
+        Read once and then extrapolated, since uptime advances with the
+        wall clock, and re-read every `_UPTIME_TTL` seconds so a grill that
+        restarted cannot be extrapolated from for long.
 
         :meta private:
         """
-        now = int(time())
-        if not self._last_uptime_check or now - self._last_uptime_check > 5:
+        now = monotonic()
+        if self._last_uptime is None or now - self._last_uptime_check > _UPTIME_TTL:
             result = await self._conn.send_command("PB.GetTime", {})
             self._last_uptime = result.get("time", 0.0)
             self._last_uptime_check = now
-        assert self._last_uptime is not None
-        return self._last_uptime
+            return self._last_uptime
+        return self._last_uptime + (now - self._last_uptime_check)
 
     async def ping(self, timeout: float | None = None) -> dict:
         """Pings the device.

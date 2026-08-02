@@ -341,16 +341,24 @@ async def test_get_state(conn: FakeTransport, password: str):
     assert (await pitboss.get_state()) == want
 
 
-async def test_get_uptime_is_cached(pitboss: api.PitBoss):
+async def test_get_uptime_is_extrapolated_between_reads(pitboss: api.PitBoss):
+    """Uptime advances with the clock, so it need not be asked for again."""
+    # Expressed as a fraction of the TTL so that changing the TTL cannot
+    # silently turn this into a test of the re-read path instead.
+    steps = [api._UPTIME_TTL / 8, api._UPTIME_TTL / 4, api._UPTIME_TTL / 2]
     with freeze_time("2025-06-01 00:00:00") as ft:
-        t1 = await pitboss.get_uptime()
-        # We should use a cached uptime for 5 seconds.
-        for _ in range(5):
-            ft.tick(1.0)
-            assert await pitboss.get_uptime() == t1
-        # Now it should change.
-        ft.tick(1.0)
-        assert await pitboss.get_uptime() > t1
+        first = await pitboss.get_uptime()
+        for elapsed in steps:
+            ft.tick(elapsed)
+        assert await pitboss.get_uptime() == first + sum(steps)
+
+
+async def test_get_uptime_is_re_read_once_the_cache_is_stale(pitboss: api.PitBoss):
+    """The fake grill counts up per read, so a fresh read is far lower."""
+    with freeze_time("2025-06-01 00:00:00") as ft:
+        first = await pitboss.get_uptime()
+        ft.tick(api._UPTIME_TTL + 1)
+        assert await pitboss.get_uptime() < first + api._UPTIME_TTL
 
 
 async def test_is_connected():
