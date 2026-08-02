@@ -123,9 +123,21 @@ Cutting a release is what propagates a change downstream:
    by label. `breaking` deserves care: the dataclasses in `grills.py` are
    public, so removing an attribute or reordering a constructor is a breaking
    change even when nothing in either repo used it.
-2. ha-pitboss picks the new version up via Dependabot, or a manual bump.
+2. ha-pitboss picks the new version up via Dependabot, or a manual bump. That
+   bump must touch **two** files there — `requirements.txt`, which is what its
+   CI installs, and `custom_components/pitboss/manifest.json`, which is what
+   Home Assistant installs for users. Dependabot only opens the first.
 3. That bump triggers `update-grill-docs.yml` there, which regenerates
    `docs/SUPPORTED_GRILLS.md` automatically.
 
 So a change to which models are supported reaches users' documentation only
 after a release. Don't hand-edit the downstream doc to compensate.
+
+Step 2 is where this has actually gone wrong: 2026.8.2 landed in
+`requirements.txt` alone, so downstream CI tested against the new release
+while users kept the old one. A new public attribute here — `Grill.has_mpc`
+was the case — is unreachable downstream until *both* pins move, and nothing
+in either repo's CI notices, because each installs from the file it knows
+about. Adding an attribute is cheap; assume a consumer will read it before the
+manifest catches up, and treat that lag as part of the release rather than
+someone else's problem.
