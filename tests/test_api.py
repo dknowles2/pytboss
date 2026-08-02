@@ -787,6 +787,7 @@ async def test_probe_target_command_reports_the_route(pitboss: api.PitBoss):
     assert pitboss.probe_target_command(2) is None
     assert pitboss.probe_target_command(4) is None
 
+
 async def test_reboot():
     conn = FakeTransport()
     pitboss = api.PitBoss(conn, "PBV4PS2")
