@@ -1,3 +1,5 @@
+import pytest
+
 from pytboss.transport import Transport
 
 
@@ -32,3 +34,12 @@ async def test_on_command_response_unknown_id():
     conn = FakeTransport()
     handled = await conn._on_command_response({"id": 999, "result": {}})
     assert handled is False
+
+
+async def test_send_command_gives_up_instead_of_waiting_forever():
+    """A reply that never arrives must not block the caller indefinitely."""
+    conn = FakeTransport()
+    with pytest.raises(TimeoutError):
+        await conn.send_command("PB.GetState", {}, timeout=0.01)
+    # And the abandoned future must not be left behind.
+    assert conn._rpc_futures == {}

@@ -16,6 +16,9 @@ from mypy_extensions import DefaultNamedArg
 
 from .exceptions import RPCError
 
+DEFAULT_TIMEOUT = 30.0
+"""Seconds to wait for a reply before giving up."""
+
 
 class RawStateCallback(Protocol):
     """Callback invoked by a `Transport` with raw, unparsed state payloads."""
@@ -81,13 +84,13 @@ class Transport(ABC):
     async def _send_prepared_command(self, cmd: dict) -> None: ...
 
     async def send_command(
-        self, method: str, params: dict, *, timeout: float | None = None
+        self, method: str, params: dict, *, timeout: float | None = DEFAULT_TIMEOUT
     ) -> dict:
         """Sends a comand to the device.
 
         :param method: The method to call.
         :param params: Parameters to send with the command.
-        :param timeout: Timeout for the call.
+        :param timeout: Timeout for the call. Pass `None` to wait forever.
         :raise pytboss.exceptions.RPCError: If the device returns an error response.
         :raise TimeoutError: If `timeout` elapses before a response is received.
         """
@@ -95,9 +98,15 @@ class Transport(ABC):
         future = self._loop.create_future()
         async with self._lock:
             self._rpc_futures[cmd["id"]] = future
-        async with asyncio.timeout(timeout):
-            await self._send_prepared_command(cmd)
-            return await future
+        try:
+            async with asyncio.timeout(timeout):
+                await self._send_prepared_command(cmd)
+                return await future
+        finally:
+            # A reply that never arrives would otherwise leave its future
+            # behind forever.
+            async with self._lock:
+                self._rpc_futures.pop(cmd["id"], None)
 
     async def send_command_without_answer(
         self, method: str, params: dict, *, timeout: float | None = None
