@@ -8,14 +8,14 @@ from collections.abc import Awaitable, Callable
 from time import monotonic
 
 from .codec import encode, timed_key
-
-_UPTIME_TTL = 600.0
-"""Seconds before the cached uptime is re-read rather than extrapolated."""
 from .config import Config
 from .exceptions import UnsupportedOperation
 from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
 from .transport import Transport
+
+_UPTIME_TTL = 600.0
+"""Seconds before the cached uptime is re-read rather than extrapolated."""
 
 _LOGGER = logging.getLogger("pytboss")
 
