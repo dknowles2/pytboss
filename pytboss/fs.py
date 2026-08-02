@@ -29,15 +29,17 @@ class FileSystem:
         """
         length = 512
         offset = 0
-        content = ""
+        content = bytearray()
         while True:
             resp = await self._conn.send_command(
                 "FS.Get", {"filename": filename, "offset": offset, "len": length}
             )
-            content += b64decode(resp["data"]).decode("utf-8")
+            content += b64decode(resp["data"])
             offset += length
             if resp["left"] == 0:
-                return content
+                # Decoded once, whole: a multi-byte character split across
+                # the chunk boundary is not valid UTF-8 on its own.
+                return content.decode("utf-8")
 
     async def set_file_content(self, filename: str, data: str, append: bool) -> dict:
         """Writes content to a file on the device.
