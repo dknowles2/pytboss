@@ -10,7 +10,12 @@ from freezegun import freeze_time
 
 from pytboss import api, grills
 from pytboss.codec import decode, timed_key
-from pytboss.exceptions import InvalidGrill, Unauthorized, UnsupportedOperation
+from pytboss.exceptions import (
+    InvalidGrill,
+    RPCError,
+    Unauthorized,
+    UnsupportedOperation,
+)
 from pytboss.transport import Transport
 
 STATE_HEX = (
@@ -550,9 +555,44 @@ async def test_get_state_updates_the_cached_state(conn: FakeTransport, password:
     want.update(TEMPS_DICT)
     assert pitboss._state == want
 
+
 async def test_set_temperature_unit(pitboss: api.PitBoss, conn: FakeTransport):
     assert (await pitboss.set_temperature_unit(fahrenheit=False)) == {}
     assert conn.last_mcu_command == "set-celsius()"
 
     assert (await pitboss.set_temperature_unit(fahrenheit=True)) == {}
     assert conn.last_mcu_command == "set-fahrenheit()"
+
+
+async def test_a_rejected_password_raises_unauthorized():
+    """The 401 has to be distinguishable without matching on the message."""
+    conn = FakeTransport("thepassword")
+    pitboss = api.PitBoss(conn, "PBV4PS2", "wrongpassword")
+    await pitboss.start()
+
+    with pytest.raises(Unauthorized) as caught:
+        await pitboss.get_state()
+    assert caught.value.code == 401
+
+    # Still an RPCError, so anything already catching that keeps working.
+    assert isinstance(caught.value, RPCError)
+
+
+async def test_other_rpc_errors_keep_their_code():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+
+    with pytest.raises(RPCError) as caught:
+        await pitboss._conn.send_command("No.SuchMethod", {})
+    assert not isinstance(caught.value, Unauthorized)
+    assert caught.value.code == -1
+
+
+async def test_an_error_without_a_code_is_still_an_rpc_error():
+    """Nothing guarantees the device sends one."""
+    assert RPCError("boom").code is None
+    # And the message-only constructor still works, as does the bare
+    # `Unauthorized` that `auth` and the fake transport both raise.
+    assert str(RPCError("boom")) == "boom"
+    assert str(Unauthorized()) == ""
