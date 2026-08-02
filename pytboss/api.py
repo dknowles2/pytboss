@@ -430,6 +430,11 @@ class PitBoss:
         verbatim, so an authenticated write leaves the encoded password in the
         scratchpad and it would otherwise be handed back as if it were data.
 
+        This is the only thing that removes it, rather than a belt-and-braces
+        measure. Firmware 0.6.0 attempts the same strip and misses -- it
+        clears `vData.pws` while `checkPassword` reads `params.psw` -- and the
+        eight earlier mJS versions do not attempt it at all.
+
         :meta private:
         """
         data = await self._conn.send_command(
