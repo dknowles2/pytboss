@@ -389,10 +389,18 @@ class Grill:
     """The number of meat probes available on the grill."""
 
     temp_increments: list[int] | None = field(default_factory=list)
-    """Supported temperature increments."""
+    """Supported temperature increments, in Fahrenheit."""
 
     json: dict[str, Any] = field(default_factory=dict)
     """The raw JSON returned by the PitBoss API."""
+
+    celsius_temp_increments: list[int] | None = field(default_factory=list)
+    """Supported temperature increments in Celsius, where the grill declares
+    its own list. Most do not; theirs is derived from `temp_increments`.
+
+    Declared after `json` rather than beside `temp_increments`: `Grill` is not
+    `kw_only`, so inserting a field earlier would shift every positional
+    argument after it and silently change what an existing caller passes."""
 
     @classmethod
     def from_dict(cls, grill_dict) -> "Grill":
@@ -400,7 +408,8 @@ class Grill:
 
         :param grill_dict: A top-level entry from `grills.json`, with `name`,
             `control_board`, `lights`, `has_mpc`, `meat_probes`,
-            `temp_increment`, `min_temp`, and `max_temp` keys.
+            `temp_increment`, `celsius_temp_increment`, `min_temp`, and
+            `max_temp` keys.
         """
         min_temp = None
         try:
@@ -424,6 +433,11 @@ class Grill:
             max_temp=max_temp,
             meat_probes=grill_dict["meat_probes"],
             temp_increments=[int(t) for t in grill_dict["temp_increment"].split("/")],
+            celsius_temp_increments=[
+                int(t)
+                for t in (grill_dict.get("celsius_temp_increment") or "").split("/")
+                if t.strip().isdigit()
+            ],
             json=grill_dict,
             control_board=ControlBoard.from_dict(grill_dict["control_board"]),
         )
