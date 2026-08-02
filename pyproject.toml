@@ -39,6 +39,18 @@ exclude = ["fake_firmware"]
 [tool.setuptools_scm]
 write_to = "pytboss/_version.py"
 
+[tool.ruff]
+# Stated rather than inferred. `ruff format` decides where to wrap from
+# `line-length`, so CI and a local run have to agree on it, and the target
+# version is otherwise derived from `requires-python` at a distance.
+#
+# Deliberately no `[tool.ruff.lint] select`: ruff's default set is much wider
+# than the `E4, E7, E9, F` the docs describe -- it includes BLE, B, S, ASYNC
+# and more, which is why `# noqa: BLE001` appears in this tree at all. Naming
+# a narrower set here would silently switch rules off.
+line-length    = 88
+target-version = "py312"
+
 [tool.uv]
 default-groups = []
 
