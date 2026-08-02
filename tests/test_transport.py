@@ -1,5 +1,8 @@
+import asyncio
+
 import pytest
 
+from pytboss.exceptions import GrillUnavailable, NotConnectedError
 from pytboss.transport import Transport
 
 
@@ -42,4 +45,34 @@ async def test_send_command_gives_up_instead_of_waiting_forever():
     with pytest.raises(TimeoutError):
         await conn.send_command("PB.GetState", {}, timeout=0.01)
     # And the abandoned future must not be left behind.
+    assert conn._rpc_futures == {}
+
+
+async def test_fail_pending_commands_wakes_the_caller():
+    """A reply that can no longer arrive must not be waited out."""
+    conn = FakeTransport()
+    task = asyncio.create_task(conn.send_command("PB.GetState", {}, timeout=None))
+    await asyncio.sleep(0)  # let it register its future
+
+    await conn._fail_pending_commands()
+
+    with pytest.raises(NotConnectedError):
+        await task
+    assert conn._rpc_futures == {}
+
+
+async def test_fail_pending_commands_can_carry_a_reason():
+    conn = FakeTransport()
+    task = asyncio.create_task(conn.send_command("PB.GetState", {}, timeout=None))
+    await asyncio.sleep(0)
+
+    await conn._fail_pending_commands(GrillUnavailable("gone"))
+
+    with pytest.raises(GrillUnavailable):
+        await task
+
+
+async def test_fail_pending_commands_with_nothing_in_flight():
+    conn = FakeTransport()
+    await conn._fail_pending_commands()
     assert conn._rpc_futures == {}

@@ -88,6 +88,8 @@ class BleConnection(Transport):
         """Called when our Bluetooth client is disconnected."""
         _LOGGER.debug("Bluetooth disconnected.")
         self._is_connected = False
+        # Bleak calls this synchronously, so the cleanup has to be scheduled.
+        self._loop.create_task(self._fail_pending_commands())
         if not self._reconnecting and self._disconnect_callback is not None:
             self._disconnect_callback(client)
 

@@ -14,7 +14,7 @@ from typing import Any, Protocol, Self
 
 from mypy_extensions import DefaultNamedArg
 
-from .exceptions import RPCError, Unauthorized
+from .exceptions import NotConnectedError, RPCError, Unauthorized
 
 DEFAULT_TIMEOUT = 30.0
 """Seconds to wait for a reply before giving up."""
@@ -122,6 +122,24 @@ class Transport(ABC):
             # behind forever.
             async with self._lock:
                 self._rpc_futures.pop(cmd["id"], None)
+
+    async def _fail_pending_commands(self, ex: Exception | None = None) -> None:
+        """Fail commands still waiting for a reply that can no longer arrive.
+
+        A subclass calls this wherever it notices the link has gone -- usually
+        its receive loop rather than `disconnect()`, since a drop is not
+        normally an explicit disconnect. Without it, a caller waits out the
+        full `timeout` for a reply the device can no longer send.
+
+        :param ex: The exception to fail them with. Defaults to
+            `NotConnectedError`.
+        """
+        async with self._lock:
+            futures = list(self._rpc_futures.values())
+            self._rpc_futures.clear()
+        for future in futures:
+            if not future.done():
+                future.set_exception(ex or NotConnectedError())
 
     async def send_command_without_answer(
         self, method: str, params: dict, *, timeout: float | None = None
