@@ -405,6 +405,30 @@ async def test_get_uptime_is_extrapolated_between_reads(pitboss: api.PitBoss):
         assert await pitboss.get_uptime() == first + sum(steps)
 
 
+async def test_get_uptime_extrapolation_runs_ahead_not_behind():
+    """The RPC round trip biases extrapolations ahead of the grill, on purpose.
+
+    The firmware's checkPassword accepts a key built from its current
+    10-second bucket or the next one (x or x + 1, never x - 1), so an
+    estimate that runs ahead is forgiven and one that runs behind is
+    rejected. The cache timestamp is therefore taken before the request
+    goes out; stamping it after the reply would flip the bias behind.
+    """
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with freeze_time("2025-06-01 00:00:00") as ft:
+
+        def slow_get_time(params: dict) -> dict:
+            ft.tick(5)  # the request takes 5 seconds to reach the grill
+            return {"time": 100.0}
+
+        conn._get_time = slow_get_time  # type: ignore[method-assign]
+        assert await pitboss.get_uptime() == 100.0
+        # The grill is at ~100s; the extrapolation must not lag behind it.
+        assert await pitboss.get_uptime() >= 100.0 + 5.0
+
+
 async def test_get_uptime_is_re_read_once_the_cache_is_stale(pitboss: api.PitBoss):
     """The fake grill counts up per read, so a fresh read is far lower."""
     with freeze_time("2025-06-01 00:00:00") as ft:

@@ -474,6 +474,16 @@ class PitBoss:
         if self._last_uptime is None or now - self._last_uptime_check > _UPTIME_TTL:
             result = await self._conn.send_command("PB.GetTime", {})
             self._last_uptime = result.get("time", 0.0)
+            # Deliberately the pre-request timestamp, though the grill
+            # computed its uptime later, when the request reached it: every
+            # extrapolation therefore runs ahead of the grill by about one
+            # request latency, and ahead is the only direction the firmware
+            # forgives. checkPassword accepts a key built from its current
+            # 10-second bucket or the next one -- x or x + 1, never x - 1 --
+            # which absorbs a client running ahead but rejects one running
+            # behind. Stamping after the reply reads as more accurate and
+            # is not: it flips the bias behind, where a slow link draws
+            # spurious Unauthorized errors near bucket boundaries.
             self._last_uptime_check = now
             return self._last_uptime
         return self._last_uptime + (now - self._last_uptime_check)
