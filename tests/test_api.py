@@ -800,9 +800,9 @@ async def test_reboot():
         send.assert_awaited_once_with("Sys.Reboot", {})
 
 
-async def test_wifi_awake_wdt(pitboss: api.PitBoss, conn: FakeTransport):
+async def test_request_fast_updates(pitboss: api.PitBoss, conn: FakeTransport):
     with mock.patch.object(conn, "send_command", AsyncMock(return_value={})) as send:
-        assert await pitboss.wifi_awake_wdt() == {}
+        assert await pitboss.request_fast_updates() == {}
         assert send.await_args is not None
         method, params = send.await_args.args
         assert method == "PB.WiFiAwakeWDT"

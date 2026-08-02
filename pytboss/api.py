@@ -363,12 +363,22 @@ class PitBoss:
         """
         await self._conn.send_command_without_answer("Sys.Reboot", {})
 
-    async def wifi_awake_wdt(self) -> dict:
-        """Holds the WiFi module awake for five minutes.
+    async def request_fast_updates(self) -> dict:
+        """Asks the grill to push status to the cloud faster, for 5 minutes.
 
-        The firmware arms a watchdog (`wsWDT = 5 * 60`) that keeps the module
-        from dropping its connection, and each call restarts it. The timeout
-        is the firmware's; it is not configurable.
+        Despite the RPC's name (`PB.WiFiAwakeWDT`) this does not keep the WiFi
+        module awake. The firmware runs a one-second tick that counts `wsWDT`
+        down and, each time its push timer expires, reschedules it to
+        `wsFastInterval` while `wsWDT > 0` and `wsSlowInterval` otherwise --
+        5 and 60 seconds by default, both settable via
+        `PB.SetWiFiUpdateFrequency`. This call sets `wsWDT` to 300 and zeroes
+        the push timer, so the grill pushes immediately and then every 5
+        seconds until the five minutes lapse. Calling again restarts them.
+
+        **It affects the cloud WebSocket only.** The push it accelerates is
+        `WS.send(wsConn, ...)`, so a Bluetooth or local connection sees no
+        difference. Useful for a client reading the grill through the Dansons
+        relay while a user is watching; a no-op for anything else.
         """
         return await self._conn.send_command(
             "PB.WiFiAwakeWDT", await self._authenticate({})
