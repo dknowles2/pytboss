@@ -363,7 +363,7 @@ class PitBoss:
         """
         await self._conn.send_command_without_answer("Sys.Reboot", {})
 
-    async def request_fast_updates(self) -> dict:
+    async def request_fast_updates(self) -> None:
         """Asks the grill to push status to the cloud faster, for 5 minutes.
 
         Despite the RPC's name (`PB.WiFiAwakeWDT`) this does not keep the WiFi
@@ -375,14 +375,23 @@ class PitBoss:
         the push timer, so the grill pushes immediately and then every 5
         seconds until the five minutes lapse. Calling again restarts them.
 
-        **It affects the cloud WebSocket only.** The push it accelerates is
-        `WS.send(wsConn, ...)`, so a Bluetooth or local connection sees no
-        difference. Useful for a client reading the grill through the Dansons
-        relay while a user is watching; a no-op for anything else.
+        Two conditions decide whether it does anything at all:
+
+        * **The cloud WebSocket only.** The push it accelerates is
+          `WS.send(wsConn, ...)`, so a Bluetooth or local connection sees no
+          difference.
+        * **Only while the grill is on**, or was on at the previous tick --
+          the firmware guards the push with `lastWasOn || moduleIsOn`. On a
+          cold grill the timer still reschedules to the fast interval and
+          nothing is sent.
+
+        Useful for a client reading the grill through the Dansons relay while
+        a user is watching; a no-op for anything else.
+
+        Returns nothing: the firmware handler ends in `return null`, so there
+        is no result to hand back.
         """
-        return await self._conn.send_command(
-            "PB.WiFiAwakeWDT", await self._authenticate({})
-        )
+        await self._conn.send_command("PB.WiFiAwakeWDT", await self._authenticate({}))
 
     async def set_temperature_unit(self, fahrenheit: bool) -> dict:
         """Switches the unit the grill itself works in.

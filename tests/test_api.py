@@ -63,6 +63,7 @@ class FakeTransport(Transport):
 
     def __init__(self, password: str = ""):
         self.virtual_data: dict = {}
+        self.fast_updates_requested = False
         super().__init__()
         self.last_mcu_command: str | None = None
         self.password = password
@@ -91,6 +92,7 @@ class FakeTransport(Transport):
         dispatch = {
             "PB.GetTime": self._get_time,
             "PB.GetVirtualData": self._get_virtual_data,
+            "PB.WiFiAwakeWDT": self._wifi_awake_wdt,
             "PB.SetVirtualData": self._set_virtual_data,
             "PB.SetDevicePassword": self._set_password,
             "PB.SendMCUCommand": self._send_mcu_command,
@@ -121,6 +123,11 @@ class FakeTransport(Transport):
 
     def _get_time(self, params: dict) -> dict:
         return {"time": self._uptime()}
+
+    def _wifi_awake_wdt(self, params: dict) -> None:
+        """Password-checked, and ends in `return null` like the firmware."""
+        self._check_password(params)
+        self.fast_updates_requested = True
 
     def _get_virtual_data(self, params: dict) -> dict:
         self._check_password(params)
@@ -801,11 +808,13 @@ async def test_reboot():
 
 
 async def test_request_fast_updates(pitboss: api.PitBoss, conn: FakeTransport):
-    with mock.patch.object(conn, "send_command", AsyncMock(return_value={})) as send:
-        assert await pitboss.request_fast_updates() == {}
-        assert send.await_args is not None
-        method, params = send.await_args.args
-        assert method == "PB.WiFiAwakeWDT"
-        # Authenticated: the firmware checks the password on this one.
-        assert set(params) <= {"psw"}
-        assert ("psw" in params) is bool(pitboss._password)
+    """Reaches the grill, and returns nothing because the reply carries nothing.
+
+    Driven through the fake's own handler rather than a mocked
+    `send_command`: a mock returning a dict would be asserting on a reply no
+    grill sends, and one returning `None` would also break `PB.GetTime`,
+    which authentication needs. The fake refuses a wrong password, so the
+    `with_password` case proves this call is authenticated.
+    """
+    await pitboss.request_fast_updates()
+    assert conn.fast_updates_requested is True
