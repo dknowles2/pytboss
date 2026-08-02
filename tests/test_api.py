@@ -61,6 +61,7 @@ class FakeTransport(Transport):
     """Fake implementation of a transport protocol."""
 
     def __init__(self, password: str = ""):
+        self.virtual_data: dict = {}
         super().__init__()
         self.last_mcu_command: str | None = None
         self.password = password
@@ -89,6 +90,7 @@ class FakeTransport(Transport):
         dispatch = {
             "PB.GetTime": self._get_time,
             "PB.GetVirtualData": self._get_virtual_data,
+            "PB.SetVirtualData": self._set_virtual_data,
             "PB.SetDevicePassword": self._set_password,
             "PB.SendMCUCommand": self._send_mcu_command,
             "PB.GetState": self._get_state,
@@ -121,6 +123,12 @@ class FakeTransport(Transport):
 
     def _get_virtual_data(self, params: dict) -> dict:
         self._check_password(params)
+        return dict(self.virtual_data)
+
+    def _set_virtual_data(self, params: dict) -> dict:
+        """Assign the payload wholesale, as the firmware does."""
+        self._check_password(params)
+        self.virtual_data = dict(params)
         return {}
 
     def _set_password(self, params: dict) -> dict:
@@ -194,6 +202,7 @@ def my_grill(
         has_lights=kwargs.get("has_lights", False),
         temp_increments=kwargs.get("temp_increments", []),
         celsius_temp_increments=kwargs.get("celsius_temp_increments", []),
+        meat_probes=kwargs.get("meat_probes", 0),
     )
 
 
@@ -596,3 +605,108 @@ async def test_an_error_without_a_code_is_still_an_rpc_error():
     # `Unauthorized` that `auth` and the fake transport both raise.
     assert str(RPCError("boom")) == "boom"
     assert str(Unauthorized()) == ""
+
+
+@pytest.mark.grill_params({"meat_probes": 4})
+async def test_set_probe_target_uses_the_board_command_when_there_is_one(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """The mock board declares `set-probe-1-temperature` and nothing else."""
+    await pitboss.set_probe_target(1, 165)
+
+    assert conn.last_mcu_command == "set-probe-1-temperature(165,)"
+    assert conn.virtual_data == {}
+
+
+@pytest.mark.grill_params({"meat_probes": 4})
+async def test_set_probe_target_falls_back_to_virtual_data(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    pitboss._state["moduleIsOn"] = True
+
+    await pitboss.set_probe_target(2, 165)
+
+    assert conn.virtual_data["p2T"] == 165
+    assert conn.last_mcu_command is None
+
+
+@pytest.mark.grill_params({"meat_probes": 4})
+async def test_virtual_data_writes_preserve_what_is_already_there(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """The firmware assigns wholesale, so a write must merge client-side."""
+    conn.virtual_data = {"p2T": 165}
+    pitboss._state["moduleIsOn"] = True
+
+    await pitboss.set_probe_target(3, 190)
+
+    assert conn.virtual_data["p2T"] == 165
+    assert conn.virtual_data["p3T"] == 190
+
+
+@pytest.mark.grill_params({"meat_probes": 4})
+async def test_virtual_data_is_always_fahrenheit(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """Whatever unit the grill itself is working in."""
+    pitboss._state["moduleIsOn"] = True
+    pitboss._state["isFahrenheit"] = False
+
+    await pitboss.set_probe_target(2, 74)
+
+    assert conn.virtual_data["p2T"] == 165
+    # ...and comes back in the grill's unit, round-tripping.
+    assert (await pitboss.get_probe_targets())[2] == 74
+
+
+@pytest.mark.grill_params({"meat_probes": 4})
+async def test_set_probe_target_refuses_while_the_grill_is_off(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """The firmware rejects the write and wipes the store at power-off."""
+    pitboss._state["moduleIsOn"] = False
+
+    with pytest.raises(UnsupportedOperation):
+        await pitboss.set_probe_target(2, 165)
+    assert conn.virtual_data == {}
+
+
+@pytest.mark.grill_params({"meat_probes": 4})
+async def test_a_reported_target_wins_over_virtual_data(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    conn.virtual_data = {"p1T": 200}
+    pitboss._state["moduleIsOn"] = True
+    pitboss._state["p1Target"] = 165
+
+    assert (await pitboss.get_probe_targets())[1] == 165
+
+
+@pytest.mark.grill_params({"meat_probes": 4})
+async def test_the_password_never_reaches_the_scratchpad_as_data(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """`_authenticate` used to mutate the caller's payload."""
+    pitboss._state["moduleIsOn"] = True
+
+    payload = {"p2T": 165}
+    await pitboss.set_virtual_data(payload)
+
+    # The caller's dict is untouched...
+    assert payload == {"p2T": 165}
+    # ...and reads never hand the credential back as if it were data.
+    assert "psw" not in await pitboss.get_virtual_data()
+    # It does still reach the device, though: the firmware stores the params
+    # of the last write verbatim and authentication travels in that same
+    # object, so this is a protocol constraint rather than something the
+    # library can avoid. Stripping it on read is what keeps it out of every
+    # consumer's hands.
+    if pitboss._password:
+        assert "psw" in conn.virtual_data
+
+
+@pytest.mark.grill_params({"meat_probes": 4})
+async def test_probe_target_command_reports_the_route(pitboss: api.PitBoss):
+    assert pitboss.probe_target_command(1) == "set-probe-1-temperature"
+    assert pitboss.probe_target_command(2) is None
+    assert pitboss.probe_target_command(4) is None
