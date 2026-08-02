@@ -187,6 +187,8 @@ def my_grill(
         min_temp=kwargs.get("min_temp", None),
         max_temp=kwargs.get("max_temp", None),
         has_lights=kwargs.get("has_lights", False),
+        temp_increments=kwargs.get("temp_increments", []),
+        celsius_temp_increments=kwargs.get("celsius_temp_increments", []),
     )
 
 
@@ -283,16 +285,49 @@ async def test_set_grill_temperature(pitboss: api.PitBoss, conn: FakeTransport):
     assert conn.last_mcu_command == "set-temperature(225,)"
 
 
-@pytest.mark.grill_params({"max_temp": 200})
+@pytest.mark.grill_params({"temp_increments": [180, 200, 220]})
 async def test_set_grill_temperature_high(pitboss: api.PitBoss, conn: FakeTransport):
-    assert (await pitboss.set_grill_temperature(225)) == {}
+    """Above the range, the highest accepted setpoint."""
+    assert (await pitboss.set_grill_temperature(400)) == {}
+    assert conn.last_mcu_command == "set-temperature(220,)"
+
+
+@pytest.mark.grill_params({"temp_increments": [180, 200, 220]})
+async def test_set_grill_temperature_low(pitboss: api.PitBoss, conn: FakeTransport):
+    """Below the range, the lowest accepted setpoint."""
+    assert (await pitboss.set_grill_temperature(100)) == {}
+    assert conn.last_mcu_command == "set-temperature(180,)"
+
+
+@pytest.mark.grill_params({"temp_increments": [180, 200, 220]})
+async def test_set_grill_temperature_snaps_to_the_nearest(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """The board ignores anything that is not on its list."""
+    assert (await pitboss.set_grill_temperature(206)) == {}
     assert conn.last_mcu_command == "set-temperature(200,)"
 
 
-@pytest.mark.grill_params({"min_temp": 300})
-async def test_set_grill_temperature_low(pitboss: api.PitBoss, conn: FakeTransport):
-    assert (await pitboss.set_grill_temperature(225)) == {}
-    assert conn.last_mcu_command == "set-temperature(300,)"
+@pytest.mark.grill_params({"temp_increments": [180, 190, 200]})
+async def test_set_grill_temperature_in_celsius(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """A grill reporting Celsius is sent Celsius, not a Fahrenheit bound."""
+    pitboss._state["isFahrenheit"] = False
+    # 180/190/200F floor to 82/87/93C.
+    assert (await pitboss.set_grill_temperature(88)) == {}
+    assert conn.last_mcu_command == "set-temperature(87,)"
+
+
+@pytest.mark.grill_params(
+    {"temp_increments": [180, 190], "celsius_temp_increments": [40, 45, 50]}
+)
+async def test_set_grill_temperature_prefers_a_declared_celsius_list(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    pitboss._state["isFahrenheit"] = False
+    assert (await pitboss.set_grill_temperature(44)) == {}
+    assert conn.last_mcu_command == "set-temperature(45,)"
 
 
 async def test_set_probe_temperature(pitboss: api.PitBoss, conn: FakeTransport):

@@ -5,6 +5,7 @@ import inspect
 import json
 import logging
 from collections.abc import Awaitable, Callable
+from math import floor
 from time import monotonic
 
 from .codec import encode, timed_key
@@ -198,16 +199,33 @@ class PitBoss:
         )
         self._password = new_password_bytes
 
+    def accepted_setpoints(self, fahrenheit: bool = True) -> list[int]:
+        """Grill setpoints the control board honours.
+
+        The board ignores anything that is not on this list.
+
+        :param fahrenheit: Whether to return the list in Fahrenheit.
+        """
+        increments = self.spec.temp_increments or []
+        if fahrenheit:
+            return list(increments)
+        if celsius := self.spec.celsius_temp_increments:
+            return list(celsius)
+        # Match the boards that convert inside their own parsing routine:
+        # they floor, so 190F is 87C to the grill rather than 88.
+        return [floor((v - 32) / 1.8) for v in increments]
+
     async def set_grill_temperature(self, temp: int) -> dict:
         """Sets the target grill temperature.
 
-        :param temp: Target grill temperature.
+        Snapped to the nearest value the control board accepts, expressed in
+        the unit the grill is currently working in.
+
+        :param temp: Target grill temperature, in the grill's own unit.
         """
-        # TODO: Clamp to a value from self.spec.temp_increments.
-        if self.spec.max_temp:
-            temp = min(temp, self.spec.max_temp)
-        if self.spec.min_temp:
-            temp = max(temp, self.spec.min_temp)
+        fahrenheit = self._state.get("isFahrenheit", True)
+        if accepted := self.accepted_setpoints(fahrenheit):
+            temp = min(accepted, key=lambda value: abs(value - temp))
         return await self._send_command("set-temperature", temp)
 
     async def set_probe_temperature(self, temp: int) -> dict:
