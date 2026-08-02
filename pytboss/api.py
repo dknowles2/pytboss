@@ -14,8 +14,15 @@ from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
 from .transport import Transport
 
-_UPTIME_TTL = 600.0
-"""Seconds before the cached uptime is re-read rather than extrapolated."""
+_UPTIME_TTL = 60.0
+"""Seconds before the cached uptime is re-read rather than extrapolated.
+
+Kept short because a grill that restarts resets its uptime, and no transport
+routes its reconnect through `PitBoss` -- `ble` and `wss` both reconnect
+internally -- so nothing invalidates the cache when that happens. Until the
+re-read, `timed_key` would be built from an uptime minutes too high, and every
+authenticated command on a password-protected grill would be rejected. This
+bounds that window to a minute while still saving most of the round trips."""
 
 _LOGGER = logging.getLogger("pytboss")
 
@@ -309,7 +316,8 @@ class PitBoss:
         """Returns the device's uptime, in seconds.
 
         Read once and then extrapolated, since uptime advances with the
-        wall clock.
+        wall clock, and re-read every `_UPTIME_TTL` seconds so a grill that
+        restarted cannot be extrapolated from for long.
 
         :meta private:
         """
