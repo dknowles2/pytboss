@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from math import floor
 
 import pytest
+from dukpy import JSRuntimeError
 
 from pytboss import grills as grills_lib
 from pytboss.exceptions import InvalidGrill
@@ -463,7 +464,7 @@ def test_the_interpreter_survives_a_failed_evaluation():
     message = "FE0B" + "0" * 60
     expected = board.parse_status(message)
 
-    with pytest.raises(Exception):
+    with pytest.raises(JSRuntimeError):
         grills_lib._run_js("throw new Error('boom');")
 
     assert board.parse_status(message) == expected
