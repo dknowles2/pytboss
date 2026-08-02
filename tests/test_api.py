@@ -154,6 +154,8 @@ def mock_control_board() -> Mock:
         for cmd in (
             "set-temperature",
             "set-probe-1-temperature",
+            "set-celsius",
+            "set-fahrenheit",
             "turn-light-on",
             "turn-light-off",
             "turn-off",
@@ -512,3 +514,10 @@ async def test_get_state_updates_the_cached_state(conn: FakeTransport, password:
     want: dict[str, Any] = STATE_DICT.copy()
     want.update(TEMPS_DICT)
     assert pitboss._state == want
+
+async def test_set_temperature_unit(pitboss: api.PitBoss, conn: FakeTransport):
+    assert (await pitboss.set_temperature_unit(fahrenheit=False)) == {}
+    assert conn.last_mcu_command == "set-celsius()"
+
+    assert (await pitboss.set_temperature_unit(fahrenheit=True)) == {}
+    assert conn.last_mcu_command == "set-fahrenheit()"

@@ -229,6 +229,18 @@ class PitBoss:
             raise UnsupportedOperation
         return await self._send_command(cmd, temp)
 
+    async def set_temperature_unit(self, fahrenheit: bool) -> dict:
+        """Switches the unit the grill itself works in.
+
+        This is the grill's own setting -- the one shown on its panel and
+        used by the values it reports -- not a display preference.
+
+        :param fahrenheit: Whether the grill should work in Fahrenheit.
+        """
+        return await self._send_command(
+            "set-fahrenheit" if fahrenheit else "set-celsius"
+        )
+
     async def turn_light_on(self) -> dict:
         """Turns the light on if the grill has a light."""
         if not self.spec.has_lights:
