@@ -297,21 +297,21 @@ async def test_set_password_with_old_password():
 
 async def test_set_grill_temperature(pitboss: api.PitBoss, conn: FakeTransport):
     assert (await pitboss.set_grill_temperature(225)) == {}
-    assert conn.last_mcu_command == "set-temperature(225,)"
+    assert conn.last_mcu_command == "set-temperature(225, True)"
 
 
 @pytest.mark.grill_params({"temp_increments": [180, 200, 220]})
 async def test_set_grill_temperature_high(pitboss: api.PitBoss, conn: FakeTransport):
     """Above the range, the highest accepted setpoint."""
     assert (await pitboss.set_grill_temperature(400)) == {}
-    assert conn.last_mcu_command == "set-temperature(220,)"
+    assert conn.last_mcu_command == "set-temperature(220, True)"
 
 
 @pytest.mark.grill_params({"temp_increments": [180, 200, 220]})
 async def test_set_grill_temperature_low(pitboss: api.PitBoss, conn: FakeTransport):
     """Below the range, the lowest accepted setpoint."""
     assert (await pitboss.set_grill_temperature(100)) == {}
-    assert conn.last_mcu_command == "set-temperature(180,)"
+    assert conn.last_mcu_command == "set-temperature(180, True)"
 
 
 @pytest.mark.grill_params({"temp_increments": [180, 200, 220]})
@@ -320,7 +320,7 @@ async def test_set_grill_temperature_snaps_to_the_nearest(
 ):
     """The board ignores anything that is not on its list."""
     assert (await pitboss.set_grill_temperature(206)) == {}
-    assert conn.last_mcu_command == "set-temperature(200,)"
+    assert conn.last_mcu_command == "set-temperature(200, True)"
 
 
 @pytest.mark.grill_params({"temp_increments": [180, 190, 200]})
@@ -331,7 +331,7 @@ async def test_set_grill_temperature_in_celsius(
     pitboss._state["isFahrenheit"] = False
     # 180/190/200F floor to 82/87/93C.
     assert (await pitboss.set_grill_temperature(88)) == {}
-    assert conn.last_mcu_command == "set-temperature(87,)"
+    assert conn.last_mcu_command == "set-temperature(87, False)"
 
 
 @pytest.mark.grill_params(
@@ -342,12 +342,12 @@ async def test_set_grill_temperature_prefers_a_declared_celsius_list(
 ):
     pitboss._state["isFahrenheit"] = False
     assert (await pitboss.set_grill_temperature(44)) == {}
-    assert conn.last_mcu_command == "set-temperature(45,)"
+    assert conn.last_mcu_command == "set-temperature(45, False)"
 
 
 async def test_set_probe_temperature(pitboss: api.PitBoss, conn: FakeTransport):
     assert (await pitboss.set_probe_temperature(225)) == {}
-    assert conn.last_mcu_command == "set-probe-1-temperature(225,)"
+    assert conn.last_mcu_command == "set-probe-1-temperature(225, True)"
 
 
 @pytest.mark.grill_params({"has_lights": True})
@@ -567,7 +567,7 @@ async def test_set_probe_2_temperature(
         "set-probe-2-temperature"
     )
     assert (await pitboss.set_probe_2_temperature(120)) == {}
-    assert conn.last_mcu_command == "set-probe-2-temperature(120,)"
+    assert conn.last_mcu_command == "set-probe-2-temperature(120, True)"
 
 
 async def test_get_firmware_version():
@@ -690,7 +690,7 @@ async def test_set_probe_target_uses_the_board_command_when_there_is_one(
     """The mock board declares `set-probe-1-temperature` and nothing else."""
     await pitboss.set_probe_target(1, 165)
 
-    assert conn.last_mcu_command == "set-probe-1-temperature(165,)"
+    assert conn.last_mcu_command == "set-probe-1-temperature(165, True)"
     assert conn.virtual_data == {}
 
 
