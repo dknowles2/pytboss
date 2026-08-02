@@ -262,29 +262,37 @@ class PitBoss:
 
         :param temp: Target grill temperature, in the grill's own unit.
         """
-        fahrenheit = self._state.get("isFahrenheit", True)
+        fahrenheit = self._is_fahrenheit()
         if accepted := self.accepted_setpoints(fahrenheit):
             temp = min(accepted, key=lambda value: abs(value - temp))
-        return await self._send_command("set-temperature", temp)
+        # The unit flag travels with every temperature command: on eleven
+        # boards the MCU always speaks Fahrenheit, and the vendor's command
+        # routine converts a Celsius argument only when its second parameter
+        # is `false`. Sent alone, a Celsius setpoint is read as Fahrenheit
+        # (100C becomes 100F). Boards whose routine takes one parameter
+        # ignore the extra argument, as do fixed-hex commands.
+        return await self._send_command("set-temperature", temp, fahrenheit)
 
     async def set_probe_temperature(self, temp: int) -> dict:
         """Sets the target temperature for probe 1.
 
-        :param temp: Target probe temperature.
+        :param temp: Target probe temperature, in the grill's own unit.
         """
-        return await self._send_command("set-probe-1-temperature", temp)
+        return await self._send_command(
+            "set-probe-1-temperature", temp, self._is_fahrenheit()
+        )
 
     async def set_probe_2_temperature(self, temp: int) -> dict:
         """Sets the target temperature for probe 2.
 
-        :param temp: Target probe temperature.
+        :param temp: Target probe temperature, in the grill's own unit.
         :raise pytboss.exceptions.UnsupportedOperation: When probe 2's
             target temperature cannot be set.
         """
         cmd = "set-probe-2-temperature"
         if cmd not in self.spec.control_board.commands:
             raise UnsupportedOperation
-        return await self._send_command(cmd, temp)
+        return await self._send_command(cmd, temp, self._is_fahrenheit())
 
     def probe_target_command(self, probe_number: int) -> str | None:
         """The board command that sets this probe's target, if it has one.
@@ -314,7 +322,9 @@ class PitBoss:
             clears the store when the grill is switched off.
         """
         if self.probe_target_command(probe_number) is not None:
-            await self._send_command(f"set-probe-{probe_number}-temperature", temp)
+            await self._send_command(
+                f"set-probe-{probe_number}-temperature", temp, self._is_fahrenheit()
+            )
             return
         if not self._state.get("moduleIsOn"):
             raise UnsupportedOperation(

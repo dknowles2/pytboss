@@ -487,3 +487,31 @@ def test_each_thread_gets_its_own_interpreter():
         thread.join()
 
     assert results == [expected] * 4
+
+
+def test_set_temperature_converts_celsius_when_the_unit_flag_says_so():
+    """Boards whose MCU always speaks Fahrenheit convert in the command JS.
+
+    The vendor routine takes (temp, is_fahrenheit) and converts a Celsius
+    argument to Fahrenheit only when the flag is `false`. Without the flag
+    a Celsius setpoint is passed through and read as Fahrenheit.
+    """
+    # PB1000R1 is on PBV, whose temperature routine carries ftoc().
+    cmd = grills_lib.get_grill("PB1000R1").control_board.commands["set-temperature"]
+    assert cmd(225, True) == "FE0501020205FF"  # F mode: passthrough
+    assert cmd(100, False) == "FE0501020100FF"  # 100C -> 212F, snapped to 210
+    assert cmd(100) == "FE0501010000FF"  # no flag: passed through as 100F
+
+
+def test_probe_commands_convert_celsius_when_the_unit_flag_says_so():
+    # PB1020DX is on PBL3, whose probe routines carry the same flag.
+    board = grills_lib.get_grill("PB1020DX").control_board
+    cmd = board.commands["set-probe-1-temperature"]
+    assert cmd(160, True) == "FE0502010600FF"  # F mode: passthrough
+    assert cmd(70, False) == "FE0502010600FF"  # 70C -> 158F, snapped to 160
+
+
+def test_boards_without_the_unit_flag_ignore_it():
+    """PBL's routine takes one parameter; the extra flag must be harmless."""
+    cmd = grills_lib.get_grill("PB1600PS1").control_board.commands["set-temperature"]
+    assert cmd(110, False) == cmd(110)
