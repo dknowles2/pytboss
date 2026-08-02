@@ -800,10 +800,9 @@ async def test_reboot():
 
 
 async def test_wifi_awake_wdt(pitboss: api.PitBoss, conn: FakeTransport):
-    with mock.patch.object(
-        conn, "send_command", AsyncMock(return_value={})
-    ) as send:
+    with mock.patch.object(conn, "send_command", AsyncMock(return_value={})) as send:
         assert await pitboss.wifi_awake_wdt() == {}
+        assert send.await_args is not None
         method, params = send.await_args.args
         assert method == "PB.WiFiAwakeWDT"
         # Authenticated: the firmware checks the password on this one.
