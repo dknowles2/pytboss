@@ -354,6 +354,26 @@ class PitBoss:
         """Whether the grill is currently working in Fahrenheit."""
         return self._state.get("isFahrenheit", True) is not False
 
+    async def reboot(self) -> None:
+        """Reboots the WiFi module.
+
+        The standard remedy when the module wedges: it drops its connections
+        and comes back, leaving the grill itself running. No response is
+        expected, since the board reboots before it can answer.
+        """
+        await self._conn.send_command_without_answer("Sys.Reboot", {})
+
+    async def wifi_awake_wdt(self) -> dict:
+        """Holds the WiFi module awake for five minutes.
+
+        The firmware arms a watchdog (`wsWDT = 5 * 60`) that keeps the module
+        from dropping its connection, and each call restarts it. The timeout
+        is the firmware's; it is not configurable.
+        """
+        return await self._conn.send_command(
+            "PB.WiFiAwakeWDT", await self._authenticate({})
+        )
+
     async def set_temperature_unit(self, fahrenheit: bool) -> dict:
         """Switches the unit the grill itself works in.
 

@@ -786,3 +786,26 @@ async def test_probe_target_command_reports_the_route(pitboss: api.PitBoss):
     assert pitboss.probe_target_command(1) == "set-probe-1-temperature"
     assert pitboss.probe_target_command(2) is None
     assert pitboss.probe_target_command(4) is None
+
+async def test_reboot():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(
+        conn, "send_command_without_answer", AsyncMock(return_value=None)
+    ) as send:
+        assert await pitboss.reboot() is None
+        # Without an answer: the board reboots before it could send one.
+        send.assert_awaited_once_with("Sys.Reboot", {})
+
+
+async def test_wifi_awake_wdt(pitboss: api.PitBoss, conn: FakeTransport):
+    with mock.patch.object(
+        conn, "send_command", AsyncMock(return_value={})
+    ) as send:
+        assert await pitboss.wifi_awake_wdt() == {}
+        method, params = send.await_args.args
+        assert method == "PB.WiFiAwakeWDT"
+        # Authenticated: the firmware checks the password on this one.
+        assert set(params) <= {"psw"}
+        assert ("psw" in params) is bool(pitboss._password)
