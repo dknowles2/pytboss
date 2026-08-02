@@ -51,6 +51,18 @@ async def test_get_file_content_multiple_chunks(fs: FileSystem, conn: AsyncMock)
     )
 
 
+async def test_get_file_content_multibyte_split_across_chunks(
+    fs: FileSystem, conn: AsyncMock
+):
+    """A multi-byte character on the chunk boundary must survive the read."""
+    content = ("x" * 511 + "é" + "y").encode("utf-8")  # é spans bytes 511-512
+    conn.send_command.side_effect = [
+        {"data": b64encode(content[:512]).decode(), "left": len(content) - 512},
+        {"data": b64encode(content[512:]).decode(), "left": 0},
+    ]
+    assert await fs.get_file_content("test.txt") == "x" * 511 + "éy"
+
+
 async def test_set_file_content(fs: FileSystem, conn: AsyncMock):
     conn.send_command.return_value = {}
     assert await fs.set_file_content("test.txt", "data", True) == {}
