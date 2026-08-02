@@ -118,6 +118,7 @@ class WebSocketConnection(Transport):
                 _LOGGER.debug("WebSocket closed")
 
             self._sock = None
+            await self._fail_pending_commands()
         _LOGGER.debug(
             "Exiting subscribe loop. is_running=%s, keep_running=%s",
             self._loop.is_running(),
