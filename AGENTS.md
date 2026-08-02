@@ -15,7 +15,7 @@ to run tests/ruff/mypy locally.
   compatible interpreter itself, so there's no need to worry about the
   system `python3` version.
 - **Generated files — edit the generator, not the output**:
-  - `pytboss/grills.json` is regenerated nightly by `scripts/dump_grills.py`
+  - `pytboss/grills.json` is regenerated weekly by `scripts/dump_grills.py`
     (see `.github/workflows/update-grills.yml`), which pulls grill
     definitions from the PitBoss cloud API. Don't hand-edit the JSON.
   - The "Supported Models" list in `README.md` (between
