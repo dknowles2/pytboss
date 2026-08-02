@@ -2,15 +2,40 @@
 
 import json
 import re
+import threading
 from collections.abc import Container, Iterable
 from dataclasses import dataclass, field
 from functools import cache
 from importlib import resources
 from typing import Any, TypedDict, cast
 
-from dukpy import evaljs
+from dukpy.evaljs import JSInterpreter
 
 from .exceptions import InvalidGrill
+
+_INTERPRETERS = threading.local()
+"""One JS interpreter per thread.
+
+`dukpy.evaljs()` builds a fresh interpreter for every call, and each one reads
+three runtime `.js` files from disk. Parsing a single state reply evaluates two
+routines, so a poll costs six file reads -- which an asyncio caller does on its
+event loop.
+
+Reusing one is safe here: the routines are self-contained functions evaluated
+as global scripts, and an interpreter survives a failed evaluation. It is kept
+thread-local rather than global because `get_grill()` is called through
+`asyncio.to_thread`, so parsing is not guaranteed to stay on one thread, and a
+QuickJS context is not documented as thread-safe.
+"""
+
+
+def _run_js(code: str, **kwargs: Any) -> Any:
+    """Evaluate `code` on this thread's interpreter."""
+    interpreter = getattr(_INTERPRETERS, "interpreter", None)
+    if interpreter is None:
+        interpreter = JSInterpreter()
+        _INTERPRETERS.interpreter = interpreter
+    return interpreter.evaljs(code, **kwargs)
 
 
 @cache
@@ -255,7 +280,7 @@ class Command:
         if self._js_func is None:
             raise NotImplementedError
 
-        return evaljs(_COMMAND_JS_TMPL % self._js_func, args=args)
+        return _run_js(_COMMAND_JS_TMPL % self._js_func, args=args)
 
 
 def _live_code(js: str | None) -> str:
@@ -301,7 +326,7 @@ class ControlBoard:
 
     def _evaljs(self, js_func: str, message: str) -> StateDict | None:
         js = _CONTROLLER_JS_TMPL % js_func
-        return evaljs(js, message=message)
+        return _run_js(js, message=message)
 
     @property
     def converts_temperatures_to_celsius(self) -> bool:

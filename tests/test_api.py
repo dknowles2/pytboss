@@ -550,6 +550,7 @@ async def test_get_state_updates_the_cached_state(conn: FakeTransport, password:
     want.update(TEMPS_DICT)
     assert pitboss._state == want
 
+
 async def test_set_temperature_unit(pitboss: api.PitBoss, conn: FakeTransport):
     assert (await pitboss.set_temperature_unit(fahrenheit=False)) == {}
     assert conn.last_mcu_command == "set-celsius()"
