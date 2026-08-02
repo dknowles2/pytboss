@@ -5,9 +5,12 @@ import inspect
 import json
 import logging
 from collections.abc import Awaitable, Callable
-from time import time
+from time import monotonic
 
 from .codec import encode, timed_key
+
+_UPTIME_TTL = 600.0
+"""Seconds before the cached uptime is re-read rather than extrapolated."""
 from .config import Config
 from .exceptions import UnsupportedOperation
 from .fs import FileSystem
@@ -65,7 +68,7 @@ class PitBoss:
         self._vdata_callbacks: list[VDataCallback] = []
         self._state = StateDict()
         self._last_uptime: float | None = None
-        self._last_uptime_check: int | None = None
+        self._last_uptime_check: float = 0.0
 
     def is_connected(self) -> bool:
         """Returns whether we are actively connected to the grill."""
@@ -305,17 +308,18 @@ class PitBoss:
     async def get_uptime(self) -> float:
         """Returns the device's uptime, in seconds.
 
-        Cached for up to 5 seconds between RPCs.
+        Read once and then extrapolated, since uptime advances with the
+        wall clock.
 
         :meta private:
         """
-        now = int(time())
-        if not self._last_uptime_check or now - self._last_uptime_check > 5:
+        now = monotonic()
+        if self._last_uptime is None or now - self._last_uptime_check > _UPTIME_TTL:
             result = await self._conn.send_command("PB.GetTime", {})
             self._last_uptime = result.get("time", 0.0)
             self._last_uptime_check = now
-        assert self._last_uptime is not None
-        return self._last_uptime
+            return self._last_uptime
+        return self._last_uptime + (now - self._last_uptime_check)
 
     async def ping(self, timeout: float | None = None) -> dict:
         """Pings the device.
