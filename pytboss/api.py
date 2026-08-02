@@ -34,6 +34,23 @@ VDataCallback = Callable[[dict], Awaitable[None] | None]
 """A callback function that receives updated VData."""
 
 
+def _to_fahrenheit(temp: int, already_fahrenheit: bool) -> int:
+    """Convert a grill-unit temperature for the virtual data store.
+
+    The store is always Fahrenheit, whatever unit the grill is set to.
+    """
+    if already_fahrenheit:
+        return temp
+    return round(temp * 9 / 5 + 32)
+
+
+def _from_fahrenheit(temp: float, want_fahrenheit: bool) -> int:
+    """Convert a virtual data temperature into the grill's own unit."""
+    if want_fahrenheit:
+        return round(temp)
+    return round((temp - 32) * 5 / 9)
+
+
 class PitBoss:
     """API for interacting with PitBoss grills over Bluetooth LE."""
 
@@ -172,11 +189,16 @@ class PitBoss:
                     callback(vdata)
 
     async def _authenticate(self, params: dict) -> dict:
-        if self._password:
-            params["psw"] = encode(
-                self._password, key=timed_key(await self.get_uptime())
-            ).hex()
-        return params
+        """Return `params` with the encoded password added.
+
+        A copy: the caller's dict is left alone. `PB.SetVirtualData` hands its
+        whole params object to the firmware, so mutating in place put the
+        encoded password into the caller's payload as well as on the wire.
+        """
+        if not self._password:
+            return params
+        psw = encode(self._password, key=timed_key(await self.get_uptime())).hex()
+        return {**params, "psw": psw}
 
     async def _send_hex_command(self, cmd: str) -> dict:
         return await self._conn.send_command(
@@ -246,6 +268,74 @@ class PitBoss:
         if cmd not in self.spec.control_board.commands:
             raise UnsupportedOperation
         return await self._send_command(cmd, temp)
+
+    def probe_target_command(self, probe_number: int) -> str | None:
+        """The board command that sets this probe's target, if it has one.
+
+        Across the catalogue only `set-probe-1-temperature` (42 of 137 models)
+        and `set-probe-2-temperature` (26) exist; no board declares anything
+        for probes 3 or 4. Which route a probe takes is a fact about the
+        board, so callers should not have to work it out.
+        """
+        command = f"set-probe-{probe_number}-temperature"
+        if command in self.spec.control_board.commands:
+            return command
+        return None
+
+    async def set_probe_target(self, probe_number: int, temp: int) -> None:
+        """Sets the target temperature for a probe.
+
+        Uses the board's command where one exists and the grill's virtual data
+        store otherwise, which is what the vendor's own app does. The grill
+        acts only on the control probe; a target stored in virtual data is a
+        note to whoever is watching, not something the board enforces.
+
+        :param probe_number: The probe to set a target for, counting from 1.
+        :param temp: Target probe temperature, in the grill's own unit.
+        :raise pytboss.exceptions.UnsupportedOperation: If the grill is off.
+            The firmware rejects virtual data writes unless `moduleIsOn`, and
+            clears the store when the grill is switched off.
+        """
+        if self.probe_target_command(probe_number) is not None:
+            await self._send_command(f"set-probe-{probe_number}-temperature", temp)
+            return
+        if not self._state.get("moduleIsOn"):
+            raise UnsupportedOperation(
+                "Virtual data cannot be written while the grill is off"
+            )
+        # The firmware assigns the payload wholesale, so everything already
+        # there has to be sent back or it is lost.
+        data = await self.get_virtual_data()
+        data[f"p{probe_number}T"] = _to_fahrenheit(temp, self._is_fahrenheit())
+        await self.set_virtual_data(data)
+
+    async def get_probe_targets(self) -> dict[int, int]:
+        """Returns the target temperature set for each probe.
+
+        Values are in the grill's own unit. Targets the board reports itself
+        win over the virtual data store: `p1Target` is reported by every
+        model and `p2Target` by 26 of them, and those are what the board is
+        actually working to.
+
+        Probes with no target set are absent rather than present as `None`.
+        """
+        fahrenheit = self._is_fahrenheit()
+        targets: dict[int, int] = {}
+        if self._state.get("moduleIsOn"):
+            data = await self.get_virtual_data()
+            for probe_number in range(1, (self.spec.meat_probes or 0) + 1):
+                raw = data.get(f"p{probe_number}T")
+                if isinstance(raw, (int, float)):
+                    targets[probe_number] = _from_fahrenheit(raw, fahrenheit)
+        for probe_number in range(1, (self.spec.meat_probes or 0) + 1):
+            reported = self._state.get(f"p{probe_number}Target")
+            if isinstance(reported, (int, float)):
+                targets[probe_number] = int(reported)
+        return targets
+
+    def _is_fahrenheit(self) -> bool:
+        """Whether the grill is currently working in Fahrenheit."""
+        return self._state.get("isFahrenheit", True) is not False
 
     async def set_temperature_unit(self, fahrenheit: bool) -> dict:
         """Switches the unit the grill itself works in.
@@ -333,14 +423,21 @@ class PitBoss:
             "PB.SetVirtualData", await self._authenticate(data)
         )
 
-    async def get_virtual_data(self):
+    async def get_virtual_data(self) -> dict:
         """Retrieves virtual data previously set with `set_virtual_data()`.
+
+        `psw` is removed: the firmware stores the params of the last write
+        verbatim, so an authenticated write leaves the encoded password in the
+        scratchpad and it would otherwise be handed back as if it were data.
 
         :meta private:
         """
-        return await self._conn.send_command(
+        data = await self._conn.send_command(
             "PB.GetVirtualData", await self._authenticate({})
         )
+        if isinstance(data, dict):
+            return {k: v for k, v in data.items() if k != "psw"}
+        return {}
 
     async def get_uptime(self) -> float:
         """Returns the device's uptime, in seconds.
