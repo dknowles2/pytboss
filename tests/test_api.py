@@ -606,6 +606,7 @@ async def test_an_error_without_a_code_is_still_an_rpc_error():
     assert str(RPCError("boom")) == "boom"
     assert str(Unauthorized()) == ""
 
+
 @pytest.mark.grill_params({"meat_probes": 4})
 async def test_set_probe_target_uses_the_board_command_when_there_is_one(
     pitboss: api.PitBoss, conn: FakeTransport
