@@ -39,6 +39,18 @@ async def test_on_command_response_unknown_id():
     assert handled is False
 
 
+async def test_response_without_result_resolves_the_command():
+    """Mongoose OS omits `result` when a handler returns nothing."""
+    conn = FakeTransport()
+    task = asyncio.create_task(conn.send_command("Sys.Reboot", {}, timeout=None))
+    await asyncio.sleep(0)  # let it register its future
+
+    handled = await conn._on_command_response({"id": 1})
+
+    assert handled is True
+    assert await task is None
+
+
 async def test_send_command_gives_up_instead_of_waiting_forever():
     """A reply that never arrives must not block the caller indefinitely."""
     conn = FakeTransport()

@@ -173,5 +173,7 @@ class Transport(ABC):
             if "error" in payload:
                 future.set_exception(_rpc_error(payload["error"]))
             else:
-                future.set_result(payload["result"])
+                # Mongoose OS omits `result` when a handler returns nothing,
+                # so its absence is a successful empty reply, not an error.
+                future.set_result(payload.get("result"))
         return True
