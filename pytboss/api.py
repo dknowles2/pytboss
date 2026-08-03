@@ -427,6 +427,42 @@ class PitBoss:
             return {}
         return await self._send_command("turn-light-off")
 
+    async def turn_grill_on(self) -> dict:
+        """Lights the grill.
+
+        **This starts a fire in an appliance nobody may be standing next to.**
+        The board accepts it whatever state the grill is in, so anything built
+        on this should decide for itself whether starting is a good idea --
+        the library only sends it.
+
+        Sent as a raw MCU command because no board declares a slug for it. All
+        137 models declare `turn-off`; **not one declares a `turn-on`**, which
+        looks deliberate on the vendor's part rather than an oversight.
+
+        What the catalogue actually contains:
+
+        ==================  ==========  ===========
+        slug                command     models
+        ==================  ==========  ===========
+        ``turn-off``        FE0102FF    137
+        ``turn-light-on``   FE0201FF    132
+        ``turn-light-off``  FE0200FF    121
+        ``turn-light-off``  FE0202FF     11
+        this                FE0101FF      0
+        ==================  ==========  ===========
+
+        The third byte is the subsystem -- 01 power, 02 light. The fourth is
+        `01` wherever a command means "on"; "off" is spelled `02` or `00`
+        depending on the board, so it is not a uniform flag. What holds is
+        the narrower claim: `01` is the only value that ever means on, and
+        `FE0101FF` is declared under no slug on any board, so it collides
+        with nothing.
+
+        Confirmed working on a PB1600PS1 and a PBV4PS2, which is better
+        evidence than the byte pattern.
+        """
+        return await self._send_hex_command("FE0101FF")
+
     async def turn_grill_off(self) -> dict:
         """Turns the grill off."""
         return await self._send_command("turn-off")
