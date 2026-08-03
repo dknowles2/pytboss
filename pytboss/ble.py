@@ -96,9 +96,14 @@ class BleConnection(Transport):
         # Guarded because this also fires while the loop is shutting down,
         # where scheduling raises inside bleak's own callback.
         if not self._loop.is_closed():
+            # The coroutine is built before `create_task` is called, so it has
+            # to be closed explicitly when scheduling fails -- otherwise it is
+            # abandoned unawaited and warns from wherever the collector runs.
+            coro = self._fail_pending_commands()
             try:
-                self._loop.create_task(self._fail_pending_commands())
+                self._loop.create_task(coro)
             except RuntimeError:  # pragma: no cover - loop shutting down
+                coro.close()
                 _LOGGER.debug("Loop is closing; not failing pending commands.")
         if not self._reconnecting and self._disconnect_callback is not None:
             self._disconnect_callback(client)
