@@ -232,3 +232,30 @@ async def test_state_callbacks_never_fire(host):
         assert seen == []
     finally:
         await conn.disconnect()
+
+
+async def test_a_silent_grill_is_reported_as_not_connected():
+    """Unreachable and unresponsive are the same thing to a caller.
+
+    A refused connection raises `ClientError`, but a host that answers
+    nothing times out instead, and `ClientTimeout` surfaces that as
+    `asyncio.TimeoutError` -- which is not a `ClientError`. Silence is the
+    common case: a grill that is unplugged, asleep or on another network does
+    not send a reset.
+    """
+
+    async def never_answers(request: web.Request) -> web.Response:
+        await asyncio.sleep(30)
+        raise AssertionError("unreachable")
+
+    app = web.Application()
+    app.router.add_post("/rpc", never_answers)
+    server = TestServer(app)
+    await server.start_server()
+    try:
+        conn = HttpConnection(f"{server.host}:{server.port}", timeout=0.1)
+        with pytest.raises(NotConnectedError):
+            await conn.connect()
+        assert conn.is_connected() is False
+    finally:
+        await server.close()

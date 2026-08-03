@@ -13,7 +13,7 @@ here turns it on: `connect()` fails against a grill where it is off, and the
 caller is expected to have established that the endpoint exists first, over a
 transport that already works. `Config.Get` over Bluetooth reports it::
 
-    http = (await boss.config.get("http"))["http"]
+    http = await boss.config.get_config("http")
     if http["enable"]:
         ...  # an HttpConnection will work against this grill
 
@@ -137,10 +137,16 @@ class HttpConnection(Transport):
                     )
                 # Mongoose does not always set a JSON content type.
                 payload: Any = await resp.json(content_type=None)
-        except ClientError as ex:
+        except (ClientError, TimeoutError) as ex:
             # The grill is unreachable rather than refusing the call. Reported
             # as a lost connection so callers treat it the way they treat a
             # dropped websocket.
+            #
+            # `TimeoutError` as well as `ClientError`: a refused connection
+            # raises the latter, but a host that simply does not answer --
+            # unplugged, asleep, or on another network -- times out instead,
+            # and `ClientTimeout` surfaces that as `asyncio.TimeoutError`,
+            # which is not a `ClientError`. Silence is the common case.
             self._connected = False
             raise NotConnectedError(f"Could not reach {self._url}: {ex}") from ex
         _LOGGER.debug("<-- %s", payload)
