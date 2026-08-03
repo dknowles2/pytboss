@@ -85,7 +85,11 @@ class BleConnection(Transport):
 
     async def _connect_locked(self) -> None:
         if self._is_connected:
-            _LOGGER.warning("Already connected. Ignoring call to connect().")
+            # Debug, not a warning: this is a documented no-op, and consumers
+            # hit it on a normal path -- Home Assistant connects through
+            # `reset_device` during discovery and then calls `PitBoss.start`,
+            # whose `connect()` lands here at every Bluetooth setup.
+            _LOGGER.debug("Already connected. Ignoring call to connect().")
             return
         if self._ble_device is None:
             return
