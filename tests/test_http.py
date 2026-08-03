@@ -353,3 +353,50 @@ async def test_a_failed_request_does_not_end_the_transport(host, rpc):
         assert conn.is_connected() is True
     finally:
         await conn.disconnect()
+
+
+async def test_send_command_without_answer_does_not_wait(host, rpc):
+    """`reboot()` picks this method because the board cannot answer.
+
+    A request is only finished here when its response has been read, so
+    awaiting the exchange means waiting out the whole timeout and then
+    raising at a caller that is not expecting an exception.
+    """
+    hung = asyncio.Event()
+
+    async def never_answers(request: web.Request) -> web.Response:
+        hung.set()
+        await asyncio.sleep(30)
+        raise AssertionError("unreachable")
+
+    app = web.Application()
+    app.router.add_post("/rpc", never_answers)
+    server = TestServer(app)
+    await server.start_server()
+    try:
+        conn = HttpConnection(f"{server.host}:{server.port}", timeout=5)
+        # Connected by hand: `connect()` pings, and this server never
+        # answers anything, which is the whole point of it.
+        conn._session = ClientSession()
+        conn._started = True
+        try:
+            async with asyncio.timeout(2):
+                await conn.send_command_without_answer("Sys.Reboot", {})
+            # The request is on its way even though we did not wait for it.
+            async with asyncio.timeout(2):
+                await hung.wait()
+        finally:
+            # Owns the session it was given here, so this closes it too.
+            await conn.disconnect()
+    finally:
+        await server.close()
+
+
+async def test_disconnect_stops_a_request_still_in_flight(host, rpc):
+    conn = HttpConnection(host)
+    await conn.connect()
+    await conn.send_command_without_answer("Sys.Reboot", {})
+    assert conn._pending
+
+    await conn.disconnect()
+    assert conn._pending == set()

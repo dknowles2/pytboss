@@ -43,6 +43,7 @@ it needs an answer for every grill rather than a raise for some.
 See https://github.com/dknowles2/pytboss/issues/505.
 """
 
+import asyncio
 import logging
 from asyncio import AbstractEventLoop
 from typing import Any
@@ -103,6 +104,7 @@ class HttpConnection(Transport):
         # the grill answered the last time we spoke to it.
         self._started = False
         self._connected = False
+        self._pending: set[asyncio.Task] = set()
 
     async def connect(self) -> None:
         """Verifies the grill answers RPC at this address.
@@ -139,6 +141,9 @@ class HttpConnection(Transport):
         """
         self._started = False
         self._connected = False
+        for task in list(self._pending):
+            task.cancel()
+        self._pending.clear()
         await self._close_session()
 
     async def _close_session(self) -> None:
@@ -160,6 +165,38 @@ class HttpConnection(Transport):
             and self._session is not None
             and not self._session.closed
         )
+
+    async def send_command_without_answer(
+        self, method: str, params: dict, *, timeout: float | None = None
+    ) -> None:
+        """Sends a command without waiting for the reply.
+
+        Issued in the background, unlike the other transports, where writing
+        to the socket is the whole of it. Here a request is only finished
+        when its response has been read, and the callers that choose this
+        method choose it for commands the board cannot answer: `Sys.Reboot`
+        is gone before it could, so awaiting the exchange means waiting out
+        the full timeout and then raising `NotConnectedError` at a caller
+        that is not expecting one.
+
+        :param method: The method to call.
+        :param params: Parameters to send with the command.
+        :param timeout: Ignored. Nothing is awaited, so nothing can elapse.
+        """
+        cmd = await self._prepare_command(method, params)
+        task = self._loop.create_task(self._send_and_forget(cmd))
+        # Held so the task is not collected mid-flight, and so `disconnect()`
+        # can stop one that is still going.
+        self._pending.add(task)
+        task.add_done_callback(self._pending.discard)
+
+    async def _send_and_forget(self, cmd: dict) -> None:
+        try:
+            await self._send_prepared_command(cmd)
+        except Exception as ex:  # noqa: BLE001
+            # Nobody is waiting to be told, and for a command the board was
+            # never going to answer this is the expected ending.
+            _LOGGER.debug("No answer to %s, as expected: %s", cmd["method"], ex)
 
     async def _send_prepared_command(self, cmd: dict) -> None:
         # `_started` rather than `_connected`: a request that failed leaves
