@@ -14,6 +14,7 @@ from .config import Config
 from .exceptions import UnsupportedOperation
 from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
+from .ota import OTA
 from .transport import RPCResult, Transport, as_dict
 
 _UPTIME_TTL = 60.0
@@ -74,6 +75,9 @@ class PitBoss:
     config: Config
     """Configuration operations."""
 
+    ota: OTA
+    """Over-the-air firmware update operations."""
+
     def __init__(
         self,
         conn: Transport,
@@ -96,6 +100,7 @@ class PitBoss:
         """
         self.fs = FileSystem(conn)
         self.config = Config(conn)
+        self.ota = OTA(conn)
         self._grill_model = grill_model
         self._control_board = control_board
         self._conn = conn
