@@ -175,23 +175,29 @@ class BleConnection(Transport):
         self, unused_char: BleakGATTCharacteristic, data: bytearray
     ):
         _LOGGER.debug("Debug log received: %s", data)
-        parts = data.decode("utf-8").split()
-        if len(parts) == 3:
-            head, payload, tail = parts
-            checksum = int(tail[1 : len(tail) - 1])
-            if len(payload) != checksum:
-                # Bad payload; ignore.
-                _LOGGER.debug(
-                    "Ignoring message with bad checksum (%d != %d)",
-                    len(payload),
-                    checksum,
-                )
-                return
-        elif len(parts) == 2:
-            head, payload = parts
-        else:
+        # Split off the head and an optional trailing "[len]" rather than on
+        # every space: a virtual data payload is JSON, and any string value in
+        # it with a space in it would otherwise either be dropped or parsed as
+        # the length. Both are reachable through `set_virtual_data`, since the
+        # grill echoes back what was written.
+        head, _, rest = data.decode("utf-8").strip().partition(" ")
+        payload = rest.strip()
+        if not payload:
             # Unknown payload; ignore.
             return
+        if payload.endswith("]"):
+            body, _, tail = payload.rpartition("[")
+            if body and tail[:-1].isdigit():
+                payload = body.strip()
+                checksum = int(tail[:-1])
+                if len(payload) != checksum:
+                    # Bad payload; ignore.
+                    _LOGGER.debug(
+                        "Ignoring message with bad checksum (%d != %d)",
+                        len(payload),
+                        checksum,
+                    )
+                    return
         if head == "<==PB:" and self._state_callback:
             status_payload = temperatures_payload = None
             match payload[:4]:

@@ -434,3 +434,47 @@ async def test_disconnect_notification_during_shutdown_does_not_raise(
         conn._on_disconnected(mock_bleak_client)
 
     assert not conn.is_connected()
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_debug_log_vdata_with_a_space(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    """A JSON string value with a space in it is still one payload.
+
+    Reachable through `set_virtual_data`: the grill echoes back what was
+    written, so a consumer storing any string with a space made this parse
+    raise `ValueError` inside the notification callback.
+    """
+    mock_establish_connection.return_value = mock_bleak_client
+    conn = ble.BleConnection(mock_device)
+    vdata_cb = mock.AsyncMock()
+    conn.set_vdata_callback(vdata_cb)
+    await conn.connect()
+
+    data = bytearray(b'<==PBD:  {"note":"hello world"}')
+    await conn._on_debug_log_received(None, data)
+
+    vdata_cb.assert_awaited_once_with('{"note":"hello world"}')
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_debug_log_checksum_counts_the_whole_payload(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    """A payload with a space is measured whole, not up to the first one."""
+    mock_establish_connection.return_value = mock_bleak_client
+    conn = ble.BleConnection(mock_device)
+    vdata_cb = mock.AsyncMock()
+    conn.set_vdata_callback(vdata_cb)
+    await conn.connect()
+
+    payload = '{"note":"hello world"}'
+    data = bytearray(f"<==PBD:  {payload} [{len(payload)}]".encode())
+    await conn._on_debug_log_received(None, data)
+
+    vdata_cb.assert_awaited_once_with(payload)
