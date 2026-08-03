@@ -7,13 +7,16 @@ and the content type are exercised as the grill would present them.
 
 import asyncio
 from typing import Any
+from unittest import mock
 
 import pytest
 from aiohttp import ClientSession, web
 from aiohttp.test_utils import TestServer
 
+from pytboss.config import Config
 from pytboss.exceptions import NotConnectedError, RPCError, Unauthorized
 from pytboss.http import HttpConnection
+from pytboss.transport import Transport
 
 
 class FakeMongooseRpc:
@@ -259,3 +262,42 @@ async def test_a_silent_grill_is_reported_as_not_connected():
         assert conn.is_connected() is False
     finally:
         await server.close()
+
+
+async def _documented_discovery(config: Config) -> bool:
+    """The snippet from this module's docstring, verbatim.
+
+    Kept executable rather than only rendered: it is what decides whether a
+    caller offers the local option at all, so it has to work against grills
+    that have no `http` section as well as those that do.
+    """
+    try:
+        http = await config.get_config("http")
+    except RPCError:
+        http = {}
+    return bool(http.get("enable"))
+
+
+@pytest.mark.parametrize(
+    "reply,want",
+    [
+        ({"enable": True}, True),
+        ({"enable": False}, False),
+        ({}, False),  # answered with nothing: no such section
+    ],
+)
+async def test_documented_discovery_answers_for_every_grill(reply, want):
+    conn = mock.AsyncMock(spec=Transport)
+    conn.send_command.return_value = reply
+    assert await _documented_discovery(Config(conn)) is want
+
+
+async def test_documented_discovery_survives_a_missing_section():
+    """A grill that errors on an unknown key must not raise past the caller.
+
+    The ESP-IDF firmware answers `Config.Get`, but its schema has no `http`
+    section, so this is the other shape the same question can fail in.
+    """
+    conn = mock.AsyncMock(spec=Transport)
+    conn.send_command.side_effect = RPCError("No such key", -1)
+    assert await _documented_discovery(Config(conn)) is False
