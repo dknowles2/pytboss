@@ -110,14 +110,37 @@ class BleConnection(Transport):
         # Only once the notifications are registered: until they are there is
         # no receive path, so a command would be sent and never answered while
         # `is_connected()` claimed otherwise.
-        await self._ble_client.start_notify(CHAR_RPC_RX_CTL, self._on_rpc_data_received)
-        await self._ble_client.start_notify(CHAR_DEBUG_LOG, self._on_debug_log_received)
+        try:
+            await self._ble_client.start_notify(
+                CHAR_RPC_RX_CTL, self._on_rpc_data_received
+            )
+            await self._ble_client.start_notify(
+                CHAR_DEBUG_LOG, self._on_debug_log_received
+            )
+        except Exception:
+            # The connection itself succeeded, so leaving it behind holds a
+            # slot on an adapter that has few, and the next `connect()` would
+            # overwrite the only reference to it.
+            client, self._ble_client = self._ble_client, None
+            try:
+                await client.disconnect()
+            except Exception as ex:  # noqa: BLE001
+                _LOGGER.debug("Failed to release the client: %s", ex)
+            raise
         self._is_connected = True
 
     def _on_disconnected(self, client: BleakClient) -> None:
         """Called when our Bluetooth client is disconnected."""
         _LOGGER.debug("Bluetooth disconnected.")
         self._is_connected = False
+        # Released here as well as in `_disconnect_locked`, which drops it for
+        # the same reason: `_send_prepared_command` decides whether it can
+        # send from this reference alone, so a client left behind turns an
+        # unsolicited drop into `BleakError` where an explicit disconnect
+        # gives `NotConnectedError`. Guarded on identity because a reconnect
+        # may already have put a live client here.
+        if self._ble_client is client:
+            self._ble_client = None
         # Bleak calls this synchronously, so the cleanup has to be scheduled.
         # Guarded because this also fires while the loop is shutting down,
         # where scheduling raises inside bleak's own callback.
