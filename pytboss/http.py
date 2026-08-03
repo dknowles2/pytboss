@@ -98,6 +98,10 @@ class HttpConnection(Transport):
         # ours to close, and it is rebuilt by `connect()` so this transport is
         # reusable after `disconnect()`.
         self._session_owned = session is None
+        # Two different questions. `_started` is whether this transport has
+        # been connected and not since disconnected; `_connected` is whether
+        # the grill answered the last time we spoke to it.
+        self._started = False
         self._connected = False
 
     async def connect(self) -> None:
@@ -115,17 +119,25 @@ class HttpConnection(Transport):
                 raise NotConnectedError("The session given to this transport is closed")
             self._session = ClientSession(loop=self._loop)
         # Set before the ping so `_send_prepared_command` will proceed; a
-        # failure below clears it again.
+        # failure below clears them again.
+        self._started = True
         self._connected = True
         try:
             await self.send_command("RPC.Ping", {})
         except Exception:
+            self._started = False
             self._connected = False
             await self._close_session()
             raise
 
     async def disconnect(self) -> None:
-        """Releases the session, if this transport owns one."""
+        """Stops using the grill, and releases the session if this owns one.
+
+        Final until `connect()` is called again. A caller's session stays
+        open, since it is theirs, so nothing else here would stop a command
+        from going out on it.
+        """
+        self._started = False
         self._connected = False
         await self._close_session()
 
@@ -143,11 +155,18 @@ class HttpConnection(Transport):
         `connect()` until a request fails to reach the grill.
         """
         return (
-            self._connected and self._session is not None and not self._session.closed
+            self._started
+            and self._connected
+            and self._session is not None
+            and not self._session.closed
         )
 
     async def _send_prepared_command(self, cmd: dict) -> None:
-        if self._session is None or self._session.closed:
+        # `_started` rather than `_connected`: a request that failed leaves
+        # the latter false, and this transport is meant to recover from that
+        # by itself on the next call. An explicit `disconnect()` is the one
+        # that has to stick.
+        if not self._started or self._session is None or self._session.closed:
             raise NotConnectedError("Not connected")
         _LOGGER.debug("--> %s", cmd)
         try:

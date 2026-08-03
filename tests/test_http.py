@@ -301,3 +301,55 @@ async def test_documented_discovery_survives_a_missing_section():
     conn = mock.AsyncMock(spec=Transport)
     conn.send_command.side_effect = RPCError("No such key", -1)
     assert await _documented_discovery(Config(conn)) is False
+
+
+async def test_a_command_after_disconnect_is_refused(host, rpc):
+    """A caller's session stays open, so nothing else stops the request.
+
+    Home Assistant always supplies one, so this is the ordinary case: a
+    refresh still in flight when the entry unloads would otherwise keep
+    polling the grill successfully.
+    """
+    async with ClientSession() as session:
+        conn = HttpConnection(host, session=session)
+        await conn.connect()
+        sent = len(rpc.requests)
+        await conn.disconnect()
+
+        with pytest.raises(NotConnectedError):
+            await conn.send_command("PB.GetState", {})
+
+        assert len(rpc.requests) == sent
+        assert conn.is_connected() is False
+
+
+async def test_a_command_before_connect_is_refused(host, rpc):
+    """`connect()` is what checks the grill is there at all."""
+    async with ClientSession() as session:
+        conn = HttpConnection(host, session=session)
+        with pytest.raises(NotConnectedError):
+            await conn.send_command("PB.GetState", {})
+        assert rpc.requests == []
+
+
+async def test_a_failed_request_does_not_end_the_transport(host, rpc):
+    """Unlike a disconnect, a grill that goes away is expected to come back.
+
+    The class promises exactly this: no reconnect loop, because each call is
+    independent and one that fails does not stop the next from working.
+    """
+    conn = HttpConnection(host)
+    await conn.connect()
+    try:
+        rpc.status = 503
+        with pytest.raises(RPCError):
+            await conn.send_command("PB.GetState", {})
+
+        rpc.status = 200
+        assert await conn.send_command("PB.GetState", {}) == {
+            "sc_11": "FE0B",
+            "sc_12": "FE0C",
+        }
+        assert conn.is_connected() is True
+    finally:
+        await conn.disconnect()
