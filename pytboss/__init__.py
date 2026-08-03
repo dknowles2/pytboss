@@ -2,4 +2,5 @@
 
 from .api import PitBoss  # noqa: F401
 from .ble import BleConnection  # noqa: F401
+from .ota import OTA  # noqa: F401
 from .wss import WebSocketConnection  # noqa: F401
