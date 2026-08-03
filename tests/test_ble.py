@@ -398,7 +398,7 @@ async def test_connect_when_already_connected(
     await conn.connect()
     assert conn.is_connected()
 
-    # Connecting again should be a no-op (with a warning logged).
+    # Connecting again should be a no-op (logged at debug level).
     await conn.connect()
     mock_establish_connection.assert_awaited_once()
 
