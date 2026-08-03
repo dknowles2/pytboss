@@ -427,6 +427,33 @@ class PitBoss:
             return {}
         return await self._send_command("turn-light-off")
 
+    async def turn_grill_on(self) -> dict:
+        """Lights the grill.
+
+        **This starts a fire in an appliance nobody may be standing next to.**
+        The board accepts it whatever state the grill is in, so anything built
+        on this should decide for itself whether starting is a good idea --
+        the library only sends it.
+
+        Sent as a raw MCU command because no board declares a slug for it. All
+        137 models declare `turn-off`; **not one declares a `turn-on`**, which
+        looks deliberate on the vendor's part rather than an oversight. The
+        byte layout leaves no doubt about which command it is:
+
+        ==================  ==========
+        ``turn-off``        FE0102FF
+        ``turn-light-on``   FE0201FF
+        ``turn-light-off``  FE0202FF
+        this                FE0101FF
+        ==================  ==========
+
+        The third byte is the subsystem -- 01 power, 02 light -- and the
+        fourth is on or off, so this is the missing member of a pair the board
+        already implements three quarters of. Confirmed working on a
+        PB1600PS1 and a PBV4PS2.
+        """
+        return await self._send_hex_command("FE0101FF")
+
     async def turn_grill_off(self) -> dict:
         """Turns the grill off."""
         return await self._send_command("turn-off")

@@ -818,3 +818,35 @@ async def test_request_fast_updates(pitboss: api.PitBoss, conn: FakeTransport):
     """
     await pitboss.request_fast_updates()
     assert conn.fast_updates_requested is True
+
+
+async def test_turn_grill_on(pitboss: api.PitBoss, conn: FakeTransport):
+    """Sent as a raw MCU command: no board declares a slug for it.
+
+    The hex is asserted rather than the decoded command, because that is what
+    identifies it -- FE0101FF against FE0102FF for off.
+    """
+    with mock.patch.object(
+        conn, "send_command", AsyncMock(return_value={})
+    ) as send_command:
+        assert (await pitboss.turn_grill_on()) == {}
+        assert send_command.await_args is not None
+        method, params = send_command.await_args.args
+        assert method == "PB.SendMCUCommand"
+        assert params["command"] == "FE0101FF"
+
+
+async def test_no_board_declares_a_turn_on_command():
+    """The reason `turn_grill_on` cannot mirror `turn_grill_off`.
+
+    Every model declares `turn-off`; none declares a counterpart, which is
+    why this is a raw command rather than a slug.
+    """
+    with_off = with_on = 0
+    for grill in grills.get_grills():
+        commands = grill.control_board.commands
+        with_off += "turn-off" in commands
+        with_on += "turn-on" in commands
+
+    assert with_off > 0
+    assert with_on == 0
