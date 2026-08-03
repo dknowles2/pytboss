@@ -650,3 +650,46 @@ async def test_debug_log_checksum_counts_the_whole_payload(
     await conn._on_debug_log_received(None, data)
 
     vdata_cb.assert_awaited_once_with(payload)
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_on_rpc_data_received_gives_up_on_an_empty_read(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    """A read that returns nothing cannot make progress.
+
+    Without this the loop spins on the empty read forever, and because
+    nothing in it suspends, no other task on the event loop runs again.
+    """
+    mock_establish_connection.return_value = mock_bleak_client
+    conn = ble.BleConnection(mock_device, loop=asyncio.get_running_loop())
+    await conn.connect()
+    mock_bleak_client.read_gatt_char.side_effect = [
+        bytearray(b"partial"),
+        bytearray(b""),
+        bytearray(b"never reached"),
+    ]
+
+    await asyncio.wait_for(
+        conn._on_rpc_data_received(mock.Mock(), bytearray([0, 0, 0, 64])), timeout=5
+    )
+
+    assert mock_bleak_client.read_gatt_char.await_count == 2
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_on_rpc_data_received_rejects_an_implausible_length(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    """The length is whatever the notification claimed, up to 4 GiB."""
+    mock_establish_connection.return_value = mock_bleak_client
+    conn = ble.BleConnection(mock_device, loop=asyncio.get_running_loop())
+    await conn.connect()
+
+    await conn._on_rpc_data_received(mock.Mock(), bytearray([0xFF, 0xFF, 0xFF, 0xFF]))
+
+    mock_bleak_client.read_gatt_char.assert_not_awaited()
