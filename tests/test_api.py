@@ -850,3 +850,18 @@ async def test_no_board_declares_a_turn_on_command():
 
     assert with_off > 0
     assert with_on == 0
+
+
+def test_the_turn_on_command_collides_with_nothing():
+    """`FE0101FF` must not be some other board's command under a slug.
+
+    The safety property behind sending a raw command: whatever else the
+    catalogue contains, nothing already means this.
+    """
+    for grill in grills.get_grills():
+        for slug, command in grill.control_board.commands.items():
+            try:
+                rendered = command()
+            except TypeError:
+                continue  # takes arguments; not a fixed command
+            assert rendered != "FE0101FF", f"{grill.name} declares it as {slug}"

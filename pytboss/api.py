@@ -437,20 +437,29 @@ class PitBoss:
 
         Sent as a raw MCU command because no board declares a slug for it. All
         137 models declare `turn-off`; **not one declares a `turn-on`**, which
-        looks deliberate on the vendor's part rather than an oversight. The
-        byte layout leaves no doubt about which command it is:
+        looks deliberate on the vendor's part rather than an oversight.
 
-        ==================  ==========
-        ``turn-off``        FE0102FF
-        ``turn-light-on``   FE0201FF
-        ``turn-light-off``  FE0202FF
-        this                FE0101FF
-        ==================  ==========
+        What the catalogue actually contains:
 
-        The third byte is the subsystem -- 01 power, 02 light -- and the
-        fourth is on or off, so this is the missing member of a pair the board
-        already implements three quarters of. Confirmed working on a
-        PB1600PS1 and a PBV4PS2.
+        ==================  ==========  ===========
+        slug                command     models
+        ==================  ==========  ===========
+        ``turn-off``        FE0102FF    137
+        ``turn-light-on``   FE0201FF    132
+        ``turn-light-off``  FE0200FF    121
+        ``turn-light-off``  FE0202FF     11
+        this                FE0101FF      0
+        ==================  ==========  ===========
+
+        The third byte is the subsystem -- 01 power, 02 light. The fourth is
+        `01` wherever a command means "on"; "off" is spelled `02` or `00`
+        depending on the board, so it is not a uniform flag. What holds is
+        the narrower claim: `01` is the only value that ever means on, and
+        `FE0101FF` is declared under no slug on any board, so it collides
+        with nothing.
+
+        Confirmed working on a PB1600PS1 and a PBV4PS2, which is better
+        evidence than the byte pattern.
         """
         return await self._send_hex_command("FE0101FF")
 
