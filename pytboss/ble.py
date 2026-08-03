@@ -17,6 +17,7 @@ import bleak_retry_connector
 from bleak import BleakClient, BleakGATTCharacteristic, BLEDevice
 from bleak_retry_connector import BleakClientWithServiceCache
 
+from .exceptions import NotConnectedError
 from .transport import Transport
 
 _LOGGER = logging.getLogger("pytboss")
@@ -80,16 +81,25 @@ class BleConnection(Transport):
             name=self._ble_device.name or "<unknown>",
             disconnected_callback=self._on_disconnected,
         )
-        self._is_connected = True
+        # Only once the notifications are registered: until they are there is
+        # no receive path, so a command would be sent and never answered while
+        # `is_connected()` claimed otherwise.
         await self._ble_client.start_notify(CHAR_RPC_RX_CTL, self._on_rpc_data_received)
         await self._ble_client.start_notify(CHAR_DEBUG_LOG, self._on_debug_log_received)
+        self._is_connected = True
 
     def _on_disconnected(self, client: BleakClient) -> None:
         """Called when our Bluetooth client is disconnected."""
         _LOGGER.debug("Bluetooth disconnected.")
         self._is_connected = False
         # Bleak calls this synchronously, so the cleanup has to be scheduled.
-        self._loop.create_task(self._fail_pending_commands())
+        # Guarded because this also fires while the loop is shutting down,
+        # where scheduling raises inside bleak's own callback.
+        if not self._loop.is_closed():
+            try:
+                self._loop.create_task(self._fail_pending_commands())
+            except RuntimeError:  # pragma: no cover - loop shutting down
+                _LOGGER.debug("Loop is closing; not failing pending commands.")
         if not self._reconnecting and self._disconnect_callback is not None:
             self._disconnect_callback(client)
 
@@ -102,6 +112,10 @@ class BleConnection(Transport):
             except Exception as ex:  # noqa: BLE001
                 # Bluetooth is awful. Sometimes even disconnects fail.
                 _LOGGER.debug("Failed to disconnect: %s", ex)
+            # Released either way: a client kept after a disconnect answers a
+            # later command with a raw `BleakError` instead of the
+            # `NotConnectedError` every other transport raises.
+            self._ble_client = None
         self._is_connected = False
 
     async def reset_device(self, ble_device: BLEDevice):
@@ -125,7 +139,10 @@ class BleConnection(Transport):
 
     async def _send_prepared_command(self, cmd: dict):
         if self._ble_client is None:
-            return
+            # Raised rather than returned: swallowing the send left the caller
+            # awaiting a reply for a command that was never put on the wire,
+            # so it waited out its whole timeout to learn nothing.
+            raise NotConnectedError("Not connected")
         payload = json.dumps(cmd)
         async with self._lock:
             await self._ble_client.write_gatt_char(

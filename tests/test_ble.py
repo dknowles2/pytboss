@@ -8,7 +8,7 @@ from bleak_retry_connector import BleakClientWithServiceCache
 from pytest import raises
 
 from pytboss import ble
-from pytboss.exceptions import RPCError
+from pytboss.exceptions import NotConnectedError, RPCError
 
 
 @mock.patch("bleak_retry_connector.establish_connection")
@@ -311,8 +311,11 @@ async def test_disconnect_swallows_exception(
 async def test_send_prepared_command_no_client():
     mock_device = mock.create_autospec(bleak.BLEDevice)
     conn = ble.BleConnection(mock_device)
-    # Never connected, so there is no BLE client yet.
-    await conn._send_prepared_command({"id": 1, "method": "foo", "params": {}})
+    # Never connected, so there is no BLE client yet. This used to return
+    # silently, which left the caller awaiting a reply to a command that was
+    # never sent.
+    with raises(NotConnectedError):
+        await conn._send_prepared_command({"id": 1, "method": "foo", "params": {}})
 
 
 async def test_on_rpc_data_received_no_client():
@@ -372,3 +375,62 @@ async def test_debug_log_vdata(
     data = bytearray(b'<==PBD:  {"foo":"bar"}')
     await conn._on_debug_log_received(None, data)
     vdata_cb.assert_awaited_once_with('{"foo":"bar"}')
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_a_failed_notify_does_not_report_connected(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    """Until the notifications are registered there is no receive path.
+
+    Reporting connected before them meant a command could be sent and never
+    answered, while `is_connected()` said the transport was fine.
+    """
+    mock_establish_connection.return_value = mock_bleak_client
+    mock_bleak_client.start_notify.side_effect = bleak.exc.BleakError("nope")
+
+    conn = ble.BleConnection(mock_device)
+    with raises(bleak.exc.BleakError):
+        await conn.connect()
+
+    assert not conn.is_connected()
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_a_command_after_disconnect_reports_not_connected(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    """Every other transport raises `NotConnectedError`; this one raised a
+    `BleakError` from a client it had already disconnected."""
+    mock_establish_connection.return_value = mock_bleak_client
+
+    conn = ble.BleConnection(mock_device)
+    await conn.connect()
+    await conn.disconnect()
+
+    with raises(NotConnectedError):
+        await conn.send_command("PB.GetState", {}, timeout=1.0)
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_disconnect_notification_during_shutdown_does_not_raise(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    """Bleak calls `_on_disconnected` synchronously, including as the loop
+    goes away -- scheduling there would raise inside its own callback."""
+    mock_establish_connection.return_value = mock_bleak_client
+    conn = ble.BleConnection(mock_device)
+    await conn.connect()
+
+    with mock.patch.object(
+        conn._loop, "create_task", side_effect=RuntimeError("loop is closing")
+    ):
+        conn._on_disconnected(mock_bleak_client)
+
+    assert not conn.is_connected()
