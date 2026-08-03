@@ -61,6 +61,13 @@ class WebSocketConnection(Transport):
         self._subscribed = Event()
         self._stopping = Event()
         self._keep_running = False
+        self._connect_task: Task | None = None
+        # Serializes connect/disconnect. Opening a socket is an await, so two
+        # callers otherwise both pass the wind-down check, both open one, and
+        # the second assignment orphans the first -- along with its task,
+        # which `disconnect()` can no longer reach. Distinct from
+        # `_sock_lock`, which serializes sends.
+        self._lifecycle_lock = Lock()
 
     async def connect(self) -> None:
         """Starts the connection to the device.
@@ -72,6 +79,10 @@ class WebSocketConnection(Transport):
         :raise pytboss.exceptions.NotConnectedError: If a session was supplied
             by the caller and has since been closed.
         """
+        async with self._lifecycle_lock:
+            await self._connect_locked()
+
+    async def _connect_locked(self) -> None:
         await self._stop_subscribing()
         if self._session is None or self._session.closed:
             if not self._session_owned:
@@ -87,8 +98,22 @@ class WebSocketConnection(Transport):
         """Wind down a running subscribe task, if there is one."""
         if self._subscribe_task is None:
             return
+        if self._subscribe_task is asyncio.current_task():
+            # A subscriber stopping the transport that is dispatching it.
+            # Awaiting the task from inside itself never returns, so say so
+            # rather than hang.
+            raise RuntimeError(
+                "Cannot stop this transport from a callback it is dispatching"
+            )
         self._keep_running = False
         self._stopping.set()
+        # The handshake is the one await neither flag reaches -- aiohttp
+        # offers no way to interrupt `ws_connect` -- so it is cancelled
+        # directly. The subscribe task itself is still awaited rather than
+        # cancelled, so the `_fail_pending_commands()` below its read loop
+        # still runs and in-flight commands fail now instead of timing out.
+        if self._connect_task is not None:
+            self._connect_task.cancel()
         if self._sock is not None and not self._sock.closed:
             await self._sock.close()
         await self._subscribe_task
@@ -104,6 +129,10 @@ class WebSocketConnection(Transport):
         internally (i.e. no `session` was passed to `__init__`), and waits
         for the background reconnect/subscribe task to finish.
         """
+        async with self._lifecycle_lock:
+            await self._disconnect_locked()
+
+    async def _disconnect_locked(self) -> None:
         # Wakes the subscribe task if it is waiting out a reconnect backoff;
         # otherwise this call blocks for the remainder of that sleep.
         await self._stop_subscribing()
@@ -131,7 +160,15 @@ class WebSocketConnection(Transport):
             if self._sock is None:
                 try:
                     _LOGGER.debug("Reconnecting (attempt %d)", attempt)
-                    self._sock = await self._ws_connect()
+                    self._connect_task = self._loop.create_task(self._ws_connect())
+                    self._sock = await self._connect_task
+                except asyncio.CancelledError:
+                    if self._keep_running:
+                        # Cancelled from outside rather than by a wind-down.
+                        # Swallowing it here would turn a real cancellation
+                        # into a silent disconnect.
+                        raise
+                    break
                 except GrillUnavailable as ex:
                     _LOGGER.debug("Failed to connect (attempt %d): %s", attempt, ex)
                     _LOGGER.debug("Will try again in %.2fs", backoff)
@@ -139,6 +176,16 @@ class WebSocketConnection(Transport):
                     attempt += 1
                     backoff = min(_MAX_BACKOFF_TIME, backoff * 2)
                     continue
+                finally:
+                    self._connect_task = None
+                if not self._keep_running:
+                    # The handshake won the race against the wind-down that
+                    # tried to cancel it. Without this the socket it just
+                    # opened is served as though nothing had been asked.
+                    if self._sock is not None and not self._sock.closed:
+                        await self._sock.close()
+                    self._sock = None
+                    break
 
             attempt = 1
             backoff = 1.0

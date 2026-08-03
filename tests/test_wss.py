@@ -1,3 +1,4 @@
+import asyncio
 from asyncio import Event, Queue, create_task, sleep, timeout
 from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, call, patch
@@ -458,3 +459,116 @@ async def test_disconnect_clears_the_subscribed_flag(fake_server: TestServer):
         await conn.disconnect()
 
         assert not conn._subscribed.is_set()
+
+
+async def test_concurrent_connects_leave_one_live_socket(
+    session: ClientSession,
+) -> None:
+    """Both callers pass the wind-down check while the task is still None.
+
+    Unserialized, both open a socket and the second assignment orphans the
+    first along with its task, so `disconnect()` can no longer reach it and
+    the session to the relay stays open for the life of the process.
+    """
+    sockets: list[WebSocketResponse] = []
+
+    async def handler(request: Request):
+        ws = WebSocketResponse()
+        await ws.prepare(request)
+        sockets.append(ws)
+        async for _ in ws:
+            pass
+        return ws
+
+    app = Application()
+    app.add_routes([get("/to/_grill_id_", handler)])
+    async with TestServer(app) as fake_server, session:
+        conn = make_conn(fake_server, session)
+        await asyncio.gather(conn.connect(), conn.connect())
+        await conn.disconnect()
+
+    assert [ws for ws in sockets if not ws.closed] == []
+
+
+async def test_disconnect_does_not_wait_out_a_handshake(
+    session: ClientSession,
+) -> None:
+    """`ws_connect` is the one await neither flag reaches."""
+    conn = wss.WebSocketConnection("_grill_id_", session=session)
+    started = Event()
+
+    async def never_finishes():
+        started.set()
+        await sleep(30)
+        raise AssertionError("unreachable")
+
+    conn._ws_connect = never_finishes  # type: ignore[method-assign]
+    conn._keep_running = True
+    conn._sock = None
+    conn._subscribe_task = conn._loop.create_task(conn._subscribe())
+    await started.wait()
+
+    async with timeout(2):
+        await conn.disconnect()
+    assert conn.is_connected() is False
+
+
+async def test_a_handshake_that_beats_the_wind_down_is_not_served(
+    session: ClientSession,
+) -> None:
+    """The cancel usually wins the race, but it does not have to.
+
+    Driven directly rather than raced: the loop is entered with the stop
+    already asked for, which is the state the losing cancel leaves behind.
+    """
+    conn = wss.WebSocketConnection("_grill_id_", session=session)
+    sock = AsyncMock()
+    sock.closed = False
+
+    async def hands_over_a_socket_after_the_stop():
+        # The order arrives mid-handshake and the cancel loses the race, so
+        # the loop is handed a live socket it was told not to want.
+        conn._keep_running = False
+        return sock
+
+    conn._ws_connect = hands_over_a_socket_after_the_stop  # type: ignore[method-assign]
+    conn._keep_running = True
+    conn._sock = None
+
+    await conn._subscribe()
+
+    sock.close.assert_awaited_once()
+    assert conn._sock is None
+
+
+async def test_stopping_from_a_dispatched_callback_says_so(
+    session: ClientSession,
+) -> None:
+    """Awaiting the subscribe task from inside itself never returns.
+
+    asyncio raises here on its own, but only once the await is attempted and
+    with a message about a task awaiting itself. Naming the actual mistake
+    saves the reader working back to it.
+    """
+    conn = wss.WebSocketConnection("_grill_id_", session=session)
+    conn._subscribe_task = asyncio.current_task()
+
+    with raises(RuntimeError, match="Cannot stop this transport"):
+        await conn._stop_subscribing()
+
+
+async def test_disconnect_still_fails_commands_in_flight(
+    conn: wss.WebSocketConnection,
+) -> None:
+    """The reason the subscribe task is awaited rather than cancelled.
+
+    Cancelling it would skip `_fail_pending_commands()` below the read loop,
+    and every in-flight command would wait out its whole timeout instead.
+    """
+    async with conn:
+        task = create_task(conn.send_command("PB.GetState", {}, timeout=30))
+        await sleep(0.1)  # let it reach the wire
+        await conn.disconnect()
+        async with timeout(3):
+            with raises(NotConnectedError):
+                await task
