@@ -1,6 +1,6 @@
 """Authentication routines."""
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ContentTypeError
 
 from .exceptions import Unauthorized
 
@@ -17,12 +17,17 @@ async def async_login(
     :param password: The PitBoss account password.
     :raise pytboss.exceptions.Unauthorized: If the credentials are rejected.
     """
-    params = {"email": email, "password": password}
-    async with session.post(f"{API_URL}/login/app", params=params) as response:
-        response_json = await response.json()
-        if response_json["status"] == "error":
-            raise Unauthorized(response_json["error"]["message"])
-        token = (await response.json())["data"]["token"]
+    payload = {"email": email, "password": password}
+    async with session.post(f"{API_URL}/login/app", json=payload) as response:
+        try:
+            response_json = await response.json()
+        except ContentTypeError:
+            response.raise_for_status()
+            raise Unauthorized("Unexpected non-JSON response from login endpoint")
+        if response_json.get("status") != "success":
+            errors = response_json.get("errors") or {}
+            raise Unauthorized(errors.get("message", "Login failed"))
+        token = response_json["data"]["token"]
         return {
             "Accept": "application/json",
             "Content-Type": "application/json",
