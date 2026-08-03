@@ -64,6 +64,7 @@ class FakeTransport(Transport):
     def __init__(self, password: str = ""):
         self.virtual_data: dict = {}
         self.fast_updates_requested = False
+        self.wifi_update_frequency: dict | None = None
         super().__init__()
         self.last_mcu_command: str | None = None
         self.password = password
@@ -93,6 +94,10 @@ class FakeTransport(Transport):
             "PB.GetTime": self._get_time,
             "PB.GetVirtualData": self._get_virtual_data,
             "PB.WiFiAwakeWDT": self._wifi_awake_wdt,
+            # Registered under the name the firmware uses -- `WiFi`, not
+            # `Wifi` -- so a wrong spelling falls through to the unknown
+            # method path rather than being quietly accepted.
+            "PB.SetWiFiUpdateFrequency": self._set_wifi_update_frequency,
             "PB.SetVirtualData": self._set_virtual_data,
             "PB.SetDevicePassword": self._set_password,
             "PB.SendMCUCommand": self._send_mcu_command,
@@ -132,6 +137,11 @@ class FakeTransport(Transport):
         """Password-checked, and ends in `return null` like the firmware."""
         self._check_password(params)
         self.fast_updates_requested = True
+
+    def _set_wifi_update_frequency(self, params: dict) -> None:
+        """Password-checked, and ends in `return null` like the firmware."""
+        self._check_password(params)
+        self.wifi_update_frequency = {k: params[k] for k in ("slow", "fast")}
 
     def _get_virtual_data(self, params: dict) -> dict:
         self._check_password(params)
@@ -605,17 +615,29 @@ async def test_set_mcu_update_timer():
         )
 
 
-async def test_set_wifi_update_frequency():
+async def test_set_wifi_update_frequency(pitboss: api.PitBoss, conn: FakeTransport):
+    """Reaches the grill, rather than merely being sent.
+
+    Driven through the fake's own handler instead of a mocked `send_command`:
+    a mock asserts the name the code happens to send, which is how the
+    `Wifi`/`WiFi` mismatch survived. The fake registers only the name the
+    firmware does, so a wrong spelling fails here as it does on a grill.
+    """
+    assert await pitboss.set_wifi_update_frequency(fast=1, slow=10) is None
+    assert conn.wifi_update_frequency == {"slow": 10, "fast": 1}
+
+
+async def test_set_wifi_update_frequency_uses_the_name_the_firmware_registers():
+    """`Wifi` is answered with "name not found"; the F is capital."""
     conn = FakeTransport()
     pitboss = api.PitBoss(conn, "PBV4PS2")
     await pitboss.start()
     with mock.patch.object(
         conn, "send_command", AsyncMock(return_value=None)
     ) as send_command:
-        assert await pitboss.set_wifi_update_frequency(fast=1, slow=10) is None
-        send_command.assert_awaited_once_with(
-            "PB.SetWifiUpdateFrequency", {"slow": 10, "fast": 1}
-        )
+        await pitboss.set_wifi_update_frequency(fast=1, slow=10)
+        assert send_command.await_args is not None
+        assert send_command.await_args.args[0] == "PB.SetWiFiUpdateFrequency"
 
 
 async def test_set_virtual_data():

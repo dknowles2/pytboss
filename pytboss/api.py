@@ -512,10 +512,13 @@ class PitBoss:
     async def set_wifi_update_frequency(self, fast=5, slow=60) -> dict | None:
         """Sets how often (in seconds) the device sends WiFi status updates.
 
+        The method name is `WiFi`, not `Wifi`. RPC names are matched exactly,
+        and every firmware image registers it with the capital F.
+
         :meta private:
         """
         return await self._conn.send_command(
-            "PB.SetWifiUpdateFrequency",
+            "PB.SetWiFiUpdateFrequency",
             await self._authenticate({"slow": slow, "fast": fast}),
         )
 
