@@ -28,7 +28,7 @@ class RawStateCallback(Protocol):
     ) -> None: ...
 
 
-RawVDataCallback = Callable[[str], Awaitable[None]]
+RawVDataCallback = Callable[[str | dict], Awaitable[None]]
 """Callback invoked by a `Transport` with a raw, unparsed VData payload."""
 
 RPCResult = dict[Any, Any] | list[Any] | None

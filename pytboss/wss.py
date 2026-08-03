@@ -196,6 +196,16 @@ class WebSocketConnection(Transport):
             return
 
         if "status" in payload:
+            # Virtual data rides on the status push rather than arriving on a
+            # frame of its own. The firmware builds one object and attaches it
+            # only when there is something to send::
+            #
+            #     let data = {id: -1, src: deviceId, status: wsStatus};
+            #     if (sendVData === true && vData !== null) { data.data = vData; }
+            #
+            # so it has to be picked up here, before returning.
+            if (vdata := payload.get("data")) is not None and self._vdata_callback:
+                await self._vdata_callback(vdata)
             if not self._state_callback:
                 return
             await self._state_callback(*payload["status"])
@@ -203,13 +213,6 @@ class WebSocketConnection(Transport):
 
         if "id" in payload:
             await self._on_command_response(payload)
-            return
-
-        if payload.get("result", None):
-            # TODO: Verify this is actually a vdata response.
-            if not self._vdata_callback:
-                return
-            await self._vdata_callback(payload["result"])
             return
 
     def is_connected(self) -> bool:
