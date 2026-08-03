@@ -490,8 +490,20 @@ class PitBoss:
         resp = as_dict(
             await self._conn.send_command("PB.GetState", await self._authenticate({}))
         )
-        status = self.spec.control_board.parse_status(resp["sc_11"]) or {}
-        status.update(self.spec.control_board.parse_temperatures(resp["sc_12"]) or {})
+        # Either frame can be absent or empty, so neither is indexed. The
+        # firmware blanks both the moment it forwards a command to the MCU::
+        #
+        #     function sendMCUCommand(pCommand) {
+        #       lastStatus.sc_11 = "";
+        #       lastStatus.sc_12 = "";
+        #
+        # and refills them from the next reply, so a poll landing in that
+        # window is answered with empty strings rather than an error.
+        status = StateDict()
+        if sc_11 := resp.get("sc_11"):
+            status.update(self.spec.control_board.parse_status(sc_11) or {})
+        if sc_12 := resp.get("sc_12"):
+            status.update(self.spec.control_board.parse_temperatures(sc_12) or {})
         if status:
             async with self._lock:
                 self._state.update(status)
@@ -567,7 +579,17 @@ class PitBoss:
         now = monotonic()
         if self._last_uptime is None or now - self._last_uptime_check > _UPTIME_TTL:
             result = as_dict(await self._conn.send_command("PB.GetTime", {}))
-            self._last_uptime = result.get("time", 0.0)
+            uptime = result.get("time")
+            if not isinstance(uptime, (int, float)):
+                # Not cached, because caching it is worse than not having it:
+                # `timed_key` would be built from a wrong uptime for the whole
+                # TTL, so one unreadable reply would cost a minute of rejected
+                # commands on a password-protected grill.
+                _LOGGER.debug("No uptime in the reply: %s", result)
+                if self._last_uptime is None:
+                    return 0.0
+                return self._last_uptime + (now - self._last_uptime_check)
+            self._last_uptime = float(uptime)
             # Deliberately the pre-request timestamp, though the grill
             # computed its uptime later, when the request reached it: every
             # extrapolation therefore runs ahead of the grill by about one

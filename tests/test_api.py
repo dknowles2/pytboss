@@ -949,3 +949,45 @@ async def test_on_vdata_received_accepts_a_decoded_object():
     await pitboss._on_vdata_received('{"p2T": 170}')
 
     assert received == [{"p1T": 165}, {"p2T": 170}]
+
+
+@pytest.mark.parametrize(
+    "reply",
+    [
+        {},
+        {"sc_11": "", "sc_12": ""},
+        {"sc_11": STATE_HEX},
+        {"sc_12": TEMPS_HEX},
+    ],
+    ids=["empty", "blanked", "status_only", "temperatures_only"],
+)
+async def test_get_state_survives_a_partial_reply(reply):
+    """The firmware blanks both frames while a command is in flight.
+
+    `sendMCUCommand` clears `lastStatus.sc_11` and `sc_12` before it writes to
+    the MCU and refills them from the next reply, so a poll landing in that
+    window is answered with empty strings rather than an error.
+    """
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(conn, "send_command", AsyncMock(return_value=reply)):
+        state = await pitboss.get_state()
+    assert isinstance(state, dict)
+
+
+async def test_get_uptime_does_not_cache_a_reply_it_cannot_read():
+    """Caching it would keep `timed_key` wrong for the whole TTL."""
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+
+    with mock.patch.object(conn, "send_command", AsyncMock(return_value={})):
+        assert await pitboss.get_uptime() == 0.0
+
+    # The next call must go back to the grill rather than extrapolate from a
+    # value it never got.
+    with mock.patch.object(
+        conn, "send_command", AsyncMock(return_value={"time": 500.0})
+    ):
+        assert await pitboss.get_uptime() == 500.0
