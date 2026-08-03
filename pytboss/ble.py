@@ -64,12 +64,26 @@ class BleConnection(Transport):
         self._disconnect_callback = disconnect_callback
         self._is_connected = False
         self._reconnecting = False
+        # Serializes connect/disconnect/reset_device. Establishing a
+        # connection takes seconds, and a consumer driving reconnects from
+        # discovery -- Home Assistant schedules a reset per advertisement
+        # while `is_connected()` is False -- piles several up in exactly that
+        # window. Unserialized, their disconnect/connect steps interleave on
+        # the same object and the losing `establish_connection` leaks a
+        # connected client. Distinct from `self._lock`, which serializes GATT
+        # I/O; holding that one for the length of a connect would stall the
+        # receive path.
+        self._lifecycle_lock = asyncio.Lock()
 
     async def connect(self) -> None:
         """Starts the connection to the device.
 
         Does nothing if already connected or if no BLE device was set.
         """
+        async with self._lifecycle_lock:
+            await self._connect_locked()
+
+    async def _connect_locked(self) -> None:
         if self._is_connected:
             _LOGGER.warning("Already connected. Ignoring call to connect().")
             return
@@ -110,6 +124,10 @@ class BleConnection(Transport):
 
     async def disconnect(self) -> None:
         """Stops the connection to the device."""
+        async with self._lifecycle_lock:
+            await self._disconnect_locked()
+
+    async def _disconnect_locked(self) -> None:
         _LOGGER.debug("Disconnecting from device.")
         if self._ble_client:
             try:
@@ -126,17 +144,32 @@ class BleConnection(Transport):
     async def reset_device(self, ble_device: BLEDevice):
         """Resets the BLE device used for transport.
 
+        A reset that arrives while already connected to the same device --
+        by address -- only adopts the fresher `BLEDevice` and keeps the
+        connection. Discovery-driven consumers queue a reset per
+        advertisement seen while disconnected, and by the time the later
+        ones run, the first has already connected; tearing that connection
+        down to rebuild it against the same grill was pure churn.
+
         :param ble_device: BLE device to use for transport.
         """
-        self._reconnecting = True
-        _LOGGER.debug("Resetting device to: %s", ble_device)
-        try:
-            await self.disconnect()
-            self._is_connected = False
-            self._ble_device = ble_device
-            await self.connect()
-        finally:
-            self._reconnecting = False
+        async with self._lifecycle_lock:
+            if (
+                self._is_connected
+                and self._ble_device is not None
+                and self._ble_device.address == ble_device.address
+            ):
+                _LOGGER.debug("Already connected to %s; keeping it", ble_device)
+                self._ble_device = ble_device
+                return
+            self._reconnecting = True
+            _LOGGER.debug("Resetting device to: %s", ble_device)
+            try:
+                await self._disconnect_locked()
+                self._ble_device = ble_device
+                await self._connect_locked()
+            finally:
+                self._reconnecting = False
 
     def is_connected(self) -> bool:
         """Whether the device is currently connected."""
