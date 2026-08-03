@@ -585,3 +585,35 @@ class PitBoss:
         :param timeout: Time (in seconds) after which to abandon the RPC.
         """
         return await self._conn.send_command("RPC.Ping", {}, timeout=timeout)
+
+    async def list_rpcs(self) -> list[str]:
+        """Returns the RPC methods this grill serves.
+
+        What a grill answers is not uniform, so this is how a caller finds
+        out rather than inferring it from a model or firmware version. A
+        PB1600PS1 on 0.5.7 lists 56 methods; the same list is where
+        `PBL.GetLoaderVersion` and the `Wifi.*` calls do or do not appear.
+
+        Not universal itself: the ESP-IDF firmware line -- versioned `16.x`,
+        on the PBC2, PBD, PBE, PBL2 and PBT boards -- names this one
+        `RPC.ListEx` and does not serve `RPC.List` at all, so a caller
+        covering both has to ask for each.
+        """
+        result = await self._conn.send_command("RPC.List", {})
+        return result if isinstance(result, list) else []
+
+    async def get_loader_version(self) -> str | None:
+        """Returns the version of the loader application, if it has one.
+
+        This is the `PitBoss Loader` that carries the grill's own
+        application, and is versioned independently of the firmware
+        `get_firmware_version()` reports: a grill on firmware 0.5.7 answers
+        `0.2.2` here.
+
+        `None` when the grill does not serve `PBL.GetLoaderVersion`, which
+        `list_rpcs()` reports without a round trip that errors.
+        """
+        result = await self._conn.send_command("PBL.GetLoaderVersion", {})
+        if isinstance(result, dict):
+            return result.get("loaderVersion")
+        return None

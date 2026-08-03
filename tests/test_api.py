@@ -102,6 +102,8 @@ class FakeTransport(Transport):
             "PB.SetDevicePassword": self._set_password,
             "PB.SendMCUCommand": self._send_mcu_command,
             "PB.GetState": self._get_state,
+            "RPC.List": self._list_rpcs,
+            "PBL.GetLoaderVersion": self._get_loader_version,
         }
         resp = {"id": cmd["id"]}
         try:
@@ -169,6 +171,13 @@ class FakeTransport(Transport):
         if not command:
             raise ValueError("Empty command")
         self.last_mcu_command = bytes.fromhex(params["command"]).decode()
+
+    def _list_rpcs(self, params: dict) -> list:
+        """Answers with a bare list, as the firmware does."""
+        return ["RPC.List", "RPC.Ping", "PB.GetState", "PBL.GetLoaderVersion"]
+
+    def _get_loader_version(self, params: dict) -> dict:
+        return {"loaderVersion": "0.2.2"}
 
     def _get_state(self, params: dict) -> dict:
         self._check_password(params)
@@ -660,6 +669,37 @@ async def test_ping():
     ) as send_command:
         assert await pitboss.ping(timeout=5.0) == {}
         send_command.assert_awaited_once_with("RPC.Ping", {}, timeout=5.0)
+
+
+async def test_list_rpcs(pitboss: api.PitBoss):
+    """The reply is a bare list rather than an object."""
+    assert await pitboss.list_rpcs() == [
+        "RPC.List",
+        "RPC.Ping",
+        "PB.GetState",
+        "PBL.GetLoaderVersion",
+    ]
+
+
+async def test_list_rpcs_when_the_grill_answers_with_nothing():
+    """A grill that does not serve it must not hand back a non-list."""
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(conn, "send_command", AsyncMock(return_value=None)):
+        assert await pitboss.list_rpcs() == []
+
+
+async def test_get_loader_version(pitboss: api.PitBoss):
+    assert await pitboss.get_loader_version() == "0.2.2"
+
+
+async def test_get_loader_version_when_the_grill_has_no_loader():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(conn, "send_command", AsyncMock(return_value=None)):
+        assert await pitboss.get_loader_version() is None
 
 
 async def test_get_state_updates_the_cached_state(conn: FakeTransport, password: str):
