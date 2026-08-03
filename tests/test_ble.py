@@ -118,6 +118,91 @@ async def test_reset_device_connect_failure_resets_reconnecting_flag(
 
 
 @mock.patch("bleak_retry_connector.establish_connection")
+async def test_concurrent_resets_run_one_at_a_time(mock_establish_connection):
+    """Two resets racing must not interleave their disconnect/connect steps.
+
+    Establishing a connection takes seconds, and a consumer driving resets
+    from discovery schedules one per advertisement seen while disconnected --
+    so several are queued in exactly that window. Unserialized, the losing
+    `establish_connection` leaked a connected client.
+    """
+    device_a = mock.create_autospec(bleak.BLEDevice)
+    device_b = mock.create_autospec(bleak.BLEDevice)
+    device_a.name = device_b.name = "GRILL"
+
+    in_flight = 0
+    max_in_flight = 0
+
+    async def slow_establish(**kwargs):
+        nonlocal in_flight, max_in_flight
+        in_flight += 1
+        max_in_flight = max(max_in_flight, in_flight)
+        # Yield so the racing reset gets its chance to interleave.
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
+        in_flight -= 1
+        return mock.create_autospec(bleak.BleakClient)
+
+    mock_establish_connection.side_effect = slow_establish
+
+    conn = ble.BleConnection(device_a)
+    await asyncio.gather(conn.reset_device(device_a), conn.reset_device(device_b))
+
+    assert max_in_flight == 1
+    assert conn.is_connected()
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+async def test_a_queued_duplicate_reset_keeps_the_fresh_connection(
+    mock_establish_connection,
+):
+    """Resets queued for the same grill coalesce instead of churning.
+
+    By the time the later ones run, the first has already connected; tearing
+    that connection down to rebuild it against the same address was pure
+    churn. The fresher `BLEDevice` is still adopted.
+    """
+    first_seen = mock.create_autospec(bleak.BLEDevice)
+    readvertised = mock.create_autospec(bleak.BLEDevice)
+    first_seen.name = readvertised.name = "GRILL"
+    first_seen.address = readvertised.address = "AA:BB:CC:DD:EE:FF"
+    mock_bleak_client = mock.create_autospec(bleak.BleakClient)
+    mock_establish_connection.return_value = mock_bleak_client
+
+    conn = ble.BleConnection(first_seen)
+    await asyncio.gather(conn.reset_device(first_seen), conn.reset_device(readvertised))
+
+    assert conn.is_connected()
+    mock_establish_connection.assert_awaited_once()
+    mock_bleak_client.disconnect.assert_not_awaited()
+    assert conn._ble_device is readvertised
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+async def test_reset_to_a_different_address_still_reconnects(
+    mock_establish_connection,
+):
+    """Coalescing is by address; a different device still gets a full reset."""
+    device_a = mock.create_autospec(bleak.BLEDevice)
+    device_b = mock.create_autospec(bleak.BLEDevice)
+    device_a.name = device_b.name = "GRILL"
+    device_a.address = "AA:BB:CC:DD:EE:FF"
+    device_b.address = "11:22:33:44:55:66"
+    client_a = mock.create_autospec(bleak.BleakClient)
+    client_b = mock.create_autospec(bleak.BleakClient)
+    mock_establish_connection.side_effect = [client_a, client_b]
+
+    conn = ble.BleConnection(device_a)
+    await conn.connect()
+    await conn.reset_device(device_b)
+
+    assert conn.is_connected()
+    client_a.disconnect.assert_awaited_once()
+    assert conn._ble_device is device_b
+    assert mock_establish_connection.await_count == 2
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
 @mock.patch("bleak.BleakClient", spec=True)
 @mock.patch("bleak.BLEDevice", spec=True)
 async def test_subscribe_debug_logs(
