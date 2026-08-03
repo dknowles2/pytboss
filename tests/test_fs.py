@@ -1,4 +1,4 @@
-from base64 import b64encode
+from base64 import b64decode, b64encode
 from unittest import mock
 from unittest.mock import AsyncMock
 
@@ -64,11 +64,38 @@ async def test_get_file_content_multibyte_split_across_chunks(
 
 
 async def test_set_file_content(fs: FileSystem, conn: AsyncMock):
+    """The RPC takes base64: the device declares `data` as `%V`."""
     conn.send_command.return_value = {}
     assert await fs.set_file_content("test.txt", "data", True) == {}
     conn.send_command.assert_awaited_once_with(
-        "FS.Put", {"filename": "test.txt", "data": "data", "append": True}
+        "FS.Put",
+        {
+            "filename": "test.txt",
+            "data": b64encode(b"data").decode(),
+            "append": True,
+        },
     )
+
+
+async def test_set_file_content_round_trips_through_get(
+    fs: FileSystem, conn: AsyncMock
+):
+    """What Put sends must be what Get decodes, or writes land corrupted."""
+    content = "héllo wörld"  # multi-byte, so a raw write would not survive
+    conn.send_command.return_value = {}
+    await fs.set_file_content("test.txt", content, False)
+    sent = conn.send_command.await_args.args[1]["data"]
+
+    conn.send_command.reset_mock()
+    conn.send_command.return_value = {"data": sent, "left": 0}
+    assert await fs.get_file_content("test.txt") == content
+
+
+async def test_set_file_content_accepts_bytes(fs: FileSystem, conn: AsyncMock):
+    conn.send_command.return_value = {}
+    await fs.set_file_content("test.bin", b"\x00\xff", False)
+    sent = conn.send_command.await_args.args[1]["data"]
+    assert b64decode(sent) == b"\x00\xff"
 
 
 async def test_rename_file(fs: FileSystem, conn: AsyncMock):

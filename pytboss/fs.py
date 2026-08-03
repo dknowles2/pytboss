@@ -1,6 +1,6 @@
 """Client library for Mongoose OS filesystem RPCs."""
 
-from base64 import b64decode
+from base64 import b64decode, b64encode
 
 from .transport import Transport
 
@@ -45,18 +45,33 @@ class FileSystem:
                 return content.decode("utf-8")
 
     async def set_file_content(
-        self, filename: str, data: str, append: bool
+        self, filename: str, data: str | bytes, append: bool
     ) -> dict | None:
         """Writes content to a file on the device.
 
+        `data` is base64-encoded before it is sent, which is what the RPC
+        expects: the device describes the parameter as `%V` -- Mongoose's
+        format specifier for base64-encoded binary -- rather than the `%Q` it
+        uses for the plain string alongside it::
+
+            FS.Put  {filename: %Q, offset: %ld, data: %V, append: %B}
+
+        which is the same encoding `get_file_content()` decodes on the way
+        back.
+
         :param filename: Path of the file to write.
-        :param data: Content to write.
+        :param data: Content to write. Text is encoded as UTF-8.
         :param append: If True, appends to the existing file instead of
             overwriting it.
         """
+        raw = data.encode("utf-8") if isinstance(data, str) else data
         return await self._conn.send_command(
             "FS.Put",
-            {"filename": filename, "data": data, "append": append},
+            {
+                "filename": filename,
+                "data": b64encode(raw).decode("ascii"),
+                "append": append,
+            },
         )
 
     async def rename_file(self, src: str, dst: str) -> dict | None:
