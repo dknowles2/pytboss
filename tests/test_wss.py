@@ -327,18 +327,47 @@ async def test_status_no_state_callback(conn: wss.WebSocketConnection) -> None:
     await conn._handle_message({"status": ["state"]})
 
 
-async def test_vdata_result_payload(conn: wss.WebSocketConnection) -> None:
-    vdata_callback = AsyncMock()
-    conn.set_vdata_callback(vdata_callback)
-    await conn._handle_message({"result": "some-vdata"})
-    vdata_callback.assert_awaited_once_with("some-vdata")
-
-
-async def test_result_payload_no_vdata_callback(
+async def test_vdata_arrives_on_the_status_push(
     conn: wss.WebSocketConnection,
 ) -> None:
-    # No vdata callback registered; the payload should be silently ignored.
-    await conn._handle_message({"result": "some-vdata"})
+    """The shape the firmware actually sends.
+
+    `sendWSStatus` builds one object and attaches virtual data to it, so
+    `data` rides along with `status` rather than arriving on a frame of its
+    own -- and the state callback still has to run for the same payload.
+    """
+    vdata_callback = AsyncMock()
+    state_callback = AsyncMock()
+    conn.set_vdata_callback(vdata_callback)
+    conn.set_state_callback(state_callback)
+
+    await conn._handle_message(
+        {"id": -1, "src": "PBx", "status": ["FE0B00"], "data": {"p1T": 165}}
+    )
+
+    vdata_callback.assert_awaited_once_with({"p1T": 165})
+    state_callback.assert_awaited_once_with("FE0B00")
+
+
+async def test_status_push_without_vdata(conn: wss.WebSocketConnection) -> None:
+    """`data` is attached only when there is something to send."""
+    vdata_callback = AsyncMock()
+    conn.set_vdata_callback(vdata_callback)
+    conn.set_state_callback(AsyncMock())
+
+    await conn._handle_message({"id": -1, "status": ["FE0B00"]})
+
+    vdata_callback.assert_not_awaited()
+
+
+async def test_vdata_with_no_callback_registered(
+    conn: wss.WebSocketConnection,
+) -> None:
+    # No vdata callback; the state half of the payload must still be handled.
+    state_callback = AsyncMock()
+    conn.set_state_callback(state_callback)
+    await conn._handle_message({"status": ["FE0B00"], "data": {"p1T": 165}})
+    state_callback.assert_awaited_once_with("FE0B00")
 
 
 async def test_internal_session_closed():

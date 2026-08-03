@@ -14,7 +14,8 @@ from .config import Config
 from .exceptions import UnsupportedOperation
 from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
-from .transport import Transport
+from .ota import OTA
+from .transport import RPCResult, Transport, as_dict
 
 _UPTIME_TTL = 60.0
 """Seconds before the cached uptime is re-read rather than extrapolated.
@@ -74,6 +75,9 @@ class PitBoss:
     config: Config
     """Configuration operations."""
 
+    ota: OTA
+    """Over-the-air firmware update operations."""
+
     def __init__(
         self,
         conn: Transport,
@@ -96,6 +100,7 @@ class PitBoss:
         """
         self.fs = FileSystem(conn)
         self.config = Config(conn)
+        self.ota = OTA(conn)
         self._grill_model = grill_model
         self._control_board = control_board
         self._conn = conn
@@ -194,8 +199,12 @@ class PitBoss:
             for callback in callbacks:
                 await _invoke(callback, self._state)
 
-    async def _on_vdata_received(self, payload: str):
-        vdata = json.loads(payload)
+    async def _on_vdata_received(self, payload: str | dict):
+        # Both, because the transports differ in what they can hand over.
+        # `ble` reads virtual data off the debug log, where it is still the
+        # text the firmware printed; `wss` receives it as a member of an
+        # already-parsed status frame, so it arrives decoded.
+        vdata = json.loads(payload) if isinstance(payload, str) else payload
         _LOGGER.debug("VData received: %s", vdata)
         async with self._lock:
             callbacks = list(self._vdata_callbacks)
@@ -217,12 +226,12 @@ class PitBoss:
         psw = encode(self._password, key=timed_key(await self.get_uptime())).hex()
         return {**params, "psw": psw}
 
-    async def _send_hex_command(self, cmd: str) -> dict | None:
+    async def _send_hex_command(self, cmd: str) -> RPCResult:
         return await self._conn.send_command(
             "PB.SendMCUCommand", await self._authenticate({"command": cmd})
         )
 
-    async def _send_command(self, slug: str, *args) -> dict | None:
+    async def _send_command(self, slug: str, *args) -> RPCResult:
         cmd = self.spec.control_board.commands[slug]
         return await self._send_hex_command(cmd(*args))
 
@@ -254,7 +263,7 @@ class PitBoss:
         # they floor, so 190F is 87C to the grill rather than 88.
         return [floor((v - 32) / 1.8) for v in increments]
 
-    async def set_grill_temperature(self, temp: int) -> dict | None:
+    async def set_grill_temperature(self, temp: int) -> RPCResult:
         """Sets the target grill temperature.
 
         Snapped to the nearest value the control board accepts, expressed in
@@ -273,7 +282,7 @@ class PitBoss:
         # ignore the extra argument, as do fixed-hex commands.
         return await self._send_command("set-temperature", temp, fahrenheit)
 
-    async def set_probe_temperature(self, temp: int) -> dict | None:
+    async def set_probe_temperature(self, temp: int) -> RPCResult:
         """Sets the target temperature for probe 1.
 
         :param temp: Target probe temperature, in the grill's own unit.
@@ -282,7 +291,7 @@ class PitBoss:
             "set-probe-1-temperature", temp, self._is_fahrenheit()
         )
 
-    async def set_probe_2_temperature(self, temp: int) -> dict | None:
+    async def set_probe_2_temperature(self, temp: int) -> RPCResult:
         """Sets the target temperature for probe 2.
 
         :param temp: Target probe temperature, in the grill's own unit.
@@ -403,7 +412,7 @@ class PitBoss:
         """
         await self._conn.send_command("PB.WiFiAwakeWDT", await self._authenticate({}))
 
-    async def set_temperature_unit(self, fahrenheit: bool) -> dict | None:
+    async def set_temperature_unit(self, fahrenheit: bool) -> RPCResult:
         """Switches the unit the grill itself works in.
 
         This is the grill's own setting -- the one shown on its panel and
@@ -415,19 +424,19 @@ class PitBoss:
             "set-fahrenheit" if fahrenheit else "set-celsius"
         )
 
-    async def turn_light_on(self) -> dict | None:
+    async def turn_light_on(self) -> RPCResult:
         """Turns the light on if the grill has a light."""
         if not self.spec.has_lights:
             return {}
         return await self._send_command("turn-light-on")
 
-    async def turn_light_off(self) -> dict | None:
+    async def turn_light_off(self) -> RPCResult:
         """Turns the light off if the grill has a light."""
         if not self.spec.has_lights:
             return {}
         return await self._send_command("turn-light-off")
 
-    async def turn_grill_on(self) -> dict | None:
+    async def turn_grill_on(self) -> RPCResult:
         """Lights the grill.
 
         **This starts a fire in an appliance nobody may be standing next to.**
@@ -463,15 +472,15 @@ class PitBoss:
         """
         return await self._send_hex_command("FE0101FF")
 
-    async def turn_grill_off(self) -> dict | None:
+    async def turn_grill_off(self) -> RPCResult:
         """Turns the grill off."""
         return await self._send_command("turn-off")
 
-    async def turn_primer_motor_on(self) -> dict | None:
+    async def turn_primer_motor_on(self) -> RPCResult:
         """Turns the primer motor on."""
         return await self._send_command("turn-primer-motor-on")
 
-    async def turn_primer_motor_off(self) -> dict | None:
+    async def turn_primer_motor_off(self) -> RPCResult:
         """Turns the primer motor off."""
         return await self._send_command("turn-primer-motor-off")
 
@@ -483,12 +492,23 @@ class PitBoss:
         anything relying on it stays correct on a connection that only ever
         polls.
         """
-        resp = (
+        resp = as_dict(
             await self._conn.send_command("PB.GetState", await self._authenticate({}))
-            or {}
         )
-        status = self.spec.control_board.parse_status(resp["sc_11"]) or {}
-        status.update(self.spec.control_board.parse_temperatures(resp["sc_12"]) or {})
+        # Either frame can be absent or empty, so neither is indexed. The
+        # firmware blanks both the moment it forwards a command to the MCU::
+        #
+        #     function sendMCUCommand(pCommand) {
+        #       lastStatus.sc_11 = "";
+        #       lastStatus.sc_12 = "";
+        #
+        # and refills them from the next reply, so a poll landing in that
+        # window is answered with empty strings rather than an error.
+        status = StateDict()
+        if sc_11 := resp.get("sc_11"):
+            status.update(self.spec.control_board.parse_status(sc_11) or {})
+        if sc_12 := resp.get("sc_12"):
+            status.update(self.spec.control_board.parse_temperatures(sc_12) or {})
         if status:
             async with self._lock:
                 self._state.update(status)
@@ -498,9 +518,9 @@ class PitBoss:
         """Returns the firmware version installed on the grill."""
         # `or {}`: the handler answers with an object in every vendor image,
         # so the empty dict stands in only for a broken exchange.
-        return await self._conn.send_command("PB.GetFirmwareVersion", {}) or {}
+        return as_dict(await self._conn.send_command("PB.GetFirmwareVersion", {}))
 
-    async def set_mcu_update_timer(self, frequency=2) -> dict | None:
+    async def set_mcu_update_timer(self, frequency=2) -> RPCResult:
         """Sets how often (in seconds) the MCU sends status updates.
 
         :meta private:
@@ -509,7 +529,7 @@ class PitBoss:
             "PB.SetMCU_UpdateFrequency", {"frequency": frequency}
         )
 
-    async def set_wifi_update_frequency(self, fast=5, slow=60) -> dict | None:
+    async def set_wifi_update_frequency(self, fast=5, slow=60) -> RPCResult:
         """Sets how often (in seconds) the device sends WiFi status updates.
 
         The method name is `WiFi`, not `Wifi`. RPC names are matched exactly,
@@ -522,7 +542,7 @@ class PitBoss:
             await self._authenticate({"slow": slow, "fast": fast}),
         )
 
-    async def set_virtual_data(self, data: dict) -> dict | None:
+    async def set_virtual_data(self, data: dict) -> RPCResult:
         """Sets arbitrary virtual data on the device.
 
         :meta private:
@@ -563,8 +583,18 @@ class PitBoss:
         """
         now = monotonic()
         if self._last_uptime is None or now - self._last_uptime_check > _UPTIME_TTL:
-            result = await self._conn.send_command("PB.GetTime", {}) or {}
-            self._last_uptime = result.get("time", 0.0)
+            result = as_dict(await self._conn.send_command("PB.GetTime", {}))
+            uptime = result.get("time")
+            if not isinstance(uptime, (int, float)):
+                # Not cached, because caching it is worse than not having it:
+                # `timed_key` would be built from a wrong uptime for the whole
+                # TTL, so one unreadable reply would cost a minute of rejected
+                # commands on a password-protected grill.
+                _LOGGER.debug("No uptime in the reply: %s", result)
+                if self._last_uptime is None:
+                    return 0.0
+                return self._last_uptime + (now - self._last_uptime_check)
+            self._last_uptime = float(uptime)
             # Deliberately the pre-request timestamp, though the grill
             # computed its uptime later, when the request reached it: every
             # extrapolation therefore runs ahead of the grill by about one
@@ -579,9 +609,41 @@ class PitBoss:
             return self._last_uptime
         return self._last_uptime + (now - self._last_uptime_check)
 
-    async def ping(self, timeout: float | None = None) -> dict | None:
+    async def ping(self, timeout: float | None = None) -> RPCResult:
         """Pings the device.
 
         :param timeout: Time (in seconds) after which to abandon the RPC.
         """
         return await self._conn.send_command("RPC.Ping", {}, timeout=timeout)
+
+    async def list_rpcs(self) -> list[str]:
+        """Returns the RPC methods this grill serves.
+
+        What a grill answers is not uniform, so this is how a caller finds
+        out rather than inferring it from a model or firmware version. A
+        PB1600PS1 on 0.5.7 lists 56 methods; the same list is where
+        `PBL.GetLoaderVersion` and the `Wifi.*` calls do or do not appear.
+
+        Not universal itself: the ESP-IDF firmware line -- versioned `16.x`,
+        on the PBC2, PBD, PBE, PBL2 and PBT boards -- names this one
+        `RPC.ListEx` and does not serve `RPC.List` at all, so a caller
+        covering both has to ask for each.
+        """
+        result = await self._conn.send_command("RPC.List", {})
+        return result if isinstance(result, list) else []
+
+    async def get_loader_version(self) -> str | None:
+        """Returns the version of the loader application, if it has one.
+
+        This is the `PitBoss Loader` that carries the grill's own
+        application, and is versioned independently of the firmware
+        `get_firmware_version()` reports: a grill on firmware 0.5.7 answers
+        `0.2.2` here.
+
+        `None` when the grill does not serve `PBL.GetLoaderVersion`, which
+        `list_rpcs()` reports without a round trip that errors.
+        """
+        result = await self._conn.send_command("PBL.GetLoaderVersion", {})
+        if isinstance(result, dict):
+            return result.get("loaderVersion")
+        return None

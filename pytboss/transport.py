@@ -28,14 +28,32 @@ class RawStateCallback(Protocol):
     ) -> None: ...
 
 
-RawVDataCallback = Callable[[str], Awaitable[None]]
+RawVDataCallback = Callable[[str | dict], Awaitable[None]]
 """Callback invoked by a `Transport` with a raw, unparsed VData payload."""
+
+RPCResult = dict[Any, Any] | list[Any] | None
+"""The `result` of an RPC reply: an object, an array, or nothing.
+
+Arrays are not hypothetical -- `RPC.List` answers with one. See
+`Transport.send_command` for why all three are needed.
+"""
 
 SendCommandFn = Callable[
     [str, dict[Any, Any], DefaultNamedArg(float | None, "timeout")],
-    Awaitable[dict[Any, Any] | None],
+    Awaitable[RPCResult],
 ]
 """Signature shared by `Transport.send_command` and `send_command_without_answer`."""
+
+
+def as_dict(result: RPCResult) -> dict[Any, Any]:
+    """Narrow an RPC reply to the object a caller expects, or an empty one.
+
+    Written as a type guard rather than `result or {}` because the latter
+    passes a list straight through while telling the checker it is a dict --
+    which is how `RPC.List`'s array went unnoticed when this type was first
+    narrowed.
+    """
+    return result if isinstance(result, dict) else {}
 
 
 UNAUTHORIZED_CODE = 401
@@ -98,13 +116,25 @@ class Transport(ABC):
 
     async def send_command(
         self, method: str, params: dict, *, timeout: float | None = DEFAULT_TIMEOUT
-    ) -> dict[Any, Any] | None:
+    ) -> RPCResult:
         """Sends a comand to the device.
 
-        Returns the reply's `result`, which is `None` for the handlers that
-        return nothing: every vendor firmware image resolves the setter RPCs
-        (`PB.SendMCUCommand`, `PB.SetVirtualData`, ...) with `null`, and only
-        the getters answer with an object.
+        Returns the reply's `result`, whatever JSON value that is:
+
+        * `None` for handlers that return nothing. Every vendor firmware
+          image resolves the setter RPCs (`PB.SendMCUCommand`,
+          `PB.SetVirtualData`, ...) with `null`.
+        * an object for the `PB.*` getters the grill's own app registers.
+        * an **array** for some of Mongoose's core RPCs -- `RPC.List` answers
+          with a bare list of method names, confirmed on a PB1600PS1, and
+          `FS.List` is documented to answer with one too.
+
+        That last case is why this is not simply `dict | None`. The `PB.*`
+        handlers are modelled in `fake_firmware/init.js` and were audited when
+        this type was first narrowed; Mongoose's own services are not modelled
+        there, so they were not. Narrow with `as_dict()` rather than `or {}`:
+        the first is a type guard the checker can see, the second silently
+        passes a list through.
 
         :param method: The method to call.
         :param params: Parameters to send with the command.

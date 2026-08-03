@@ -102,6 +102,8 @@ class FakeTransport(Transport):
             "PB.SetDevicePassword": self._set_password,
             "PB.SendMCUCommand": self._send_mcu_command,
             "PB.GetState": self._get_state,
+            "RPC.List": self._list_rpcs,
+            "PBL.GetLoaderVersion": self._get_loader_version,
         }
         resp = {"id": cmd["id"]}
         try:
@@ -169,6 +171,13 @@ class FakeTransport(Transport):
         if not command:
             raise ValueError("Empty command")
         self.last_mcu_command = bytes.fromhex(params["command"]).decode()
+
+    def _list_rpcs(self, params: dict) -> list:
+        """Answers with a bare list, as the firmware does."""
+        return ["RPC.List", "RPC.Ping", "PB.GetState", "PBL.GetLoaderVersion"]
+
+    def _get_loader_version(self, params: dict) -> dict:
+        return {"loaderVersion": "0.2.2"}
 
     def _get_state(self, params: dict) -> dict:
         self._check_password(params)
@@ -662,6 +671,37 @@ async def test_ping():
         send_command.assert_awaited_once_with("RPC.Ping", {}, timeout=5.0)
 
 
+async def test_list_rpcs(pitboss: api.PitBoss):
+    """The reply is a bare list rather than an object."""
+    assert await pitboss.list_rpcs() == [
+        "RPC.List",
+        "RPC.Ping",
+        "PB.GetState",
+        "PBL.GetLoaderVersion",
+    ]
+
+
+async def test_list_rpcs_when_the_grill_answers_with_nothing():
+    """A grill that does not serve it must not hand back a non-list."""
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(conn, "send_command", AsyncMock(return_value=None)):
+        assert await pitboss.list_rpcs() == []
+
+
+async def test_get_loader_version(pitboss: api.PitBoss):
+    assert await pitboss.get_loader_version() == "0.2.2"
+
+
+async def test_get_loader_version_when_the_grill_has_no_loader():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(conn, "send_command", AsyncMock(return_value=None)):
+        assert await pitboss.get_loader_version() is None
+
+
 async def test_get_state_updates_the_cached_state(conn: FakeTransport, password: str):
     """A polling-only connection must still keep the cache current."""
     pitboss = api.PitBoss(conn, "PBV4PS2", password)
@@ -891,3 +931,63 @@ def test_the_turn_on_command_collides_with_nothing():
             except TypeError:
                 continue  # takes arguments; not a fixed command
             assert rendered != "FE0101FF", f"{grill.name} declares it as {slug}"
+
+
+async def test_on_vdata_received_accepts_a_decoded_object():
+    """`wss` hands over an object; `ble` hands over the text it was printed as.
+
+    Virtual data reaches `wss` as a member of an already-parsed status frame,
+    so it arrives decoded, while `ble` reads it off the debug log as text.
+    """
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    received = []
+    await pitboss.subscribe_vdata(received.append)
+
+    await pitboss._on_vdata_received({"p1T": 165})
+    await pitboss._on_vdata_received('{"p2T": 170}')
+
+    assert received == [{"p1T": 165}, {"p2T": 170}]
+
+
+@pytest.mark.parametrize(
+    "reply",
+    [
+        {},
+        {"sc_11": "", "sc_12": ""},
+        {"sc_11": STATE_HEX},
+        {"sc_12": TEMPS_HEX},
+    ],
+    ids=["empty", "blanked", "status_only", "temperatures_only"],
+)
+async def test_get_state_survives_a_partial_reply(reply):
+    """The firmware blanks both frames while a command is in flight.
+
+    `sendMCUCommand` clears `lastStatus.sc_11` and `sc_12` before it writes to
+    the MCU and refills them from the next reply, so a poll landing in that
+    window is answered with empty strings rather than an error.
+    """
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(conn, "send_command", AsyncMock(return_value=reply)):
+        state = await pitboss.get_state()
+    assert isinstance(state, dict)
+
+
+async def test_get_uptime_does_not_cache_a_reply_it_cannot_read():
+    """Caching it would keep `timed_key` wrong for the whole TTL."""
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+
+    with mock.patch.object(conn, "send_command", AsyncMock(return_value={})):
+        assert await pitboss.get_uptime() == 0.0
+
+    # The next call must go back to the grill rather than extrapolate from a
+    # value it never got.
+    with mock.patch.object(
+        conn, "send_command", AsyncMock(return_value={"time": 500.0})
+    ):
+        assert await pitboss.get_uptime() == 500.0

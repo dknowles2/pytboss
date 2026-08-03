@@ -2,7 +2,7 @@
 
 from base64 import b64decode, b64encode
 
-from .transport import Transport
+from .transport import RPCResult, Transport, as_dict
 
 
 class FileSystem:
@@ -18,7 +18,7 @@ class FileSystem:
         """
         self._conn = conn
 
-    async def get_file_list(self) -> dict | None:
+    async def get_file_list(self) -> RPCResult:
         """Lists files present on the device's filesystem."""
         return await self._conn.send_command("FS.List", {})
 
@@ -31,22 +31,32 @@ class FileSystem:
         offset = 0
         content = bytearray()
         while True:
-            resp = (
+            resp = as_dict(
                 await self._conn.send_command(
                     "FS.Get", {"filename": filename, "offset": offset, "len": length}
                 )
-                or {}
             )
-            content += b64decode(resp["data"])
-            offset += length
-            if resp["left"] == 0:
-                # Decoded once, whole: a multi-byte character split across
-                # the chunk boundary is not valid UTF-8 on its own.
-                return content.decode("utf-8")
+            chunk = b64decode(resp.get("data", ""))
+            if not chunk:
+                # Nothing came back, so nothing more will: reading on would
+                # ask for the same offset forever when `left` disagrees.
+                break
+            content += chunk
+            # Advanced by what arrived rather than by what was asked for. A
+            # device answering with less -- the reply is bounded by the RPC
+            # frame size, which is configurable and smaller than this on some
+            # units -- would otherwise leave a hole in the middle of the file
+            # and the read would report success.
+            offset += len(chunk)
+            if resp.get("left") == 0:
+                break
+        # Decoded once, whole: a multi-byte character split across a chunk
+        # boundary is not valid UTF-8 on its own.
+        return content.decode("utf-8")
 
     async def set_file_content(
         self, filename: str, data: str | bytes, append: bool
-    ) -> dict | None:
+    ) -> RPCResult:
         """Writes content to a file on the device.
 
         `data` is base64-encoded before it is sent, which is what the RPC
@@ -74,7 +84,7 @@ class FileSystem:
             },
         )
 
-    async def rename_file(self, src: str, dst: str) -> dict | None:
+    async def rename_file(self, src: str, dst: str) -> RPCResult:
         """Renames a file on the device.
 
         :param src: Existing filename.
@@ -82,7 +92,7 @@ class FileSystem:
         """
         return await self._conn.send_command("FS.Rename", {"src": src, "dst": dst})
 
-    async def delete_file(self, filename: str) -> dict | None:
+    async def delete_file(self, filename: str) -> RPCResult:
         """Deletes a file from the device.
 
         :param filename: Path of the file to delete.

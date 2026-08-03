@@ -3,7 +3,7 @@ import asyncio
 import pytest
 
 from pytboss.exceptions import GrillUnavailable, NotConnectedError
-from pytboss.transport import Transport
+from pytboss.transport import Transport, as_dict
 
 
 class FakeTransport(Transport):
@@ -88,3 +88,38 @@ async def test_fail_pending_commands_with_nothing_in_flight():
     conn = FakeTransport()
     await conn._fail_pending_commands()
     assert conn._rpc_futures == {}
+
+
+async def test_a_reply_can_be_an_array():
+    """`RPC.List` answers with a bare list, not an object.
+
+    This is why `send_command` is not typed `dict | None`. The `PB.*`
+    handlers the grill's own app registers all answer with objects, and those
+    are the ones modelled in `fake_firmware/init.js` -- so when the type was
+    first narrowed, Mongoose's own services were not in the audit.
+    """
+    conn = FakeTransport()
+    task = asyncio.create_task(conn.send_command("RPC.List", {}, timeout=None))
+    await asyncio.sleep(0)
+    cmd_id = next(iter(conn._rpc_futures))
+
+    await conn._on_command_response({"id": cmd_id, "result": ["RPC.List", "RPC.Ping"]})
+
+    assert await task == ["RPC.List", "RPC.Ping"]
+
+
+@pytest.mark.parametrize(
+    "result,want",
+    [
+        ({"a": 1}, {"a": 1}),
+        (None, {}),
+        (["RPC.List"], {}),  # an array is not the object a getter asked for
+    ],
+)
+def test_as_dict_narrows_every_reply_shape(result, want):
+    """A type guard rather than `result or {}`.
+
+    `or {}` passes an array straight through while telling the checker it is
+    a dict, which is exactly how the array case went unnoticed.
+    """
+    assert as_dict(result) == want
