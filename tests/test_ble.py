@@ -191,6 +191,55 @@ async def test_connect_racing_a_reset_runs_one_at_a_time(mock_establish_connecti
 
 
 @mock.patch("bleak_retry_connector.establish_connection")
+async def test_disconnect_racing_a_reset_leaves_nothing_behind(
+    mock_establish_connection,
+):
+    """`disconnect()` takes the lifecycle lock in its own right too.
+
+    The reachable interleaving, from review of the lock: discovery connects
+    through `reset_device`; the link drops, so the flag is cleared and the
+    drop queues another reset -- which does the full teardown/reconnect
+    rather than coalescing; the entry then unloads, calling `disconnect()`
+    while that reset is mid-flight. Unserialized, `disconnect()` slots
+    between the reset's teardown and its reconnect: the client the reset
+    establishes afterwards survives the unload -- a live connection nobody
+    disconnected, on a transport reporting connected after an explicit
+    `disconnect()`.
+    """
+    first_seen = mock.create_autospec(bleak.BLEDevice)
+    readvertised = mock.create_autospec(bleak.BLEDevice)
+    first_seen.name = readvertised.name = "GRILL"
+    first_seen.address = readvertised.address = "AA:BB:CC:DD:EE:FF"
+    client_1 = mock.create_autospec(bleak.BleakClient)
+    client_2 = mock.create_autospec(bleak.BleakClient)
+    clients = iter([client_1, client_2])
+
+    async def slow_establish(**kwargs):
+        # Yield so the racing disconnect gets its chance to interleave.
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
+        return next(clients)
+
+    mock_establish_connection.side_effect = slow_establish
+
+    conn = ble.BleConnection(first_seen)
+    await conn.reset_device(first_seen)
+    assert conn.is_connected()
+
+    # The link drops, which also queues the reset raced below.
+    conn._on_disconnected(client_1)
+
+    await asyncio.gather(conn.reset_device(readvertised), conn.disconnect())
+
+    assert not conn.is_connected()
+    assert conn._ble_client is None
+    # The client the reset established was handed to `disconnect()` rather
+    # than surviving the unload.
+    client_2.disconnect.assert_awaited()
+    assert mock_establish_connection.await_count == 2
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
 async def test_a_queued_duplicate_reset_keeps_the_fresh_connection(
     mock_establish_connection,
 ):
