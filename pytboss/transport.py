@@ -98,8 +98,13 @@ class Transport(ABC):
 
     async def send_command(
         self, method: str, params: dict, *, timeout: float | None = DEFAULT_TIMEOUT
-    ) -> dict:
+    ) -> dict[Any, Any] | None:
         """Sends a comand to the device.
+
+        Returns the reply's `result`, which is `None` for the handlers that
+        return nothing: every vendor firmware image resolves the setter RPCs
+        (`PB.SendMCUCommand`, `PB.SetVirtualData`, ...) with `null`, and only
+        the getters answer with an object.
 
         :param method: The method to call.
         :param params: Parameters to send with the command.

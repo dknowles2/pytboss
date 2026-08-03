@@ -217,12 +217,12 @@ class PitBoss:
         psw = encode(self._password, key=timed_key(await self.get_uptime())).hex()
         return {**params, "psw": psw}
 
-    async def _send_hex_command(self, cmd: str) -> dict:
+    async def _send_hex_command(self, cmd: str) -> dict | None:
         return await self._conn.send_command(
             "PB.SendMCUCommand", await self._authenticate({"command": cmd})
         )
 
-    async def _send_command(self, slug: str, *args) -> dict:
+    async def _send_command(self, slug: str, *args) -> dict | None:
         cmd = self.spec.control_board.commands[slug]
         return await self._send_hex_command(cmd(*args))
 
@@ -254,7 +254,7 @@ class PitBoss:
         # they floor, so 190F is 87C to the grill rather than 88.
         return [floor((v - 32) / 1.8) for v in increments]
 
-    async def set_grill_temperature(self, temp: int) -> dict:
+    async def set_grill_temperature(self, temp: int) -> dict | None:
         """Sets the target grill temperature.
 
         Snapped to the nearest value the control board accepts, expressed in
@@ -273,7 +273,7 @@ class PitBoss:
         # ignore the extra argument, as do fixed-hex commands.
         return await self._send_command("set-temperature", temp, fahrenheit)
 
-    async def set_probe_temperature(self, temp: int) -> dict:
+    async def set_probe_temperature(self, temp: int) -> dict | None:
         """Sets the target temperature for probe 1.
 
         :param temp: Target probe temperature, in the grill's own unit.
@@ -282,7 +282,7 @@ class PitBoss:
             "set-probe-1-temperature", temp, self._is_fahrenheit()
         )
 
-    async def set_probe_2_temperature(self, temp: int) -> dict:
+    async def set_probe_2_temperature(self, temp: int) -> dict | None:
         """Sets the target temperature for probe 2.
 
         :param temp: Target probe temperature, in the grill's own unit.
@@ -403,7 +403,7 @@ class PitBoss:
         """
         await self._conn.send_command("PB.WiFiAwakeWDT", await self._authenticate({}))
 
-    async def set_temperature_unit(self, fahrenheit: bool) -> dict:
+    async def set_temperature_unit(self, fahrenheit: bool) -> dict | None:
         """Switches the unit the grill itself works in.
 
         This is the grill's own setting -- the one shown on its panel and
@@ -415,19 +415,19 @@ class PitBoss:
             "set-fahrenheit" if fahrenheit else "set-celsius"
         )
 
-    async def turn_light_on(self) -> dict:
+    async def turn_light_on(self) -> dict | None:
         """Turns the light on if the grill has a light."""
         if not self.spec.has_lights:
             return {}
         return await self._send_command("turn-light-on")
 
-    async def turn_light_off(self) -> dict:
+    async def turn_light_off(self) -> dict | None:
         """Turns the light off if the grill has a light."""
         if not self.spec.has_lights:
             return {}
         return await self._send_command("turn-light-off")
 
-    async def turn_grill_on(self) -> dict:
+    async def turn_grill_on(self) -> dict | None:
         """Lights the grill.
 
         **This starts a fire in an appliance nobody may be standing next to.**
@@ -463,15 +463,15 @@ class PitBoss:
         """
         return await self._send_hex_command("FE0101FF")
 
-    async def turn_grill_off(self) -> dict:
+    async def turn_grill_off(self) -> dict | None:
         """Turns the grill off."""
         return await self._send_command("turn-off")
 
-    async def turn_primer_motor_on(self) -> dict:
+    async def turn_primer_motor_on(self) -> dict | None:
         """Turns the primer motor on."""
         return await self._send_command("turn-primer-motor-on")
 
-    async def turn_primer_motor_off(self) -> dict:
+    async def turn_primer_motor_off(self) -> dict | None:
         """Turns the primer motor off."""
         return await self._send_command("turn-primer-motor-off")
 
@@ -483,8 +483,9 @@ class PitBoss:
         anything relying on it stays correct on a connection that only ever
         polls.
         """
-        resp = await self._conn.send_command(
-            "PB.GetState", await self._authenticate({})
+        resp = (
+            await self._conn.send_command("PB.GetState", await self._authenticate({}))
+            or {}
         )
         status = self.spec.control_board.parse_status(resp["sc_11"]) or {}
         status.update(self.spec.control_board.parse_temperatures(resp["sc_12"]) or {})
@@ -495,9 +496,11 @@ class PitBoss:
 
     async def get_firmware_version(self) -> dict:
         """Returns the firmware version installed on the grill."""
-        return await self._conn.send_command("PB.GetFirmwareVersion", {})
+        # `or {}`: the handler answers with an object in every vendor image,
+        # so the empty dict stands in only for a broken exchange.
+        return await self._conn.send_command("PB.GetFirmwareVersion", {}) or {}
 
-    async def set_mcu_update_timer(self, frequency=2):
+    async def set_mcu_update_timer(self, frequency=2) -> dict | None:
         """Sets how often (in seconds) the MCU sends status updates.
 
         :meta private:
@@ -506,7 +509,7 @@ class PitBoss:
             "PB.SetMCU_UpdateFrequency", {"frequency": frequency}
         )
 
-    async def set_wifi_update_frequency(self, fast=5, slow=60):
+    async def set_wifi_update_frequency(self, fast=5, slow=60) -> dict | None:
         """Sets how often (in seconds) the device sends WiFi status updates.
 
         :meta private:
@@ -516,7 +519,7 @@ class PitBoss:
             await self._authenticate({"slow": slow, "fast": fast}),
         )
 
-    async def set_virtual_data(self, data: dict):
+    async def set_virtual_data(self, data: dict) -> dict | None:
         """Sets arbitrary virtual data on the device.
 
         :meta private:
@@ -557,7 +560,7 @@ class PitBoss:
         """
         now = monotonic()
         if self._last_uptime is None or now - self._last_uptime_check > _UPTIME_TTL:
-            result = await self._conn.send_command("PB.GetTime", {})
+            result = await self._conn.send_command("PB.GetTime", {}) or {}
             self._last_uptime = result.get("time", 0.0)
             # Deliberately the pre-request timestamp, though the grill
             # computed its uptime later, when the request reached it: every
@@ -573,7 +576,7 @@ class PitBoss:
             return self._last_uptime
         return self._last_uptime + (now - self._last_uptime_check)
 
-    async def ping(self, timeout: float | None = None) -> dict:
+    async def ping(self, timeout: float | None = None) -> dict | None:
         """Pings the device.
 
         :param timeout: Time (in seconds) after which to abandon the RPC.

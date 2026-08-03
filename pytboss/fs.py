@@ -18,7 +18,7 @@ class FileSystem:
         """
         self._conn = conn
 
-    async def get_file_list(self) -> dict:
+    async def get_file_list(self) -> dict | None:
         """Lists files present on the device's filesystem."""
         return await self._conn.send_command("FS.List", {})
 
@@ -31,8 +31,11 @@ class FileSystem:
         offset = 0
         content = bytearray()
         while True:
-            resp = await self._conn.send_command(
-                "FS.Get", {"filename": filename, "offset": offset, "len": length}
+            resp = (
+                await self._conn.send_command(
+                    "FS.Get", {"filename": filename, "offset": offset, "len": length}
+                )
+                or {}
             )
             content += b64decode(resp["data"])
             offset += length
@@ -41,7 +44,9 @@ class FileSystem:
                 # the chunk boundary is not valid UTF-8 on its own.
                 return content.decode("utf-8")
 
-    async def set_file_content(self, filename: str, data: str, append: bool) -> dict:
+    async def set_file_content(
+        self, filename: str, data: str, append: bool
+    ) -> dict | None:
         """Writes content to a file on the device.
 
         :param filename: Path of the file to write.
@@ -54,7 +59,7 @@ class FileSystem:
             {"filename": filename, "data": data, "append": append},
         )
 
-    async def rename_file(self, src: str, dst: str) -> dict:
+    async def rename_file(self, src: str, dst: str) -> dict | None:
         """Renames a file on the device.
 
         :param src: Existing filename.
@@ -62,7 +67,7 @@ class FileSystem:
         """
         return await self._conn.send_command("FS.Rename", {"src": src, "dst": dst})
 
-    async def delete_file(self, filename: str) -> dict:
+    async def delete_file(self, filename: str) -> dict | None:
         """Deletes a file from the device.
 
         :param filename: Path of the file to delete.

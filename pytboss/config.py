@@ -20,7 +20,7 @@ class Config:
 
     async def get_info(self) -> dict:
         """Returns system information."""
-        return await self._conn.send_command("Sys.GetInfo", {})
+        return await self._conn.send_command("Sys.GetInfo", {}) or {}
 
     async def get_config(self, key: str | None = None) -> dict:
         """Retrieves device configuration subtree.
@@ -30,7 +30,7 @@ class Config:
         params = {}
         if key:
             params["key"] = key
-        return await self._conn.send_command("Config.Get", params)
+        return await self._conn.send_command("Config.Get", params) or {}
 
     async def save_config(self, reboot: bool = True):
         """Writes an existing device configuration on flash.
@@ -42,11 +42,11 @@ class Config:
             fn = self._conn.send_command_without_answer
         await fn("Config.Save", {"reboot": reboot})
 
-    async def set(self, **kwargs):
+    async def set(self, **kwargs) -> dict | None:
         """Sets device configuration parameters."""
         return await self._conn.send_command("Config.Set", {"config": kwargs})
 
-    async def set_wifi_credentials(self, ssid: str, password: str) -> dict:
+    async def set_wifi_credentials(self, ssid: str, password: str) -> dict | None:
         """Sets the WiFi credentials on the device.
 
         :param ssid: The SSID to connect to.
@@ -54,14 +54,14 @@ class Config:
         """
         return await self._conn.send_command("Config.Set", _wifi_params(ssid, password))
 
-    async def set_wifi_ssid(self, ssid):
+    async def set_wifi_ssid(self, ssid) -> dict | None:
         """Sets the WiFi SSID.
 
         :param ssid: The SSID to connect to.
         """
         return await self._conn.send_command("Config.Set", _wifi_params(ssid=ssid))
 
-    async def set_wifi_password(self, password):
+    async def set_wifi_password(self, password) -> dict | None:
         """Sets the WiFi password.
 
         :param password: The password for the WiFi network.
