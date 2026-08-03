@@ -40,6 +40,14 @@ CHAR_RPC_RX_CTL = _uuid("_mOS_RPC_rx_ctl_")
 DisconnectCallback = Callable[[BleakClient], None]
 """A callback function called when the BLE connection is disconnected."""
 
+MAX_RPC_RESPONSE_SIZE = 64 * 1024
+"""Largest reply this transport will try to assemble, in bytes.
+
+The length comes off the wire, so a corrupt or desynchronised control
+notification can ask for up to 4 GiB. Nothing the library sends provokes a
+reply anywhere near this bound: the largest are `FS.Get`, capped at 512 bytes
+of content, and `RPC.List`, about 1.4 kB on a grill serving 56 methods."""
+
 
 class BleConnection(Transport):
     """Bluetooth LE protocol transport for Mongoose OS devices."""
@@ -200,10 +208,33 @@ class BleConnection(Transport):
         if self._ble_client is None:
             return
         resp_len = _decode_len(data)
+        if resp_len > MAX_RPC_RESPONSE_SIZE:
+            # The length is whatever the notification said, so a corrupt one
+            # sends this loop after gigabytes that will never arrive. Reading
+            # them would take hours of real GATT round trips, all of it while
+            # holding the lock a send needs, so abandon the reply instead.
+            # The caller times out, which is what already happens whenever a
+            # reply goes missing.
+            _LOGGER.warning(
+                "Ignoring implausible RPC response length: %d bytes", resp_len
+            )
+            return
         resp = bytearray()
         async with self._lock:
             while len(resp) < resp_len:
-                resp += await self._ble_client.read_gatt_char(CHAR_RPC_DATA)
+                chunk = await self._ble_client.read_gatt_char(CHAR_RPC_DATA)
+                if not chunk:
+                    # Nothing left to read, but the announced length says
+                    # otherwise. Without this the loop spins on an empty read
+                    # forever -- and never awaits anything that suspends, so
+                    # no other task on the loop runs again.
+                    _LOGGER.warning(
+                        "Abandoning truncated RPC response: got %d of %d bytes",
+                        len(resp),
+                        resp_len,
+                    )
+                    return
+                resp += chunk
 
         payload = json.loads(resp.decode("utf-8"))
         await self._on_command_response(payload)
