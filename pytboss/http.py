@@ -5,17 +5,40 @@ Dansons websocket relays, so the command mappings and status decoders in this
 library work against it unchanged. Talking to the grill directly removes the
 vendor's cloud from the path.
 
-**Not every grill answers.** The endpoint is gated by the firmware's
-`http.enable` setting, and that is per-unit configuration rather than
-something a model or firmware version predicts -- two grills on the same
-board and the same firmware have been observed with opposite values. Nothing
-here turns it on: `connect()` fails against a grill where it is off, and the
-caller is expected to have established that the endpoint exists first, over a
-transport that already works. `Config.Get` over Bluetooth reports it::
+**Not every grill answers**, and whether one does is decided twice over.
 
-    http = await boss.config.get_config("http")
-    if http["enable"]:
+First by firmware family. Dansons ships a second line that is not Mongoose at
+all -- C on ESP-IDF, versioned `16.x` rather than `0.x`, on the PBC2, PBD,
+PBE, PBL2 and PBT boards. Those images link no HTTP server and run their
+websocket as a client only, so they serve nothing on the local network: they
+are reachable over Bluetooth and the vendor's relay, and by nothing else. No
+setting changes that.
+
+Then, within the Mongoose family, by the firmware's `http.enable` setting.
+That part is per-unit configuration rather than something a model or firmware
+version predicts -- two grills on the same board and the same firmware have
+been observed with opposite values.
+
+Nothing here turns it on: `connect()` fails against a grill that does not
+serve the endpoint, whichever of the two reasons applies, and the caller is
+expected to have established that it exists first, over a transport that
+already works. `Config.Get` over Bluetooth reports it::
+
+    try:
+        http = await boss.config.get_config("http")
+    except RPCError:
+        http = {}  # no such section: not a Mongoose grill
+    if http.get("enable"):
         ...  # an HttpConnection will work against this grill
+
+Neither the `try` nor the `.get()` is defensive habit; each covers one of the
+two ways the question can fail to have an answer. The ESP-IDF firmware answers
+`Config.Get` too, but its schema holds only `wifi.sta`, `app` and `version`,
+so there is no `http` section to report on -- and a device that will not
+answer for a key it does not have can either return an error or return
+nothing, which reach a caller as `RPCError` and as `{}` respectively. Since
+this snippet is what decides whether a caller offers the local option at all,
+it needs an answer for every grill rather than a raise for some.
 
 See https://github.com/dknowles2/pytboss/issues/505.
 """
