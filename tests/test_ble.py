@@ -153,6 +153,44 @@ async def test_concurrent_resets_run_one_at_a_time(mock_establish_connection):
 
 
 @mock.patch("bleak_retry_connector.establish_connection")
+async def test_connect_racing_a_reset_runs_one_at_a_time(mock_establish_connection):
+    """`connect()` takes the lifecycle lock in its own right, not via reset.
+
+    The reachable interleaving: a consumer connects through `reset_device`
+    (discovery), the link drops before its follow-up `connect()` call runs,
+    and the drop queues another reset -- so `connect()` and `reset_device`
+    race on a disconnected transport. Without the lock on `connect()`, both
+    run `establish_connection` concurrently and the loser leaks.
+    """
+    device_a = mock.create_autospec(bleak.BLEDevice)
+    device_b = mock.create_autospec(bleak.BLEDevice)
+    device_a.name = device_b.name = "GRILL"
+    device_a.address = "AA:BB:CC:DD:EE:FF"
+    device_b.address = "AA:BB:CC:DD:EE:FF"
+
+    in_flight = 0
+    max_in_flight = 0
+
+    async def slow_establish(**kwargs):
+        nonlocal in_flight, max_in_flight
+        in_flight += 1
+        max_in_flight = max(max_in_flight, in_flight)
+        # Yield so the racing call gets its chance to interleave.
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
+        in_flight -= 1
+        return mock.create_autospec(bleak.BleakClient)
+
+    mock_establish_connection.side_effect = slow_establish
+
+    conn = ble.BleConnection(device_a)
+    await asyncio.gather(conn.connect(), conn.reset_device(device_b))
+
+    assert max_in_flight == 1
+    assert conn.is_connected()
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
 async def test_a_queued_duplicate_reset_keeps_the_fresh_connection(
     mock_establish_connection,
 ):
