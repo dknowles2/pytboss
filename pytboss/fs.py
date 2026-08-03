@@ -1,6 +1,6 @@
 """Client library for Mongoose OS filesystem RPCs."""
 
-from base64 import b64decode
+from base64 import b64decode, b64encode
 
 from .transport import Transport
 
@@ -18,7 +18,7 @@ class FileSystem:
         """
         self._conn = conn
 
-    async def get_file_list(self) -> dict:
+    async def get_file_list(self) -> dict | None:
         """Lists files present on the device's filesystem."""
         return await self._conn.send_command("FS.List", {})
 
@@ -31,8 +31,11 @@ class FileSystem:
         offset = 0
         content = bytearray()
         while True:
-            resp = await self._conn.send_command(
-                "FS.Get", {"filename": filename, "offset": offset, "len": length}
+            resp = (
+                await self._conn.send_command(
+                    "FS.Get", {"filename": filename, "offset": offset, "len": length}
+                )
+                or {}
             )
             content += b64decode(resp["data"])
             offset += length
@@ -41,20 +44,37 @@ class FileSystem:
                 # the chunk boundary is not valid UTF-8 on its own.
                 return content.decode("utf-8")
 
-    async def set_file_content(self, filename: str, data: str, append: bool) -> dict:
+    async def set_file_content(
+        self, filename: str, data: str | bytes, append: bool
+    ) -> dict | None:
         """Writes content to a file on the device.
 
+        `data` is base64-encoded before it is sent, which is what the RPC
+        expects: the device describes the parameter as `%V` -- Mongoose's
+        format specifier for base64-encoded binary -- rather than the `%Q` it
+        uses for the plain string alongside it::
+
+            FS.Put  {filename: %Q, offset: %ld, data: %V, append: %B}
+
+        which is the same encoding `get_file_content()` decodes on the way
+        back.
+
         :param filename: Path of the file to write.
-        :param data: Content to write.
+        :param data: Content to write. Text is encoded as UTF-8.
         :param append: If True, appends to the existing file instead of
             overwriting it.
         """
+        raw = data.encode("utf-8") if isinstance(data, str) else data
         return await self._conn.send_command(
             "FS.Put",
-            {"filename": filename, "data": data, "append": append},
+            {
+                "filename": filename,
+                "data": b64encode(raw).decode("ascii"),
+                "append": append,
+            },
         )
 
-    async def rename_file(self, src: str, dst: str) -> dict:
+    async def rename_file(self, src: str, dst: str) -> dict | None:
         """Renames a file on the device.
 
         :param src: Existing filename.
@@ -62,7 +82,7 @@ class FileSystem:
         """
         return await self._conn.send_command("FS.Rename", {"src": src, "dst": dst})
 
-    async def delete_file(self, filename: str) -> dict:
+    async def delete_file(self, filename: str) -> dict | None:
         """Deletes a file from the device.
 
         :param filename: Path of the file to delete.

@@ -17,6 +17,7 @@ import bleak_retry_connector
 from bleak import BleakClient, BleakGATTCharacteristic, BLEDevice
 from bleak_retry_connector import BleakClientWithServiceCache
 
+from .exceptions import NotConnectedError
 from .transport import Transport
 
 _LOGGER = logging.getLogger("pytboss")
@@ -63,14 +64,32 @@ class BleConnection(Transport):
         self._disconnect_callback = disconnect_callback
         self._is_connected = False
         self._reconnecting = False
+        # Serializes connect/disconnect/reset_device. Establishing a
+        # connection takes seconds, and a consumer driving reconnects from
+        # discovery -- Home Assistant schedules a reset per advertisement
+        # while `is_connected()` is False -- piles several up in exactly that
+        # window. Unserialized, their disconnect/connect steps interleave on
+        # the same object and the losing `establish_connection` leaks a
+        # connected client. Distinct from `self._lock`, which serializes GATT
+        # I/O; holding that one for the length of a connect would stall the
+        # receive path.
+        self._lifecycle_lock = asyncio.Lock()
 
     async def connect(self) -> None:
         """Starts the connection to the device.
 
         Does nothing if already connected or if no BLE device was set.
         """
+        async with self._lifecycle_lock:
+            await self._connect_locked()
+
+    async def _connect_locked(self) -> None:
         if self._is_connected:
-            _LOGGER.warning("Already connected. Ignoring call to connect().")
+            # Debug, not a warning: this is a documented no-op, and consumers
+            # hit it on a normal path -- Home Assistant connects through
+            # `reset_device` during discovery and then calls `PitBoss.start`,
+            # whose `connect()` lands here at every Bluetooth setup.
+            _LOGGER.debug("Already connected. Ignoring call to connect().")
             return
         if self._ble_device is None:
             return
@@ -80,21 +99,39 @@ class BleConnection(Transport):
             name=self._ble_device.name or "<unknown>",
             disconnected_callback=self._on_disconnected,
         )
-        self._is_connected = True
+        # Only once the notifications are registered: until they are there is
+        # no receive path, so a command would be sent and never answered while
+        # `is_connected()` claimed otherwise.
         await self._ble_client.start_notify(CHAR_RPC_RX_CTL, self._on_rpc_data_received)
         await self._ble_client.start_notify(CHAR_DEBUG_LOG, self._on_debug_log_received)
+        self._is_connected = True
 
     def _on_disconnected(self, client: BleakClient) -> None:
         """Called when our Bluetooth client is disconnected."""
         _LOGGER.debug("Bluetooth disconnected.")
         self._is_connected = False
         # Bleak calls this synchronously, so the cleanup has to be scheduled.
-        self._loop.create_task(self._fail_pending_commands())
+        # Guarded because this also fires while the loop is shutting down,
+        # where scheduling raises inside bleak's own callback.
+        if not self._loop.is_closed():
+            # The coroutine is built before `create_task` is called, so it has
+            # to be closed explicitly when scheduling fails -- otherwise it is
+            # abandoned unawaited and warns from wherever the collector runs.
+            coro = self._fail_pending_commands()
+            try:
+                self._loop.create_task(coro)
+            except RuntimeError:  # pragma: no cover - loop shutting down
+                coro.close()
+                _LOGGER.debug("Loop is closing; not failing pending commands.")
         if not self._reconnecting and self._disconnect_callback is not None:
             self._disconnect_callback(client)
 
     async def disconnect(self) -> None:
         """Stops the connection to the device."""
+        async with self._lifecycle_lock:
+            await self._disconnect_locked()
+
+    async def _disconnect_locked(self) -> None:
         _LOGGER.debug("Disconnecting from device.")
         if self._ble_client:
             try:
@@ -102,22 +139,41 @@ class BleConnection(Transport):
             except Exception as ex:  # noqa: BLE001
                 # Bluetooth is awful. Sometimes even disconnects fail.
                 _LOGGER.debug("Failed to disconnect: %s", ex)
+            # Released either way: a client kept after a disconnect answers a
+            # later command with a raw `BleakError` instead of the
+            # `NotConnectedError` every other transport raises.
+            self._ble_client = None
         self._is_connected = False
 
     async def reset_device(self, ble_device: BLEDevice):
         """Resets the BLE device used for transport.
 
+        A reset that arrives while already connected to the same device --
+        by address -- only adopts the fresher `BLEDevice` and keeps the
+        connection. Discovery-driven consumers queue a reset per
+        advertisement seen while disconnected, and by the time the later
+        ones run, the first has already connected; tearing that connection
+        down to rebuild it against the same grill was pure churn.
+
         :param ble_device: BLE device to use for transport.
         """
-        self._reconnecting = True
-        _LOGGER.debug("Resetting device to: %s", ble_device)
-        try:
-            await self.disconnect()
-            self._is_connected = False
-            self._ble_device = ble_device
-            await self.connect()
-        finally:
-            self._reconnecting = False
+        async with self._lifecycle_lock:
+            if (
+                self._is_connected
+                and self._ble_device is not None
+                and self._ble_device.address == ble_device.address
+            ):
+                _LOGGER.debug("Already connected to %s; keeping it", ble_device)
+                self._ble_device = ble_device
+                return
+            self._reconnecting = True
+            _LOGGER.debug("Resetting device to: %s", ble_device)
+            try:
+                await self._disconnect_locked()
+                self._ble_device = ble_device
+                await self._connect_locked()
+            finally:
+                self._reconnecting = False
 
     def is_connected(self) -> bool:
         """Whether the device is currently connected."""
@@ -125,7 +181,10 @@ class BleConnection(Transport):
 
     async def _send_prepared_command(self, cmd: dict):
         if self._ble_client is None:
-            return
+            # Raised rather than returned: swallowing the send left the caller
+            # awaiting a reply for a command that was never put on the wire,
+            # so it waited out its whole timeout to learn nothing.
+            raise NotConnectedError("Not connected")
         payload = json.dumps(cmd)
         async with self._lock:
             await self._ble_client.write_gatt_char(
@@ -153,23 +212,29 @@ class BleConnection(Transport):
         self, unused_char: BleakGATTCharacteristic, data: bytearray
     ):
         _LOGGER.debug("Debug log received: %s", data)
-        parts = data.decode("utf-8").split()
-        if len(parts) == 3:
-            head, payload, tail = parts
-            checksum = int(tail[1 : len(tail) - 1])
-            if len(payload) != checksum:
-                # Bad payload; ignore.
-                _LOGGER.debug(
-                    "Ignoring message with bad checksum (%d != %d)",
-                    len(payload),
-                    checksum,
-                )
-                return
-        elif len(parts) == 2:
-            head, payload = parts
-        else:
+        # Split off the head and an optional trailing "[len]" rather than on
+        # every space: a virtual data payload is JSON, and any string value in
+        # it with a space in it would otherwise either be dropped or parsed as
+        # the length. Both are reachable through `set_virtual_data`, since the
+        # grill echoes back what was written.
+        head, _, rest = data.decode("utf-8").strip().partition(" ")
+        payload = rest.strip()
+        if not payload:
             # Unknown payload; ignore.
             return
+        if payload.endswith("]"):
+            body, _, tail = payload.rpartition("[")
+            if body and tail[:-1].isdigit():
+                payload = body.strip()
+                checksum = int(tail[:-1])
+                if len(payload) != checksum:
+                    # Bad payload; ignore.
+                    _LOGGER.debug(
+                        "Ignoring message with bad checksum (%d != %d)",
+                        len(payload),
+                        checksum,
+                    )
+                    return
         if head == "<==PB:" and self._state_callback:
             status_payload = temperatures_payload = None
             match payload[:4]:

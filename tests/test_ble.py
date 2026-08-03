@@ -8,7 +8,7 @@ from bleak_retry_connector import BleakClientWithServiceCache
 from pytest import raises
 
 from pytboss import ble
-from pytboss.exceptions import RPCError
+from pytboss.exceptions import NotConnectedError, RPCError
 
 
 @mock.patch("bleak_retry_connector.establish_connection")
@@ -115,6 +115,178 @@ async def test_reset_device_connect_failure_resets_reconnecting_flag(
     # And the disconnect callback should be invocable; simulate a disconnect event
     conn._on_disconnected(mock_old_bleak_client)
     disconnect_callback.assert_called_once_with(mock_old_bleak_client)
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+async def test_concurrent_resets_run_one_at_a_time(mock_establish_connection):
+    """Two resets racing must not interleave their disconnect/connect steps.
+
+    Establishing a connection takes seconds, and a consumer driving resets
+    from discovery schedules one per advertisement seen while disconnected --
+    so several are queued in exactly that window. Unserialized, the losing
+    `establish_connection` leaked a connected client.
+    """
+    device_a = mock.create_autospec(bleak.BLEDevice)
+    device_b = mock.create_autospec(bleak.BLEDevice)
+    device_a.name = device_b.name = "GRILL"
+
+    in_flight = 0
+    max_in_flight = 0
+
+    async def slow_establish(**kwargs):
+        nonlocal in_flight, max_in_flight
+        in_flight += 1
+        max_in_flight = max(max_in_flight, in_flight)
+        # Yield so the racing reset gets its chance to interleave.
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
+        in_flight -= 1
+        return mock.create_autospec(bleak.BleakClient)
+
+    mock_establish_connection.side_effect = slow_establish
+
+    conn = ble.BleConnection(device_a)
+    await asyncio.gather(conn.reset_device(device_a), conn.reset_device(device_b))
+
+    assert max_in_flight == 1
+    assert conn.is_connected()
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+async def test_connect_racing_a_reset_runs_one_at_a_time(mock_establish_connection):
+    """`connect()` takes the lifecycle lock in its own right, not via reset.
+
+    The reachable interleaving: a consumer connects through `reset_device`
+    (discovery), the link drops before its follow-up `connect()` call runs,
+    and the drop queues another reset -- so `connect()` and `reset_device`
+    race on a disconnected transport. Without the lock on `connect()`, both
+    run `establish_connection` concurrently and the loser leaks.
+    """
+    device_a = mock.create_autospec(bleak.BLEDevice)
+    device_b = mock.create_autospec(bleak.BLEDevice)
+    device_a.name = device_b.name = "GRILL"
+    device_a.address = "AA:BB:CC:DD:EE:FF"
+    device_b.address = "AA:BB:CC:DD:EE:FF"
+
+    in_flight = 0
+    max_in_flight = 0
+
+    async def slow_establish(**kwargs):
+        nonlocal in_flight, max_in_flight
+        in_flight += 1
+        max_in_flight = max(max_in_flight, in_flight)
+        # Yield so the racing call gets its chance to interleave.
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
+        in_flight -= 1
+        return mock.create_autospec(bleak.BleakClient)
+
+    mock_establish_connection.side_effect = slow_establish
+
+    conn = ble.BleConnection(device_a)
+    await asyncio.gather(conn.connect(), conn.reset_device(device_b))
+
+    assert max_in_flight == 1
+    assert conn.is_connected()
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+async def test_disconnect_racing_a_reset_leaves_nothing_behind(
+    mock_establish_connection,
+):
+    """`disconnect()` takes the lifecycle lock in its own right too.
+
+    The reachable interleaving, from review of the lock: discovery connects
+    through `reset_device`; the link drops, so the flag is cleared and the
+    drop queues another reset -- which does the full teardown/reconnect
+    rather than coalescing; the entry then unloads, calling `disconnect()`
+    while that reset is mid-flight. Unserialized, `disconnect()` slots
+    between the reset's teardown and its reconnect: the client the reset
+    establishes afterwards survives the unload -- a live connection nobody
+    disconnected, on a transport reporting connected after an explicit
+    `disconnect()`.
+    """
+    first_seen = mock.create_autospec(bleak.BLEDevice)
+    readvertised = mock.create_autospec(bleak.BLEDevice)
+    first_seen.name = readvertised.name = "GRILL"
+    first_seen.address = readvertised.address = "AA:BB:CC:DD:EE:FF"
+    client_1 = mock.create_autospec(bleak.BleakClient)
+    client_2 = mock.create_autospec(bleak.BleakClient)
+    clients = iter([client_1, client_2])
+
+    async def slow_establish(**kwargs):
+        # Yield so the racing disconnect gets its chance to interleave.
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
+        return next(clients)
+
+    mock_establish_connection.side_effect = slow_establish
+
+    conn = ble.BleConnection(first_seen)
+    await conn.reset_device(first_seen)
+    assert conn.is_connected()
+
+    # The link drops, which also queues the reset raced below.
+    conn._on_disconnected(client_1)
+
+    await asyncio.gather(conn.reset_device(readvertised), conn.disconnect())
+
+    assert not conn.is_connected()
+    assert conn._ble_client is None
+    # The client the reset established was handed to `disconnect()` rather
+    # than surviving the unload.
+    client_2.disconnect.assert_awaited()
+    assert mock_establish_connection.await_count == 2
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+async def test_a_queued_duplicate_reset_keeps_the_fresh_connection(
+    mock_establish_connection,
+):
+    """Resets queued for the same grill coalesce instead of churning.
+
+    By the time the later ones run, the first has already connected; tearing
+    that connection down to rebuild it against the same address was pure
+    churn. The fresher `BLEDevice` is still adopted.
+    """
+    first_seen = mock.create_autospec(bleak.BLEDevice)
+    readvertised = mock.create_autospec(bleak.BLEDevice)
+    first_seen.name = readvertised.name = "GRILL"
+    first_seen.address = readvertised.address = "AA:BB:CC:DD:EE:FF"
+    mock_bleak_client = mock.create_autospec(bleak.BleakClient)
+    mock_establish_connection.return_value = mock_bleak_client
+
+    conn = ble.BleConnection(first_seen)
+    await asyncio.gather(conn.reset_device(first_seen), conn.reset_device(readvertised))
+
+    assert conn.is_connected()
+    mock_establish_connection.assert_awaited_once()
+    mock_bleak_client.disconnect.assert_not_awaited()
+    assert conn._ble_device is readvertised
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+async def test_reset_to_a_different_address_still_reconnects(
+    mock_establish_connection,
+):
+    """Coalescing is by address; a different device still gets a full reset."""
+    device_a = mock.create_autospec(bleak.BLEDevice)
+    device_b = mock.create_autospec(bleak.BLEDevice)
+    device_a.name = device_b.name = "GRILL"
+    device_a.address = "AA:BB:CC:DD:EE:FF"
+    device_b.address = "11:22:33:44:55:66"
+    client_a = mock.create_autospec(bleak.BleakClient)
+    client_b = mock.create_autospec(bleak.BleakClient)
+    mock_establish_connection.side_effect = [client_a, client_b]
+
+    conn = ble.BleConnection(device_a)
+    await conn.connect()
+    await conn.reset_device(device_b)
+
+    assert conn.is_connected()
+    client_a.disconnect.assert_awaited_once()
+    assert conn._ble_device is device_b
+    assert mock_establish_connection.await_count == 2
 
 
 @mock.patch("bleak_retry_connector.establish_connection")
@@ -275,7 +447,7 @@ async def test_connect_when_already_connected(
     await conn.connect()
     assert conn.is_connected()
 
-    # Connecting again should be a no-op (with a warning logged).
+    # Connecting again should be a no-op (logged at debug level).
     await conn.connect()
     mock_establish_connection.assert_awaited_once()
 
@@ -311,8 +483,11 @@ async def test_disconnect_swallows_exception(
 async def test_send_prepared_command_no_client():
     mock_device = mock.create_autospec(bleak.BLEDevice)
     conn = ble.BleConnection(mock_device)
-    # Never connected, so there is no BLE client yet.
-    await conn._send_prepared_command({"id": 1, "method": "foo", "params": {}})
+    # Never connected, so there is no BLE client yet. This used to return
+    # silently, which left the caller awaiting a reply to a command that was
+    # never sent.
+    with raises(NotConnectedError):
+        await conn._send_prepared_command({"id": 1, "method": "foo", "params": {}})
 
 
 async def test_on_rpc_data_received_no_client():
@@ -372,3 +547,106 @@ async def test_debug_log_vdata(
     data = bytearray(b'<==PBD:  {"foo":"bar"}')
     await conn._on_debug_log_received(None, data)
     vdata_cb.assert_awaited_once_with('{"foo":"bar"}')
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_a_failed_notify_does_not_report_connected(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    """Until the notifications are registered there is no receive path.
+
+    Reporting connected before them meant a command could be sent and never
+    answered, while `is_connected()` said the transport was fine.
+    """
+    mock_establish_connection.return_value = mock_bleak_client
+    mock_bleak_client.start_notify.side_effect = bleak.exc.BleakError("nope")
+
+    conn = ble.BleConnection(mock_device)
+    with raises(bleak.exc.BleakError):
+        await conn.connect()
+
+    assert not conn.is_connected()
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_a_command_after_disconnect_reports_not_connected(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    """Every other transport raises `NotConnectedError`; this one raised a
+    `BleakError` from a client it had already disconnected."""
+    mock_establish_connection.return_value = mock_bleak_client
+
+    conn = ble.BleConnection(mock_device)
+    await conn.connect()
+    await conn.disconnect()
+
+    with raises(NotConnectedError):
+        await conn.send_command("PB.GetState", {}, timeout=1.0)
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_disconnect_notification_during_shutdown_does_not_raise(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    """Bleak calls `_on_disconnected` synchronously, including as the loop
+    goes away -- scheduling there would raise inside its own callback."""
+    mock_establish_connection.return_value = mock_bleak_client
+    conn = ble.BleConnection(mock_device)
+    await conn.connect()
+
+    with mock.patch.object(
+        conn._loop, "create_task", side_effect=RuntimeError("loop is closing")
+    ):
+        conn._on_disconnected(mock_bleak_client)
+
+    assert not conn.is_connected()
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_debug_log_vdata_with_a_space(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    """A JSON string value with a space in it is still one payload.
+
+    Reachable through `set_virtual_data`: the grill echoes back what was
+    written, so a consumer storing any string with a space made this parse
+    raise `ValueError` inside the notification callback.
+    """
+    mock_establish_connection.return_value = mock_bleak_client
+    conn = ble.BleConnection(mock_device)
+    vdata_cb = mock.AsyncMock()
+    conn.set_vdata_callback(vdata_cb)
+    await conn.connect()
+
+    data = bytearray(b'<==PBD:  {"note":"hello world"}')
+    await conn._on_debug_log_received(None, data)
+
+    vdata_cb.assert_awaited_once_with('{"note":"hello world"}')
+
+
+@mock.patch("bleak_retry_connector.establish_connection")
+@mock.patch("bleak.BleakClient", spec=True)
+@mock.patch("bleak.BLEDevice", spec=True)
+async def test_debug_log_checksum_counts_the_whole_payload(
+    mock_device, mock_bleak_client, mock_establish_connection
+):
+    """A payload with a space is measured whole, not up to the first one."""
+    mock_establish_connection.return_value = mock_bleak_client
+    conn = ble.BleConnection(mock_device)
+    vdata_cb = mock.AsyncMock()
+    conn.set_vdata_callback(vdata_cb)
+    await conn.connect()
+
+    payload = '{"note":"hello world"}'
+    data = bytearray(f"<==PBD:  {payload} [{len(payload)}]".encode())
+    await conn._on_debug_log_received(None, data)
+
+    vdata_cb.assert_awaited_once_with(payload)

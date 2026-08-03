@@ -64,6 +64,7 @@ class FakeTransport(Transport):
     def __init__(self, password: str = ""):
         self.virtual_data: dict = {}
         self.fast_updates_requested = False
+        self.wifi_update_frequency: dict | None = None
         super().__init__()
         self.last_mcu_command: str | None = None
         self.password = password
@@ -93,6 +94,10 @@ class FakeTransport(Transport):
             "PB.GetTime": self._get_time,
             "PB.GetVirtualData": self._get_virtual_data,
             "PB.WiFiAwakeWDT": self._wifi_awake_wdt,
+            # Registered under the name the firmware uses -- `WiFi`, not
+            # `Wifi` -- so a wrong spelling falls through to the unknown
+            # method path rather than being quietly accepted.
+            "PB.SetWiFiUpdateFrequency": self._set_wifi_update_frequency,
             "PB.SetVirtualData": self._set_virtual_data,
             "PB.SetDevicePassword": self._set_password,
             "PB.SendMCUCommand": self._send_mcu_command,
@@ -100,7 +105,11 @@ class FakeTransport(Transport):
         }
         resp = {"id": cmd["id"]}
         try:
-            resp["result"] = dispatch[cmd["method"]](cmd["params"])
+            # Like the firmware: handlers that return null produce a reply
+            # without a `result` key.
+            result = dispatch[cmd["method"]](cmd["params"])
+            if result is not None:
+                resp["result"] = result
         except Unauthorized:
             resp["error"] = {"code": 401, "message": "Unauthorized"}
         except Exception as ex:  # noqa: BLE001
@@ -129,24 +138,30 @@ class FakeTransport(Transport):
         self._check_password(params)
         self.fast_updates_requested = True
 
+    def _set_wifi_update_frequency(self, params: dict) -> None:
+        """Password-checked, and ends in `return null` like the firmware."""
+        self._check_password(params)
+        self.wifi_update_frequency = {k: params[k] for k in ("slow", "fast")}
+
     def _get_virtual_data(self, params: dict) -> dict:
         self._check_password(params)
         return dict(self.virtual_data)
 
-    def _set_virtual_data(self, params: dict) -> dict:
-        """Assign the payload wholesale, as the firmware does."""
+    def _set_virtual_data(self, params: dict) -> None:
+        """Assign the payload wholesale and return nothing, as the firmware
+        does (its success path has no return statement at all)."""
         self._check_password(params)
         self.virtual_data = dict(params)
-        return {}
 
-    def _set_password(self, params: dict) -> dict:
+    def _set_password(self, params: dict) -> None:
+        """Ends in `return null` in every vendor image."""
         self._check_password(params)
         if "newPassword" not in params:
             raise KeyError(f"newPassword not in {params}")
         self.password = decode(bytes.fromhex(params["newPassword"])).decode()
-        return {}
 
-    def _send_mcu_command(self, params: dict) -> dict:
+    def _send_mcu_command(self, params: dict) -> None:
+        """Ends in `return null` in every vendor image."""
         self._check_password(params)
         if "command" not in params:
             raise KeyError("Command parameter missing")
@@ -154,7 +169,6 @@ class FakeTransport(Transport):
         if not command:
             raise ValueError("Empty command")
         self.last_mcu_command = bytes.fromhex(params["command"]).decode()
-        return {}
 
     def _get_state(self, params: dict) -> dict:
         self._check_password(params)
@@ -303,21 +317,21 @@ async def test_set_password_with_old_password():
 
 
 async def test_set_grill_temperature(pitboss: api.PitBoss, conn: FakeTransport):
-    assert (await pitboss.set_grill_temperature(225)) == {}
+    assert (await pitboss.set_grill_temperature(225)) is None
     assert conn.last_mcu_command == "set-temperature(225, True)"
 
 
 @pytest.mark.grill_params({"temp_increments": [180, 200, 220]})
 async def test_set_grill_temperature_high(pitboss: api.PitBoss, conn: FakeTransport):
     """Above the range, the highest accepted setpoint."""
-    assert (await pitboss.set_grill_temperature(400)) == {}
+    assert (await pitboss.set_grill_temperature(400)) is None
     assert conn.last_mcu_command == "set-temperature(220, True)"
 
 
 @pytest.mark.grill_params({"temp_increments": [180, 200, 220]})
 async def test_set_grill_temperature_low(pitboss: api.PitBoss, conn: FakeTransport):
     """Below the range, the lowest accepted setpoint."""
-    assert (await pitboss.set_grill_temperature(100)) == {}
+    assert (await pitboss.set_grill_temperature(100)) is None
     assert conn.last_mcu_command == "set-temperature(180, True)"
 
 
@@ -326,7 +340,7 @@ async def test_set_grill_temperature_snaps_to_the_nearest(
     pitboss: api.PitBoss, conn: FakeTransport
 ):
     """The board ignores anything that is not on its list."""
-    assert (await pitboss.set_grill_temperature(206)) == {}
+    assert (await pitboss.set_grill_temperature(206)) is None
     assert conn.last_mcu_command == "set-temperature(200, True)"
 
 
@@ -337,7 +351,7 @@ async def test_set_grill_temperature_in_celsius(
     """A grill reporting Celsius is sent Celsius, not a Fahrenheit bound."""
     pitboss._state["isFahrenheit"] = False
     # 180/190/200F floor to 82/87/93C.
-    assert (await pitboss.set_grill_temperature(88)) == {}
+    assert (await pitboss.set_grill_temperature(88)) is None
     assert conn.last_mcu_command == "set-temperature(87, False)"
 
 
@@ -348,18 +362,18 @@ async def test_set_grill_temperature_prefers_a_declared_celsius_list(
     pitboss: api.PitBoss, conn: FakeTransport
 ):
     pitboss._state["isFahrenheit"] = False
-    assert (await pitboss.set_grill_temperature(44)) == {}
+    assert (await pitboss.set_grill_temperature(44)) is None
     assert conn.last_mcu_command == "set-temperature(45, False)"
 
 
 async def test_set_probe_temperature(pitboss: api.PitBoss, conn: FakeTransport):
-    assert (await pitboss.set_probe_temperature(225)) == {}
+    assert (await pitboss.set_probe_temperature(225)) is None
     assert conn.last_mcu_command == "set-probe-1-temperature(225, True)"
 
 
 @pytest.mark.grill_params({"has_lights": True})
 async def test_turn_light_on(pitboss: api.PitBoss, conn: FakeTransport):
-    assert (await pitboss.turn_light_on()) == {}
+    assert (await pitboss.turn_light_on()) is None
     assert conn.last_mcu_command == "turn-light-on()"
 
 
@@ -370,7 +384,7 @@ async def test_turn_light_on_no_lights(pitboss: api.PitBoss, conn: FakeTransport
 
 @pytest.mark.grill_params({"has_lights": True})
 async def test_turn_light_off(pitboss: api.PitBoss, conn: FakeTransport):
-    assert (await pitboss.turn_light_off()) == {}
+    assert (await pitboss.turn_light_off()) is None
     assert conn.last_mcu_command == "turn-light-off()"
 
 
@@ -388,7 +402,7 @@ async def test_turn_light_off_no_lights(pitboss: api.PitBoss, conn: FakeTranspor
     ],
 )
 async def test_grill_functions(slug, method, pitboss: api.PitBoss, conn: FakeTransport):
-    assert (await getattr(pitboss, method)()) == {}
+    assert (await getattr(pitboss, method)()) is None
     assert conn.last_mcu_command == f"{slug}()"
 
 
@@ -573,7 +587,7 @@ async def test_set_probe_2_temperature(
     mock_control_board.commands["set-probe-2-temperature"] = make_cmd(
         "set-probe-2-temperature"
     )
-    assert (await pitboss.set_probe_2_temperature(120)) == {}
+    assert (await pitboss.set_probe_2_temperature(120)) is None
     assert conn.last_mcu_command == "set-probe-2-temperature(120, True)"
 
 
@@ -593,25 +607,37 @@ async def test_set_mcu_update_timer():
     pitboss = api.PitBoss(conn, "PBV4PS2")
     await pitboss.start()
     with mock.patch.object(
-        conn, "send_command", AsyncMock(return_value={})
+        conn, "send_command", AsyncMock(return_value=None)
     ) as send_command:
-        assert await pitboss.set_mcu_update_timer(frequency=3) == {}
+        assert await pitboss.set_mcu_update_timer(frequency=3) is None
         send_command.assert_awaited_once_with(
             "PB.SetMCU_UpdateFrequency", {"frequency": 3}
         )
 
 
-async def test_set_wifi_update_frequency():
+async def test_set_wifi_update_frequency(pitboss: api.PitBoss, conn: FakeTransport):
+    """Reaches the grill, rather than merely being sent.
+
+    Driven through the fake's own handler instead of a mocked `send_command`:
+    a mock asserts the name the code happens to send, which is how the
+    `Wifi`/`WiFi` mismatch survived. The fake registers only the name the
+    firmware does, so a wrong spelling fails here as it does on a grill.
+    """
+    assert await pitboss.set_wifi_update_frequency(fast=1, slow=10) is None
+    assert conn.wifi_update_frequency == {"slow": 10, "fast": 1}
+
+
+async def test_set_wifi_update_frequency_uses_the_name_the_firmware_registers():
+    """`Wifi` is answered with "name not found"; the F is capital."""
     conn = FakeTransport()
     pitboss = api.PitBoss(conn, "PBV4PS2")
     await pitboss.start()
     with mock.patch.object(
-        conn, "send_command", AsyncMock(return_value={})
+        conn, "send_command", AsyncMock(return_value=None)
     ) as send_command:
-        assert await pitboss.set_wifi_update_frequency(fast=1, slow=10) == {}
-        send_command.assert_awaited_once_with(
-            "PB.SetWifiUpdateFrequency", {"slow": 10, "fast": 1}
-        )
+        await pitboss.set_wifi_update_frequency(fast=1, slow=10)
+        assert send_command.await_args is not None
+        assert send_command.await_args.args[0] == "PB.SetWiFiUpdateFrequency"
 
 
 async def test_set_virtual_data():
@@ -619,9 +645,9 @@ async def test_set_virtual_data():
     pitboss = api.PitBoss(conn, "PBV4PS2")
     await pitboss.start()
     with mock.patch.object(
-        conn, "send_command", AsyncMock(return_value={})
+        conn, "send_command", AsyncMock(return_value=None)
     ) as send_command:
-        assert await pitboss.set_virtual_data({"foo": "bar"}) == {}
+        assert await pitboss.set_virtual_data({"foo": "bar"}) is None
         send_command.assert_awaited_once_with("PB.SetVirtualData", {"foo": "bar"})
 
 
@@ -649,10 +675,10 @@ async def test_get_state_updates_the_cached_state(conn: FakeTransport, password:
 
 
 async def test_set_temperature_unit(pitboss: api.PitBoss, conn: FakeTransport):
-    assert (await pitboss.set_temperature_unit(fahrenheit=False)) == {}
+    assert (await pitboss.set_temperature_unit(fahrenheit=False)) is None
     assert conn.last_mcu_command == "set-celsius()"
 
-    assert (await pitboss.set_temperature_unit(fahrenheit=True)) == {}
+    assert (await pitboss.set_temperature_unit(fahrenheit=True)) is None
     assert conn.last_mcu_command == "set-fahrenheit()"
 
 
@@ -818,3 +844,50 @@ async def test_request_fast_updates(pitboss: api.PitBoss, conn: FakeTransport):
     """
     await pitboss.request_fast_updates()
     assert conn.fast_updates_requested is True
+
+
+async def test_turn_grill_on(pitboss: api.PitBoss, conn: FakeTransport):
+    """Sent as a raw MCU command: no board declares a slug for it.
+
+    The hex is asserted rather than the decoded command, because that is what
+    identifies it -- FE0101FF against FE0102FF for off.
+    """
+    with mock.patch.object(
+        conn, "send_command", AsyncMock(return_value=None)
+    ) as send_command:
+        assert (await pitboss.turn_grill_on()) is None
+        assert send_command.await_args is not None
+        method, params = send_command.await_args.args
+        assert method == "PB.SendMCUCommand"
+        assert params["command"] == "FE0101FF"
+
+
+async def test_no_board_declares_a_turn_on_command():
+    """The reason `turn_grill_on` cannot mirror `turn_grill_off`.
+
+    Every model declares `turn-off`; none declares a counterpart, which is
+    why this is a raw command rather than a slug.
+    """
+    with_off = with_on = 0
+    for grill in grills.get_grills():
+        commands = grill.control_board.commands
+        with_off += "turn-off" in commands
+        with_on += "turn-on" in commands
+
+    assert with_off > 0
+    assert with_on == 0
+
+
+def test_the_turn_on_command_collides_with_nothing():
+    """`FE0101FF` must not be some other board's command under a slug.
+
+    The safety property behind sending a raw command: whatever else the
+    catalogue contains, nothing already means this.
+    """
+    for grill in grills.get_grills():
+        for slug, command in grill.control_board.commands.items():
+            try:
+                rendered = command()
+            except TypeError:
+                continue  # takes arguments; not a fixed command
+            assert rendered != "FE0101FF", f"{grill.name} declares it as {slug}"

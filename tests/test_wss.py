@@ -342,12 +342,90 @@ async def test_result_payload_no_vdata_callback(
 
 
 async def test_internal_session_closed():
-    """Test that internal sessions are closed when disconnect is called."""
-    # Create a connection without providing a session (it will create its own)
-    conn = wss.WebSocketConnection("_grill_id_")
+    """An owned session is closed and released on disconnect.
 
-    # Disconnect should close the internal session
+    It is now created by `connect()` rather than by the constructor, so a
+    transport that was never connected has none to close -- and building one
+    no longer leaves an aiohttp session behind for the caller to clean up.
+    """
+    conn = wss.WebSocketConnection("_grill_id_")
+    assert conn._session is None
+
+    session = ClientSession()
+    conn._session = session
     await conn.disconnect()
 
-    # The internal session should be closed
-    assert conn._session.closed
+    assert session.closed
+    assert conn._session is None
+
+
+async def test_the_transport_is_reusable_after_disconnect(fake_server: TestServer):
+    """A transport that has been disconnected can be connected again.
+
+    `disconnect()` used to close a session the constructor had built and
+    never rebuild it, so a second `connect()` failed on a closed session.
+    """
+    async with fake_server:
+        conn = wss.WebSocketConnection(
+            "_grill_id_", base_url=str(fake_server.make_url("")), app_id="_app_id_"
+        )
+        await conn.connect()
+        await conn.disconnect()
+
+        await conn.connect()
+        assert conn._session is not None
+        assert not conn._session.closed
+        await conn.disconnect()
+
+
+async def test_a_closed_caller_session_is_reported(fake_server: TestServer):
+    """A session the caller owns is theirs to manage; we do not rebuild it."""
+    async with fake_server:
+        session = ClientSession()
+        conn = wss.WebSocketConnection(
+            "_grill_id_",
+            session=session,
+            base_url=str(fake_server.make_url("")),
+            app_id="_app_id_",
+        )
+        await session.close()
+
+        with raises(NotConnectedError):
+            await conn.connect()
+
+
+async def test_connecting_twice_does_not_strand_the_first_task(
+    fake_server: TestServer,
+):
+    """The second `connect()` used to overwrite `_subscribe_task`."""
+    async with fake_server:
+        conn = wss.WebSocketConnection(
+            "_grill_id_", base_url=str(fake_server.make_url("")), app_id="_app_id_"
+        )
+        await conn.connect()
+        first = conn._subscribe_task
+
+        await conn.connect()
+
+        assert first is not None
+        assert first.done()
+        assert conn._subscribe_task is not first
+        await conn.disconnect()
+
+
+async def test_disconnect_clears_the_subscribed_flag(fake_server: TestServer):
+    """The flag means "the loop is reading", and after a disconnect it is not.
+
+    Left set, the next `connect()` returns from its wait before the new
+    subscribe task has started reading.
+    """
+    async with fake_server:
+        conn = wss.WebSocketConnection(
+            "_grill_id_", base_url=str(fake_server.make_url("")), app_id="_app_id_"
+        )
+        await conn.connect()
+        assert conn._subscribed.is_set()
+
+        await conn.disconnect()
+
+        assert not conn._subscribed.is_set()
