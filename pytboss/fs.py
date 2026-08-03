@@ -36,12 +36,23 @@ class FileSystem:
                     "FS.Get", {"filename": filename, "offset": offset, "len": length}
                 )
             )
-            content += b64decode(resp["data"])
-            offset += length
-            if resp["left"] == 0:
-                # Decoded once, whole: a multi-byte character split across
-                # the chunk boundary is not valid UTF-8 on its own.
-                return content.decode("utf-8")
+            chunk = b64decode(resp.get("data", ""))
+            if not chunk:
+                # Nothing came back, so nothing more will: reading on would
+                # ask for the same offset forever when `left` disagrees.
+                break
+            content += chunk
+            # Advanced by what arrived rather than by what was asked for. A
+            # device answering with less -- the reply is bounded by the RPC
+            # frame size, which is configurable and smaller than this on some
+            # units -- would otherwise leave a hole in the middle of the file
+            # and the read would report success.
+            offset += len(chunk)
+            if resp.get("left") == 0:
+                break
+        # Decoded once, whole: a multi-byte character split across a chunk
+        # boundary is not valid UTF-8 on its own.
+        return content.decode("utf-8")
 
     async def set_file_content(
         self, filename: str, data: str | bytes, append: bool
