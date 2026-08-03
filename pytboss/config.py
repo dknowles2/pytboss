@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from .transport import SendCommandFn, Transport
+from .transport import RPCResult, SendCommandFn, Transport, as_dict
 
 
 class Config:
@@ -20,7 +20,7 @@ class Config:
 
     async def get_info(self) -> dict:
         """Returns system information."""
-        return await self._conn.send_command("Sys.GetInfo", {}) or {}
+        return as_dict(await self._conn.send_command("Sys.GetInfo", {}))
 
     async def get_config(self, key: str | None = None) -> dict:
         """Retrieves device configuration subtree.
@@ -30,7 +30,7 @@ class Config:
         params = {}
         if key:
             params["key"] = key
-        return await self._conn.send_command("Config.Get", params) or {}
+        return as_dict(await self._conn.send_command("Config.Get", params))
 
     async def save_config(self, reboot: bool = True):
         """Writes an existing device configuration on flash.
@@ -42,11 +42,11 @@ class Config:
             fn = self._conn.send_command_without_answer
         await fn("Config.Save", {"reboot": reboot})
 
-    async def set(self, **kwargs) -> dict | None:
+    async def set(self, **kwargs) -> RPCResult:
         """Sets device configuration parameters."""
         return await self._conn.send_command("Config.Set", {"config": kwargs})
 
-    async def set_wifi_credentials(self, ssid: str, password: str) -> dict | None:
+    async def set_wifi_credentials(self, ssid: str, password: str) -> RPCResult:
         """Sets the WiFi credentials on the device.
 
         :param ssid: The SSID to connect to.
@@ -54,14 +54,14 @@ class Config:
         """
         return await self._conn.send_command("Config.Set", _wifi_params(ssid, password))
 
-    async def set_wifi_ssid(self, ssid) -> dict | None:
+    async def set_wifi_ssid(self, ssid) -> RPCResult:
         """Sets the WiFi SSID.
 
         :param ssid: The SSID to connect to.
         """
         return await self._conn.send_command("Config.Set", _wifi_params(ssid=ssid))
 
-    async def set_wifi_password(self, password) -> dict | None:
+    async def set_wifi_password(self, password) -> RPCResult:
         """Sets the WiFi password.
 
         :param password: The password for the WiFi network.
