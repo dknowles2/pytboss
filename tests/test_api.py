@@ -931,3 +931,21 @@ def test_the_turn_on_command_collides_with_nothing():
             except TypeError:
                 continue  # takes arguments; not a fixed command
             assert rendered != "FE0101FF", f"{grill.name} declares it as {slug}"
+
+
+async def test_on_vdata_received_accepts_a_decoded_object():
+    """`wss` hands over an object; `ble` hands over the text it was printed as.
+
+    Virtual data reaches `wss` as a member of an already-parsed status frame,
+    so it arrives decoded, while `ble` reads it off the debug log as text.
+    """
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    received = []
+    await pitboss.subscribe_vdata(received.append)
+
+    await pitboss._on_vdata_received({"p1T": 165})
+    await pitboss._on_vdata_received('{"p2T": 170}')
+
+    assert received == [{"p1T": 165}, {"p2T": 170}]

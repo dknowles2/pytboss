@@ -194,8 +194,12 @@ class PitBoss:
             for callback in callbacks:
                 await _invoke(callback, self._state)
 
-    async def _on_vdata_received(self, payload: str):
-        vdata = json.loads(payload)
+    async def _on_vdata_received(self, payload: str | dict):
+        # Both, because the transports differ in what they can hand over.
+        # `ble` reads virtual data off the debug log, where it is still the
+        # text the firmware printed; `wss` receives it as a member of an
+        # already-parsed status frame, so it arrives decoded.
+        vdata = json.loads(payload) if isinstance(payload, str) else payload
         _LOGGER.debug("VData received: %s", vdata)
         async with self._lock:
             callbacks = list(self._vdata_callbacks)
