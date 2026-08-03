@@ -51,7 +51,7 @@ from typing import Any
 from aiohttp import ClientError, ClientSession, ClientTimeout
 
 from .exceptions import NotConnectedError, RPCError
-from .transport import DEFAULT_TIMEOUT, Transport
+from .transport import DEFAULT_TIMEOUT, Transport, _rpc_error
 
 _LOGGER = logging.getLogger("pytboss")
 
@@ -211,11 +211,28 @@ class HttpConnection(Transport):
                 self._url, json=cmd, timeout=self._timeout
             ) as resp:
                 if resp.status != 200:
-                    raise RPCError(
-                        f"{self._url} answered HTTP {resp.status}", resp.status
+                    # Built through `_rpc_error` so a 401 arrives as
+                    # `Unauthorized`, which is what a caller re-prompting for
+                    # a password catches and what a Mongoose build with
+                    # `rpc.auth_file` set answers with.
+                    raise _rpc_error(
+                        {
+                            "code": resp.status,
+                            "message": f"{self._url} answered HTTP {resp.status}",
+                        }
                     )
                 # Mongoose does not always set a JSON content type.
-                payload: Any = await resp.json(content_type=None)
+                try:
+                    payload: Any = await resp.json(content_type=None)
+                except ValueError as ex:
+                    # A 200 carrying something that is not JSON is not this
+                    # protocol at all -- a mistyped address landing on a
+                    # router's admin page answers exactly like that. Left
+                    # alone it escapes as `JSONDecodeError`, which is neither
+                    # documented here nor caught by callers.
+                    raise RPCError(
+                        f"{self._url} answered with something that is not JSON"
+                    ) from ex
         except (ClientError, TimeoutError) as ex:
             # The grill is unreachable rather than refusing the call. Reported
             # as a lost connection so callers treat it the way they treat a

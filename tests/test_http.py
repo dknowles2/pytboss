@@ -400,3 +400,42 @@ async def test_disconnect_stops_a_request_still_in_flight(host, rpc):
 
     await conn.disconnect()
     assert conn._pending == set()
+
+
+async def test_a_non_json_body_is_reported_as_an_rpc_error():
+    """A mistyped address reaching something else answers like this.
+
+    `JSONDecodeError` is a `ValueError`, so the `except (ClientError,
+    TimeoutError)` in the transport does not see it and it escapes
+    undocumented.
+    """
+
+    async def html(request: web.Request) -> web.Response:
+        return web.Response(text="<html>router admin</html>", content_type="text/html")
+
+    app = web.Application()
+    app.router.add_post("/rpc", html)
+    server = TestServer(app)
+    await server.start_server()
+    try:
+        conn = HttpConnection(f"{server.host}:{server.port}")
+        with pytest.raises(RPCError):
+            await conn.connect()
+    finally:
+        await server.close()
+
+
+async def test_http_401_arrives_as_unauthorized(host, rpc):
+    """A build with `rpc.auth_file` set refuses at the HTTP layer.
+
+    Callers catch `Unauthorized` to re-prompt for a password; a bare
+    `RPCError` reads as a generic failure instead.
+    """
+    conn = HttpConnection(host)
+    await conn.connect()
+    try:
+        rpc.status = 401
+        with pytest.raises(Unauthorized):
+            await conn.send_command("PB.GetState", {})
+    finally:
+        await conn.disconnect()
