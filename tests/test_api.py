@@ -2,7 +2,7 @@ import asyncio
 import json
 from collections.abc import Generator
 from itertools import count
-from typing import Any
+from typing import Any, ClassVar
 from unittest import mock
 from unittest.mock import AsyncMock, Mock
 
@@ -10,7 +10,7 @@ import pytest
 from freezegun import freeze_time
 
 from pytboss import api, grills
-from pytboss.codec import decode, timed_key
+from pytboss.codec import WIFI_KEY, decode, encode, timed_key
 from pytboss.exceptions import (
     InvalidGrill,
     RPCError,
@@ -67,6 +67,12 @@ class FakeTransport(Transport):
         self.wifi_update_frequency: dict | None = None
         super().__init__()
         self.last_mcu_command: str | None = None
+        self.device_id = "PBL-1234"
+        self.wifi_credentials: dict | None = None
+        self.pstate = ""
+        self.wifi_scan_polls_until_done = 1
+        self._wifi_scan: dict = {"scanning": False, "results": None}
+        self._wifi_scan_polls = 0
         self.password = password
         self._clock = count(1.0)
         self._is_connected = False
@@ -104,6 +110,12 @@ class FakeTransport(Transport):
             "PB.GetState": self._get_state,
             "RPC.List": self._list_rpcs,
             "PBL.GetLoaderVersion": self._get_loader_version,
+            "PB.RenameDevice": self._rename_device,
+            "PB.SetWifiCredentials": self._set_wifi_credentials,
+            "PB.DebugPState": self._debug_pstate,
+            "Wifi.Scan": self._scan_wifi,
+            "PBL.StartWifiScan": self._start_wifi_scan,
+            "PBL.GetWifiScanStatus": self._get_wifi_scan_status,
         }
         resp = {"id": cmd["id"]}
         try:
@@ -182,6 +194,92 @@ class FakeTransport(Transport):
     def _get_state(self, params: dict) -> dict:
         self._check_password(params)
         return {"sc_11": STATE_HEX, "sc_12": TEMPS_HEX}
+
+    def _rename_device(self, params: dict) -> dict:
+        """Keeps the prefix and rejects rather than trims, as the firmware does.
+
+        The firmware splits on the first `-`, keeps everything up to and
+        including it, and appends the name -- so the reply is a whole device
+        id, not the name it was given. An empty name, or one with a leading
+        or trailing space, falls through to its `Invalid parameters` error.
+        """
+        self._check_password(params)
+        name = params.get("name")
+        if not isinstance(name, str):
+            raise TypeError("Invalid parameters")
+        if not name or name[0] == " " or name[-1] == " ":
+            raise ValueError("Invalid parameters")
+        prefix = self.device_id[: self.device_id.index("-") + 1]
+        self.device_id = prefix + name
+        return {"newName": self.device_id}
+
+    def _set_wifi_credentials(self, params: dict) -> None:
+        """Decodes the password under the WiFi key, as the firmware does.
+
+        A separate key from the grill password's, so decoding with the wrong
+        one produces bytes rather than an error -- which is why the test
+        asserts the round trip rather than that a call was made.
+        """
+        self._check_password(params)
+        if not isinstance(params.get("ssid"), str) or not isinstance(
+            params.get("pass"), str
+        ):
+            raise TypeError("Invalid parameters")
+        self.wifi_credentials = {
+            "ssid": params["ssid"],
+            "pass": decode(bytes.fromhex(params["pass"]), key=WIFI_KEY).decode(),
+        }
+
+    def _debug_pstate(self, params: dict) -> dict:
+        self._check_password(params)
+        return {"pState": self.pstate}
+
+    LOADER_NETWORKS: ClassVar[list[dict]] = [
+        {
+            "ssid": "Kitchen",
+            "bssid": "12:34:56:78:90:ab",
+            # `authMode`, not `auth`: the loader goes through the JS
+            # `Wifi.scan()` rather than the `Wifi.Scan` RPC.
+            "authMode": 3,
+            "channel": 6,
+            "rssi": -58,
+        }
+    ]
+
+    def _start_wifi_scan(self, params: dict) -> dict:
+        """Unauthenticated, and leaves a scan already running alone."""
+        if self._wifi_scan["scanning"]:
+            return dict(self._wifi_scan)
+        self._wifi_scan = {"scanning": True, "results": None}
+        self._wifi_scan_polls = 0
+        return dict(self._wifi_scan)
+
+    def _get_wifi_scan_status(self, params: dict) -> dict:
+        """Destructive read, as the firmware is: it clears what it returns."""
+        if self._wifi_scan["scanning"]:
+            self._wifi_scan_polls += 1
+            if self._wifi_scan_polls >= self.wifi_scan_polls_until_done:
+                self._wifi_scan = {
+                    "scanning": False,
+                    "results": list(self.LOADER_NETWORKS),
+                }
+        if self._wifi_scan["results"] is not None:
+            copy = dict(self._wifi_scan)
+            self._wifi_scan["results"] = None
+            return copy
+        return dict(self._wifi_scan)
+
+    def _scan_wifi(self, params: dict) -> list:
+        """A bare array, in the shape Mongoose documents. Unauthenticated."""
+        return [
+            {
+                "ssid": "Kitchen",
+                "bssid": "12:34:56:78:90:ab",
+                "auth": 3,
+                "channel": 6,
+                "rssi": -58,
+            }
+        ]
 
 
 def make_cmd(slug: str) -> Mock:
@@ -991,3 +1089,158 @@ async def test_get_uptime_does_not_cache_a_reply_it_cannot_read():
         conn, "send_command", AsyncMock(return_value={"time": 500.0})
     ):
         assert await pitboss.get_uptime() == 500.0
+
+
+async def test_rename_device_keeps_the_prefix(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """The reply is a whole device id, not the name that was sent."""
+    assert await pitboss.rename_device("Patio") == "PBL-Patio"
+    assert conn.device_id == "PBL-Patio"
+
+
+@pytest.mark.parametrize("name", ["", " Patio", "Patio "])
+async def test_rename_device_rejects_rather_than_trims(pitboss: api.PitBoss, name: str):
+    """The firmware does not trim; it falls through to its error path."""
+    with pytest.raises(RPCError):
+        await pitboss.rename_device(name)
+
+
+async def test_rename_device_requires_the_password():
+    conn = FakeTransport("thepassword")
+    pitboss = api.PitBoss(conn, "PBV4PS2", "wrongpassword")
+    await pitboss.start()
+    with pytest.raises(Unauthorized):
+        await pitboss.rename_device("Patio")
+    assert conn.device_id == "PBL-1234"
+
+
+async def test_set_wifi_credentials_obfuscates_the_password(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """Round trip, because the WiFi key is not the grill password's key.
+
+    Decoding with the wrong key yields bytes rather than raising, so
+    asserting the value that comes back out is what pins the key.
+    """
+    await pitboss.set_wifi_credentials("Kitchen", "hunter2")
+    assert conn.wifi_credentials == {"ssid": "Kitchen", "pass": "hunter2"}
+
+
+async def test_set_wifi_credentials_does_not_send_the_password_in_the_clear(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    sent: dict = {}
+    original = conn._send_prepared_command
+
+    async def capture(cmd: dict) -> None:
+        sent.update(cmd)
+        await original(cmd)
+
+    with mock.patch.object(conn, "_send_prepared_command", capture):
+        await pitboss.set_wifi_credentials("Kitchen", "hunter2")
+    assert "hunter2" not in json.dumps(sent)
+
+
+async def test_set_wifi_credentials_is_not_the_config_service_key(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """Encoding under the grill password key must not decode as the WiFi one."""
+    await pitboss.set_wifi_credentials("Kitchen", "hunter2")
+    assert conn.wifi_credentials is not None
+    wrong = decode(bytes.fromhex(encode(b"hunter2").hex()), key=WIFI_KEY)
+    assert wrong != b"hunter2"
+
+
+async def test_debug_pstate(pitboss: api.PitBoss, conn: FakeTransport):
+    conn.pstate = "paired"
+    assert await pitboss.debug_pstate() == "paired"
+
+
+async def test_debug_pstate_is_empty_when_the_cloud_never_set_it(pitboss: api.PitBoss):
+    """Nothing on the grill writes it, so a never-paired grill answers empty."""
+    assert await pitboss.debug_pstate() == ""
+
+
+async def test_debug_pstate_requires_the_password():
+    conn = FakeTransport("thepassword")
+    pitboss = api.PitBoss(conn, "PBV4PS2", "wrongpassword")
+    await pitboss.start()
+    with pytest.raises(Unauthorized):
+        await pitboss.debug_pstate()
+
+
+async def test_start_wifi_scan_reports_it_began(pitboss: api.PitBoss):
+    assert await pitboss.start_wifi_scan() == {"scanning": True, "results": None}
+
+
+async def test_start_wifi_scan_does_not_restart_one_in_flight(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    conn.wifi_scan_polls_until_done = 99
+    await pitboss.start_wifi_scan()
+    await pitboss.get_wifi_scan_status()
+    assert conn._wifi_scan_polls == 1
+
+    await pitboss.start_wifi_scan()
+    assert conn._wifi_scan_polls == 1
+
+
+async def test_get_wifi_scan_status_hands_the_results_back_only_once(
+    pitboss: api.PitBoss,
+):
+    """The firmware clears its stored results as it returns them."""
+    await pitboss.start_wifi_scan()
+    first = await pitboss.get_wifi_scan_status()
+    assert first["results"] == FakeTransport.LOADER_NETWORKS
+
+    second = await pitboss.get_wifi_scan_status()
+    assert second["results"] is None
+
+
+async def test_the_loader_names_the_auth_field_differently(pitboss: api.PitBoss):
+    """`authMode` from the loader, `auth` from the `Wifi.Scan` RPC."""
+    await pitboss.start_wifi_scan()
+    status = await pitboss.get_wifi_scan_status()
+    assert "authMode" in status["results"][0]
+    assert "auth" not in status["results"][0]
+
+    assert "auth" in (await pitboss.wifi.scan())[0]
+
+
+async def test_scan_wifi_networks_drives_the_whole_dance(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    conn.wifi_scan_polls_until_done = 3
+    got = await pitboss.scan_wifi_networks(poll_interval=0)
+    assert got == FakeTransport.LOADER_NETWORKS
+    assert conn._wifi_scan_polls == 3
+
+
+async def test_scan_wifi_networks_gives_up_at_the_timeout(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """A scan that never finishes must not poll forever."""
+    conn.wifi_scan_polls_until_done = 10**6
+    assert await pitboss.scan_wifi_networks(timeout=0.05, poll_interval=0.01) == []
+
+
+async def test_scan_wifi_networks_starts_a_fresh_scan_each_time(pitboss: api.PitBoss):
+    """A consumed result must not make the next call come back empty."""
+    await pitboss.start_wifi_scan()
+    await pitboss.get_wifi_scan_status()  # consumes them
+    assert await pitboss.scan_wifi_networks(poll_interval=0) == (
+        FakeTransport.LOADER_NETWORKS
+    )
+
+
+async def test_scan_wifi_networks_stops_when_the_grill_is_not_scanning():
+    """Not scanning and holding nothing: no point polling to the timeout."""
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    idle = AsyncMock(return_value={"scanning": False, "results": None})
+    with mock.patch.object(conn, "send_command", idle):
+        assert await pitboss.scan_wifi_networks(poll_interval=0) == []
+    # start + a single status poll, rather than polling to the timeout.
+    assert idle.await_count == 2

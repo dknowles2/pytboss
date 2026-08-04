@@ -9,13 +9,14 @@ from math import floor
 from time import monotonic
 from typing import Any
 
-from .codec import encode, timed_key
+from .codec import WIFI_KEY, encode, timed_key
 from .config import Config
 from .exceptions import UnsupportedOperation
 from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
 from .ota import OTA
 from .transport import RPCResult, Transport, as_dict
+from .wifi import WiFi
 
 _UPTIME_TTL = 60.0
 """Seconds before the cached uptime is re-read rather than extrapolated.
@@ -78,6 +79,9 @@ class PitBoss:
     ota: OTA
     """Over-the-air firmware update operations."""
 
+    wifi: WiFi
+    """WiFi operations."""
+
     def __init__(
         self,
         conn: Transport,
@@ -101,6 +105,7 @@ class PitBoss:
         self.fs = FileSystem(conn)
         self.config = Config(conn)
         self.ota = OTA(conn)
+        self.wifi = WiFi(conn)
         self._grill_model = grill_model
         self._control_board = control_board
         self._conn = conn
@@ -647,3 +652,138 @@ class PitBoss:
         if isinstance(result, dict):
             return result.get("loaderVersion")
         return None
+
+    async def start_wifi_scan(self) -> dict:
+        """Asks the loader to begin scanning for WiFi networks.
+
+        Answers `{"scanning": bool, "results": list | None}` immediately
+        rather than waiting. A scan already in flight is left alone and its
+        state returned, so calling this twice does not restart anything.
+
+        The loader serves this, not the grill application, and does not check
+        the password. Prefer `scan_wifi_networks()` unless you want to drive
+        the polling yourself -- `get_wifi_scan_status()` hands the results
+        back only once.
+        """
+        return as_dict(await self._conn.send_command("PBL.StartWifiScan", {}))
+
+    async def get_wifi_scan_status(self) -> dict:
+        """Returns the state of the scan `start_wifi_scan()` began.
+
+        **Reading the results consumes them.** The loader clears its stored
+        results as it returns them, so the next call answers `None` again
+        even though the scan completed. Whatever calls this owns the only
+        copy.
+
+        `{"scanning": True, "results": None}` while it runs, then
+        `{"scanning": False, "results": [...]}` exactly once.
+
+        Each entry carries `ssid`, `bssid`, `authMode`, `channel` and `rssi`
+        -- `authMode`, because the loader goes through Mongoose's JS
+        `Wifi.scan()`, where `PitBoss.wifi.scan()` calls the `Wifi.Scan` RPC and
+        gets the same field named `auth`. Same grill, same networks, two
+        spellings.
+        """
+        return as_dict(await self._conn.send_command("PBL.GetWifiScanStatus", {}))
+
+    async def scan_wifi_networks(
+        self, *, timeout: float = 15.0, poll_interval: float = 1.0
+    ) -> list[dict]:
+        """Runs the loader's scan to completion and returns what it found.
+
+        The two-call dance in one place, so the single destructive read of
+        `get_wifi_scan_status()` happens once, here, rather than in every
+        caller that polls.
+
+        Empty if the scan finds nothing, if the grill serves no loader, or if
+        `timeout` elapses first -- none of which are distinguishable in the
+        reply, so this does not pretend to tell them apart.
+
+        :param timeout: Seconds to keep polling before giving up.
+        :param poll_interval: Seconds between polls.
+        """
+        await self.start_wifi_scan()
+        deadline = monotonic() + timeout
+        while monotonic() < deadline:
+            await asyncio.sleep(poll_interval)
+            status = await self.get_wifi_scan_status()
+            results = status.get("results")
+            if isinstance(results, list):
+                return results
+            if not status.get("scanning"):
+                # Not running and nothing held: either it never started or a
+                # previous caller already consumed the results.
+                return []
+        return []
+
+    async def rename_device(self, name: str) -> str:
+        """Renames the grill, returning its new device id.
+
+        Only the part after the first `-` is yours to set: the firmware keeps
+        everything up to and including that separator and appends `name`, so
+        a grill with the id `PBL-1234` renamed to `Patio` becomes
+        `PBL-Patio`. The returned value is that whole id, not `name`.
+
+        The firmware rejects an empty name, and one with a leading or
+        trailing space, with an `Invalid parameters` error -- it does not
+        trim. Anything else it accepts.
+
+        Cosmetic: a grill is identified by its device id elsewhere, and this
+        changes that id, so anything holding the old one has to be updated.
+
+        :param name: The name to give the grill.
+        :raise pytboss.exceptions.RPCError: If the firmware rejects the name.
+        """
+        result = as_dict(
+            await self._conn.send_command(
+                "PB.RenameDevice", await self._authenticate({"name": name})
+            )
+        )
+        return result.get("newName", "")
+
+    async def set_wifi_credentials(self, ssid: str, password: str) -> RPCResult:
+        """Puts the grill on a WiFi network.
+
+        The password travels obfuscated with the codec this library already
+        uses for the grill password, under a key of its own. That is the only
+        thing this offers over `Config.set_wifi_credentials()`, which reaches
+        the same `wifi.sta` settings through Mongoose's own config service and
+        sends the password as plain text in the RPC payload.
+
+        Neither saves: the firmware writes the config without committing it,
+        so call `Config.save_config()` if the change should survive a reboot.
+
+        Take the usual care -- a wrong SSID or password puts the grill on a
+        network it cannot reach, and recovering it means the panel.
+
+        :param ssid: The network to join.
+        :param password: The network's password.
+        """
+        return await self._conn.send_command(
+            "PB.SetWifiCredentials",
+            await self._authenticate(
+                {
+                    "ssid": ssid,
+                    "pass": encode(password.encode("utf-8"), key=WIFI_KEY).hex(),
+                }
+            ),
+        )
+
+    async def debug_pstate(self) -> str:
+        """Returns the pairing state the cloud last set on this grill.
+
+        Opaque to the grill: it is written only by a `setPState` frame on the
+        outbound cloud socket and never by the grill itself, which then echoes
+        it back on every status push and here. So it reports what the vendor's
+        service last said, and is empty on a grill that has never been paired
+        -- or reached over Bluetooth or the local transport, where nothing
+        writes it.
+
+        Diagnostic only. Nothing in this library acts on it.
+        """
+        result = as_dict(
+            await self._conn.send_command(
+                "PB.DebugPState", await self._authenticate({})
+            )
+        )
+        return result.get("pState", "")
