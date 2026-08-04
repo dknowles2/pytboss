@@ -1298,3 +1298,25 @@ async def test_board_gated_commands_never_raise_a_bare_keyerror():
                 pass
         checked += 1
     assert checked > 100  # the sweep really covered the catalogue
+
+
+async def test_state_arriving_before_start_is_ignored():
+    """A transport can be connected and receiving before `start()` runs.
+
+    Home Assistant connects through `reset_device` during discovery and
+    calls `start()` later. The state callback is registered in `__init__`,
+    but the spec that parses frames only exists once `start()` resolves it
+    -- a frame in that window raised `AttributeError` inside the
+    transport's dispatch, where no caller sees it.
+    """
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await conn.connect()
+
+    await conn.send_state(STATE_HEX)  # before start(): ignored, not a crash
+
+    await pitboss.start()
+    received = []
+    await pitboss.subscribe_state(received.append)
+    await conn.send_state(STATE_HEX)  # after start(): parsed as ever
+    assert received and received[0]["moduleIsOn"] is True
