@@ -873,3 +873,31 @@ async def test_a_callback_can_await_a_full_round_trip(
 
     assert outcome["result"] == "pong"
     assert outcome["elapsed"] < 2  # answered, not waited out
+
+
+async def test_a_cancel_that_never_landed_does_not_mark_the_next_one(
+    conn: wss.WebSocketConnection,
+) -> None:
+    """The reconnect loop's `finally` must clear `_handshake_cancelled`.
+
+    The flag means "the cancellation about to arrive is ours". A cancel
+    that loses its race -- the handshake finishing first -- leaves no
+    cancellation to consume it; left set, the *next*, caller-owned
+    cancellation would read as ours and be swallowed, losing a shutdown.
+    Found as a mutation survivor: removing the reset passed the suite.
+    """
+    await conn.connect()
+
+    # A cancel that never landed.
+    conn._handshake_cancelled = True
+
+    # The stream ends; the loop reconnects, and the handshake it runs on
+    # the way back up must reset the flag in its finally.
+    assert conn._sock is not None
+    await conn._sock.close()
+    async with timeout(5):
+        while conn._sock is None or conn._sock.closed:
+            await sleep(0.01)
+
+    assert conn._handshake_cancelled is False
+    await conn.disconnect()

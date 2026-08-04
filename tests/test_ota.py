@@ -5,11 +5,12 @@ from unittest import mock
 import pytest
 
 from pytboss.ota import OTA
+from pytboss.transport import Transport
 
 
 @pytest.fixture
 def mock_conn():
-    conn = mock.AsyncMock()
+    conn = mock.AsyncMock(spec=Transport)
     conn.send_command = mock.AsyncMock(return_value={})
     return conn
 

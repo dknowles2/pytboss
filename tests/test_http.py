@@ -392,14 +392,47 @@ async def test_send_command_without_answer_does_not_wait(host, rpc):
         await server.close()
 
 
-async def test_disconnect_stops_a_request_still_in_flight(host, rpc):
-    conn = HttpConnection(host)
-    await conn.connect()
-    await conn.send_command_without_answer("Sys.Reboot", {})
-    assert conn._pending
+async def test_disconnect_stops_a_request_still_in_flight():
+    """The request must actually be stopped, not just forgotten.
 
-    await conn.disconnect()
-    assert conn._pending == set()
+    The old version asserted `_pending == set()` -- satisfied by
+    `disconnect()`'s own `clear()` whether or not anything was cancelled.
+    Proved by mutation: removing the `task.cancel()` entirely still passed.
+    Now the request is genuinely parked server-side and the task's ending
+    is observed.
+    """
+    in_flight = asyncio.Event()
+
+    async def handler(request: web.Request) -> web.Response:
+        cmd = await request.json()
+        if cmd["method"] == "RPC.Ping":
+            return web.json_response(
+                {"id": cmd["id"], "result": {}}, content_type="text/plain"
+            )
+        in_flight.set()
+        await asyncio.sleep(30)
+        raise AssertionError("unreachable")
+
+    app = web.Application()
+    app.router.add_post("/rpc", handler)
+    server = TestServer(app)
+    await server.start_server()
+    try:
+        conn = HttpConnection(f"{server.host}:{server.port}")
+        await conn.connect()
+        await conn.send_command_without_answer("Sys.Reboot", {})
+        async with asyncio.timeout(3):
+            await in_flight.wait()  # genuinely on the wire
+        task = next(iter(conn._pending))
+
+        await conn.disconnect()
+
+        async with asyncio.timeout(3):
+            await asyncio.gather(task, return_exceptions=True)
+        assert task.cancelled()
+        assert conn._pending == set()
+    finally:
+        await server.close()
 
 
 async def test_a_non_json_body_is_reported_as_an_rpc_error():

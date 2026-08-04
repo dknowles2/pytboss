@@ -6,6 +6,7 @@ import pytest
 from pytest import raises
 
 from pytboss.exceptions import RPCError
+from pytboss.transport import Transport
 from pytboss.wifi import WiFi
 
 NETWORK = {
@@ -21,7 +22,7 @@ NETWORK = {
 
 @pytest.fixture
 def mock_conn():
-    conn = mock.AsyncMock()
+    conn = mock.AsyncMock(spec=Transport)
     conn.send_command = mock.AsyncMock(return_value=[NETWORK])
     return conn
 

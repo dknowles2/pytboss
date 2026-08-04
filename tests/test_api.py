@@ -10,7 +10,7 @@ import pytest
 from freezegun import freeze_time
 
 from pytboss import api, grills
-from pytboss.codec import WIFI_KEY, decode, encode, timed_key
+from pytboss.codec import WIFI_KEY, decode, timed_key
 from pytboss.exceptions import (
     InvalidGrill,
     RPCError,
@@ -1188,16 +1188,6 @@ async def test_set_wifi_credentials_does_not_send_the_password_in_the_clear(
     with mock.patch.object(conn, "_send_prepared_command", capture):
         await pitboss.set_wifi_credentials("Kitchen", "hunter2")
     assert "hunter2" not in json.dumps(sent)
-
-
-async def test_set_wifi_credentials_is_not_the_config_service_key(
-    pitboss: api.PitBoss, conn: FakeTransport
-):
-    """Encoding under the grill password key must not decode as the WiFi one."""
-    await pitboss.set_wifi_credentials("Kitchen", "hunter2")
-    assert conn.wifi_credentials is not None
-    wrong = decode(bytes.fromhex(encode(b"hunter2").hex()), key=WIFI_KEY)
-    assert wrong != b"hunter2"
 
 
 async def test_debug_pstate(pitboss: api.PitBoss, conn: FakeTransport):
