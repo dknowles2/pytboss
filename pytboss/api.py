@@ -301,10 +301,15 @@ class PitBoss:
         """Sets the target temperature for probe 1.
 
         :param temp: Target probe temperature, in the grill's own unit.
+        :raise pytboss.exceptions.UnsupportedOperation: When probe 1's
+            target temperature cannot be set. Only 42 of 137 models declare
+            the command; on the rest this raised a bare `KeyError` while its
+            sibling below raised the documented error.
         """
-        return await self._send_command(
-            "set-probe-1-temperature", temp, self._is_fahrenheit()
-        )
+        cmd = "set-probe-1-temperature"
+        if cmd not in self.spec.control_board.commands:
+            raise UnsupportedOperation
+        return await self._send_command(cmd, temp, self._is_fahrenheit())
 
     async def set_probe_2_temperature(self, temp: int) -> RPCResult:
         """Sets the target temperature for probe 2.
@@ -492,12 +497,26 @@ class PitBoss:
         return await self._send_command("turn-off")
 
     async def turn_primer_motor_on(self) -> RPCResult:
-        """Turns the primer motor on."""
-        return await self._send_command("turn-primer-motor-on")
+        """Turns the primer motor on.
+
+        :raise pytboss.exceptions.UnsupportedOperation: When the board has no
+            primer motor command (26 of 137 models).
+        """
+        cmd = "turn-primer-motor-on"
+        if cmd not in self.spec.control_board.commands:
+            raise UnsupportedOperation
+        return await self._send_command(cmd)
 
     async def turn_primer_motor_off(self) -> RPCResult:
-        """Turns the primer motor off."""
-        return await self._send_command("turn-primer-motor-off")
+        """Turns the primer motor off.
+
+        :raise pytboss.exceptions.UnsupportedOperation: When the board has no
+            primer motor command (26 of 137 models).
+        """
+        cmd = "turn-primer-motor-off"
+        if cmd not in self.spec.control_board.commands:
+            raise UnsupportedOperation
+        return await self._send_command(cmd)
 
     async def get_state(self) -> StateDict:
         """Issues a live RPC to fetch and return the current grill state.

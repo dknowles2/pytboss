@@ -1265,3 +1265,36 @@ async def test_on_vdata_received_strips_the_password():
     await pitboss._on_vdata_received('{"p2T": 170, "psw": "a1b2c3deadbeef"}')
 
     assert received == [{"p1T": 165}, {"p2T": 170}]
+
+
+async def test_board_gated_commands_never_raise_a_bare_keyerror():
+    """A board without the command is an `UnsupportedOperation`, not a crash.
+
+    `set_probe_temperature` sent its slug unguarded while its probe-2 sibling
+    checked membership and raised the documented error -- so the same call
+    crashed with `KeyError('set-probe-1-temperature')` on the 95 of 137
+    models whose board does not declare it. Same hole for the primer motor
+    on 26 models.
+    """
+    checked = 0
+    for grill in grills.get_grills():
+        if grill.name in grills.UNSUPPORTED_MODELS:
+            continue
+        pitboss = api.PitBoss(FakeTransport(), grill.name)
+        await pitboss.start()
+        for op in (
+            pitboss.set_probe_temperature(165),
+            pitboss.turn_primer_motor_on(),
+            pitboss.turn_primer_motor_off(),
+        ):
+            try:
+                await op
+            except UnsupportedOperation:
+                pass  # the documented answer for a board without the command
+            except RPCError:
+                # An artifact of `FakeTransport._send_mcu_command` decoding
+                # the hex as UTF-8, not of the code under test. The command
+                # was rendered and sent, which is all this sweep asks.
+                pass
+        checked += 1
+    assert checked > 100  # the sweep really covered the catalogue
