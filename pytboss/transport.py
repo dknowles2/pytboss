@@ -59,6 +59,14 @@ def as_dict(result: RPCResult) -> dict[Any, Any]:
 UNAUTHORIZED_CODE = 401
 """The code the firmware answers with when the password is wrong or missing."""
 
+METHOD_NOT_FOUND_CODE = 404
+"""The code mg_rpc answers with for a method the device does not serve.
+
+Verified against a live grill: an unknown method is answered with
+``{"code": 404, "message": "No handler for <name>"}``, while a *failing*
+served method answers with a different code -- so "not served" is
+distinguishable from "went wrong"."""
+
 
 def _rpc_error(error: dict) -> RPCError:
     """Build the exception for an error payload from the device."""

@@ -11,11 +11,11 @@ from typing import Any
 
 from .codec import WIFI_KEY, encode, timed_key
 from .config import Config
-from .exceptions import UnsupportedOperation
+from .exceptions import RPCError, UnsupportedOperation
 from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
 from .ota import OTA
-from .transport import RPCResult, Transport, as_dict
+from .transport import METHOD_NOT_FOUND_CODE, RPCResult, Transport, as_dict
 from .wifi import WiFi
 
 _UPTIME_TTL = 60.0
@@ -684,10 +684,17 @@ class PitBoss:
         `get_firmware_version()` reports: a grill on firmware 0.5.7 answers
         `0.2.2` here.
 
-        `None` when the grill does not serve `PBL.GetLoaderVersion`, which
-        `list_rpcs()` reports without a round trip that errors.
+        `None` when the grill does not serve `PBL.GetLoaderVersion`.
         """
-        result = await self._conn.send_command("PBL.GetLoaderVersion", {})
+        try:
+            result = await self._conn.send_command("PBL.GetLoaderVersion", {})
+        except RPCError as ex:
+            if ex.code == METHOD_NOT_FOUND_CODE:
+                # The documented None. Without this, a grill without the
+                # loader RPC raised instead of answering what the docstring
+                # promises.
+                return None
+            raise
         if isinstance(result, dict):
             return result.get("loaderVersion")
         return None
@@ -741,7 +748,15 @@ class PitBoss:
         :param timeout: Seconds to keep polling before giving up.
         :param poll_interval: Seconds between polls.
         """
-        await self.start_wifi_scan()
+        try:
+            await self.start_wifi_scan()
+        except RPCError as ex:
+            if ex.code == METHOD_NOT_FOUND_CODE:
+                # No loader: the documented empty, not an error. Only the
+                # first call needs the guard -- once the start is served,
+                # the status polls are too.
+                return []
+            raise
         deadline = monotonic() + timeout
         while monotonic() < deadline:
             await asyncio.sleep(poll_interval)

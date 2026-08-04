@@ -118,10 +118,20 @@ class FakeTransport(Transport):
             "PBL.GetWifiScanStatus": self._get_wifi_scan_status,
         }
         resp = {"id": cmd["id"]}
+        handler = dispatch.get(cmd["method"])
+        if handler is None:
+            # The frame a live grill answers for a method it does not
+            # serve; distinct from a served handler failing, below.
+            resp["error"] = {
+                "code": 404,
+                "message": f"No handler for {cmd['method']}",
+            }
+            await self._on_command_response(resp)
+            return
         try:
             # Like the firmware: handlers that return null produce a reply
             # without a `result` key.
-            result = dispatch[cmd["method"]](cmd["params"])
+            result = handler(cmd["params"])
             if result is not None:
                 resp["result"] = result
         except Unauthorized:
@@ -793,11 +803,43 @@ async def test_get_loader_version(pitboss: api.PitBoss):
 
 
 async def test_get_loader_version_when_the_grill_has_no_loader():
+    """The real unserved-method answer is mg_rpc's 404 error frame.
+
+    The old test mocked `send_command` returning `None` -- a reply the "does
+    not serve it" case cannot produce -- so it certified the docstring
+    without testing it: the real path raised `RPCError`.
+    """
     conn = FakeTransport()
     pitboss = api.PitBoss(conn, "PBV4PS2")
     await pitboss.start()
-    with mock.patch.object(conn, "send_command", AsyncMock(return_value=None)):
+    with mock.patch.object(
+        conn,
+        "send_command",
+        AsyncMock(side_effect=RPCError("No handler for PBL.GetLoaderVersion", 404)),
+    ):
         assert await pitboss.get_loader_version() is None
+
+    # A loader that exists but *fails* is not silently read as absent.
+    with (
+        mock.patch.object(
+            conn, "send_command", AsyncMock(side_effect=RPCError("boom", -1))
+        ),
+        pytest.raises(RPCError),
+    ):
+        await pitboss.get_loader_version()
+
+
+async def test_scan_wifi_networks_when_the_grill_has_no_loader():
+    """`[]`, as documented -- not the `RPCError` the 404 frame arrives as."""
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(
+        conn,
+        "send_command",
+        AsyncMock(side_effect=RPCError("No handler for PBL.StartWifiScan", 404)),
+    ):
+        assert await pitboss.scan_wifi_networks(timeout=0.2, poll_interval=0.01) == []
 
 
 async def test_get_state_updates_the_cached_state(conn: FakeTransport, password: str):
@@ -839,9 +881,15 @@ async def test_other_rpc_errors_keep_their_code():
     pitboss = api.PitBoss(conn, "PBV4PS2")
     await pitboss.start()
 
+    # An unknown method answers mg_rpc's 404, as a live grill does.
     with pytest.raises(RPCError) as caught:
         await pitboss._conn.send_command("No.SuchMethod", {})
     assert not isinstance(caught.value, Unauthorized)
+    assert caught.value.code == 404
+
+    # A served handler that fails keeps its own, different code.
+    with pytest.raises(RPCError) as caught:
+        await pitboss._conn.send_command("PB.SendMCUCommand", {})
     assert caught.value.code == -1
 
 
