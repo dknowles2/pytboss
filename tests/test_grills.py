@@ -605,3 +605,48 @@ def test_a_real_temperature_still_converts_after_the_sentinel_fix():
     assert out is not None
     assert out["p1Temp"] == 107  # 225 F -> 107 C, unchanged by the fix
     assert out["p2Temp"] is None  # the sentinel, now None rather than -18
+
+
+def _celsius_temps_frame() -> str:
+    """A 30-byte FE0C frame reading a real value at grill+smoker, in Celsius."""
+    parts = ["00"] * 30
+    parts[0], parts[1] = "FE", "0C"
+    for off in (20, 26):  # smokerActTemp, grillTemp
+        parts[off], parts[off + 1], parts[off + 2] = "02", "01", "02"  # 212 F
+    parts[29] = "00"  # isFahrenheit = false
+    return "".join(parts)
+
+
+def test_smoker_temp_is_converted_to_celsius_like_its_siblings():
+    """PBA/PBE/PBT convert every temp field except p4Temp and smokerActTemp.
+
+    Those two were left in Fahrenheit while the rest of the same reply was
+    converted -- two temperatures in one frame in different units. On a
+    Celsius grill smokerActTemp read ~2x too high.
+    """
+    frame = _celsius_temps_frame()
+    for name in ("PBA", "PBE", "PBT"):
+        cb = next(
+            g.control_board
+            for g in grills_lib.get_grills()
+            if g.control_board.name == name
+        )
+        out = cb.parse_temperatures(frame)
+        assert out is not None and out["isFahrenheit"] is False
+        # grillTemp (converted by the board) and smokerActTemp (converted here)
+        # must now agree -- both 212 F -> 100 C.
+        assert out["grillTemp"] == 100
+        assert out["smokerActTemp"] == 100
+
+
+def test_a_fahrenheit_frame_leaves_the_missed_fields_untouched():
+    """No double conversion: on a Fahrenheit grill the value is already right."""
+    frame = _celsius_temps_frame()[:-2] + "01"  # isFahrenheit = true
+    cb = next(
+        g.control_board
+        for g in grills_lib.get_grills()
+        if g.control_board.name == "PBA"
+    )
+    out = cb.parse_temperatures(frame)
+    assert out is not None and out["isFahrenheit"] is True
+    assert out["smokerActTemp"] == 212  # left in Fahrenheit, as it should be

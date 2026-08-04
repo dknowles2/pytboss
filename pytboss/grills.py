@@ -1,9 +1,10 @@
 """Routines for accessing grill metadata."""
 
 import json
+import math
 import re
 import threading
-from collections.abc import Container, Iterable
+from collections.abc import Collection, Container, Iterable
 from dataclasses import dataclass, field
 from functools import cache
 from importlib import resources
@@ -90,6 +91,19 @@ DROPPED_STATUS_FIELDS = {
 DROPPED_TEMPERATURE_FIELDS = {
     "LBL": frozenset({"smokerActTemp"}),
     "LFS": frozenset({"smokerActTemp"}),
+}
+
+# Fields these boards' temperature routine populates but forgets to run
+# through its `ftoc` helper, so they stay in Fahrenheit while every sibling
+# field is converted to the grill's Celsius unit -- two temperatures in one
+# reply in different units, with nothing marking which. Converted here to
+# match, but only when the frame reports Celsius. `grills.json` is generated
+# and must not be hand-edited (REVIEW.md); `DROPPED_*_FIELDS` uses this same
+# per-board shape for the same class of routine gap.
+UNCONVERTED_FAHRENHEIT_FIELDS = {
+    "PBA": frozenset({"p4Temp", "smokerActTemp"}),
+    "PBE": frozenset({"p4Temp", "smokerActTemp"}),
+    "PBT": frozenset({"p4Temp", "smokerActTemp"}),
 }
 
 # Typos in the vendor's command slugs, mapped to the canonical slug.
@@ -249,6 +263,26 @@ def _drop_fields(state: StateDict | None, fields: Container[str]) -> StateDict |
     if state is None:
         return None
     return cast(StateDict, {k: v for k, v in state.items() if k not in fields})
+
+
+def _convert_missed_fields(
+    state: StateDict | None, fields: Collection[str]
+) -> StateDict | None:
+    """Converts fields the routine left in Fahrenheit to the frame's unit.
+
+    Only when the reply reports Celsius (`isFahrenheit` false), mirroring the
+    board's own `if (!status.isFahrenheit)` conversion block -- the fields in
+    `fields` are the ones that block forgets. The arithmetic is `ftoc`'s:
+    `floor((f - 32) / 1.8)`. The sentinel is already `None` by here, so only
+    real readings are touched.
+    """
+    if state is None or state.get("isFahrenheit") is not False:
+        return state
+    for key in fields:
+        value = state.get(key)  # type: ignore[call-overload]
+        if isinstance(value, int) and not isinstance(value, bool):
+            state[key] = math.floor((value - 32) / 1.8)  # type: ignore[literal-required]
+    return state
 
 
 @dataclass
@@ -426,9 +460,12 @@ class ControlBoard:
             raise NotImplementedError
         if _is_truncated(message, self._temperatures_js_func):
             return None
-        return _drop_fields(
-            self._evaljs(self._temperatures_js_func, message),
-            DROPPED_TEMPERATURE_FIELDS.get(self.name, frozenset()),
+        return _convert_missed_fields(
+            _drop_fields(
+                self._evaljs(self._temperatures_js_func, message),
+                DROPPED_TEMPERATURE_FIELDS.get(self.name, frozenset()),
+            ),
+            UNCONVERTED_FAHRENHEIT_FIELDS.get(self.name, frozenset()),
         )
 
 
