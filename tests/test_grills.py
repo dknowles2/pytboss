@@ -537,3 +537,34 @@ def test_frozen_types_are_hashable():
     assert hash(g1) == hash(g2)  # the eq/hash contract
     assert len({g1, g2}) == 1
     assert hash(g1.control_board) == hash(g2.control_board)
+
+
+def test_a_truncated_frame_is_rejected_not_parsed_into_a_falsy_state():
+    """The vendor's `parts < N` guard is dead; a short frame must still be dropped.
+
+    On the 14 boards whose guard compares the Array object to a number
+    (always false), a truncated frame indexed past its end and returned a
+    fully-populated, entirely-falsy status -- which merged into the cache and
+    flipped `moduleIsOn` and every error flag to False. It must parse to None.
+    """
+    cb = grills_lib.get_grill("PB1600PS1").control_board  # PBL: dead guard
+    # A full frame parses; a header-only fragment of the same prefix does not.
+    full = cb.parse_status(
+        "FE0B01060501090101090209060009060002020002020501010000000000000000000101010001"
+        "01040C3B1F"
+    )
+    assert full is not None and full["moduleIsOn"] is True
+    assert cb.parse_status("FE0B00000000") is None  # 6 bytes, needs 44
+    assert cb.parse_temperatures("FE0C0000") is None  # 4 bytes, needs 27
+
+
+def test_every_board_accepts_a_frame_at_its_length_threshold():
+    """The guard must reject only what is genuinely too short -- no false drops."""
+    for grill in grills_lib.get_grills():
+        cb = grill.control_board
+        for js in (cb._status_js_func, cb._temperatures_js_func):
+            n = grills_lib._min_frame_bytes(js)
+            if n is None:
+                continue
+            assert not grills_lib._is_truncated("f" * (2 * n), js)  # at threshold: ok
+            assert grills_lib._is_truncated("f" * (2 * n - 2), js)  # one byte short
