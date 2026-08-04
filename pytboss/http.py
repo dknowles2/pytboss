@@ -175,7 +175,15 @@ class HttpConnection(Transport):
         :param method: The method to call.
         :param params: Parameters to send with the command.
         :param timeout: Ignored. Nothing is awaited, so nothing can elapse.
+        :raise pytboss.exceptions.NotConnectedError: If the transport is not
+            connected. Raised here rather than swallowed in the background
+            task: "the board rebooted before answering" and "nothing was
+            ever sent" are different endings, and the other transports
+            raise for the second one -- a caller's `reboot()` should not
+            report success on a transport that was never connected.
         """
+        if not self._started or self._session is None or self._session.closed:
+            raise NotConnectedError("Not connected")
         cmd = await self._prepare_command(method, params)
         task = self._loop.create_task(self._send_and_forget(cmd))
         # Held so the task is not collected mid-flight, and so `disconnect()`
