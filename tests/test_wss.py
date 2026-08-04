@@ -901,3 +901,69 @@ async def test_a_cancel_that_never_landed_does_not_mark_the_next_one(
 
     assert conn._handshake_cancelled is False
     await conn.disconnect()
+
+
+async def test_disconnect_survives_an_externally_cancelled_subscribe_task(
+    fake_server: TestServer,
+) -> None:
+    """An outside cancellation of the subscribe task must not break disconnect().
+
+    A shutdown sweep or a test harness can cancel the subscribe task from
+    outside. Awaiting a cancelled task re-raises `CancelledError`, which
+    `except Exception` does not catch -- so it escaped `disconnect()` into a
+    caller that never asked to be cancelled, left the owned session open,
+    and orphaned the dispatch task.
+    """
+    async with fake_server:
+        conn = make_conn(fake_server, session=None)  # owned session
+        await conn.connect()
+        owned = conn._session
+        assert owned is not None
+        sub, disp = conn._subscribe_task, conn._dispatch_task
+        assert sub is not None and disp is not None
+
+        sub.cancel()
+        with raises(asyncio.CancelledError):
+            await sub
+
+        # A normal disconnect from a caller that is NOT being cancelled.
+        async with timeout(3):
+            await conn.disconnect()
+
+        assert owned.closed  # not leaked
+        assert disp.done()  # not orphaned
+        assert conn._subscribe_task is None
+
+
+async def test_a_cancellation_aimed_at_the_caller_is_still_honoured(
+    fake_server: TestServer,
+) -> None:
+    """The dead-task catch must not swallow a cancellation of our own task.
+
+    If the task running `disconnect()` is itself cancelled while awaiting the
+    wind-down, that cancellation has to propagate -- only the subscribe
+    task's *own* cancellation is absorbed.
+    """
+    async with fake_server:
+        conn = make_conn(fake_server, session=None)
+        await conn.connect()
+
+        # A subscribe task that never returns from the await, so the
+        # disconnect parks on it and we can cancel the disconnect itself.
+        never = asyncio.Event()
+
+        async def hang() -> None:
+            await never.wait()
+
+        hang_task = asyncio.get_running_loop().create_task(hang())
+        conn._subscribe_task = hang_task
+
+        stopper = asyncio.create_task(conn.disconnect())
+        await sleep(0.1)  # let it reach `await self._subscribe_task`
+        stopper.cancel()
+        with raises(asyncio.CancelledError):
+            await stopper  # the caller's cancellation propagated, not swallowed
+
+        never.set()
+        hang_task.cancel()
+        await asyncio.gather(hang_task, return_exceptions=True)
