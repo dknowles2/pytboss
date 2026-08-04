@@ -616,3 +616,47 @@ async def test_a_cancellation_we_did_not_ask_for_is_not_swallowed(
 
     with raises(asyncio.CancelledError):
         await task
+
+
+async def test_a_callback_disconnect_does_not_deadlock_an_outside_one(
+    conn: wss.WebSocketConnection,
+    state_payloads: Queue,
+) -> None:
+    """The reentrancy guard has to run before the lifecycle lock is taken.
+
+    Past the lock, a subscriber calling `disconnect()` waits on the lock
+    while the lock's holder awaits the very subscribe task that is
+    dispatching that subscriber. Neither side can proceed, and unlike the
+    self-await this guard replaced, nothing raises: the hang is permanent.
+    """
+    in_callback = Event()
+    release = Event()
+    callback_saw: list[BaseException] = []
+
+    async def on_state(
+        status_payload: str | None, temperatures_payload: str | None = None
+    ) -> None:
+        in_callback.set()
+        await release.wait()
+        try:
+            await conn.disconnect()
+        except RuntimeError as ex:
+            callback_saw.append(ex)
+
+    conn.set_state_callback(on_state)
+    await conn.connect()
+    await state_payloads.put({"status": ["FE0B00"]})
+    async with timeout(3):
+        await in_callback.wait()
+
+    # An outside disconnect() -- a config entry unloading -- takes the lock
+    # and awaits the subscribe task, which is parked in the callback above.
+    outside = create_task(conn.disconnect())
+    await sleep(0.1)
+    release.set()
+
+    async with timeout(3):
+        await outside
+    assert len(callback_saw) == 1
+    with raises(RuntimeError, match="Cannot stop this transport"):
+        raise callback_saw[0]

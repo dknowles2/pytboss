@@ -83,6 +83,7 @@ class WebSocketConnection(Transport):
         :raise pytboss.exceptions.NotConnectedError: If a session was supplied
             by the caller and has since been closed.
         """
+        self._check_not_reentrant()
         async with self._lifecycle_lock:
             await self._connect_locked()
 
@@ -98,17 +99,25 @@ class WebSocketConnection(Transport):
         self._subscribe_task = self._loop.create_task(self._subscribe())
         await self._subscribed.wait()
 
+    def _check_not_reentrant(self) -> None:
+        """Refuse a lifecycle call made from a callback we are dispatching.
+
+        Awaiting the subscribe task from inside itself never returns, so say
+        so rather than hang. Checked *before* the lifecycle lock is taken:
+        past it, the caller would block on the lock while whoever holds the
+        lock awaits the very subscribe task this caller is running on -- a
+        deadlock the guard exists to prevent, not cause.
+        """
+        if self._subscribe_task is asyncio.current_task():
+            raise RuntimeError(
+                "Cannot stop this transport from a callback it is dispatching"
+            )
+
     async def _stop_subscribing(self) -> None:
         """Wind down a running subscribe task, if there is one."""
         if self._subscribe_task is None:
             return
-        if self._subscribe_task is asyncio.current_task():
-            # A subscriber stopping the transport that is dispatching it.
-            # Awaiting the task from inside itself never returns, so say so
-            # rather than hang.
-            raise RuntimeError(
-                "Cannot stop this transport from a callback it is dispatching"
-            )
+        self._check_not_reentrant()
         self._keep_running = False
         self._stopping.set()
         # The handshake is the one await neither flag reaches -- aiohttp
@@ -134,6 +143,7 @@ class WebSocketConnection(Transport):
         internally (i.e. no `session` was passed to `__init__`), and waits
         for the background reconnect/subscribe task to finish.
         """
+        self._check_not_reentrant()
         async with self._lifecycle_lock:
             await self._disconnect_locked()
 
