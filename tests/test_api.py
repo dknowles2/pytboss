@@ -10,7 +10,7 @@ import pytest
 from freezegun import freeze_time
 
 from pytboss import api, grills
-from pytboss.codec import decode, timed_key
+from pytboss.codec import WIFI_KEY, decode, encode, timed_key
 from pytboss.exceptions import (
     InvalidGrill,
     RPCError,
@@ -67,6 +67,9 @@ class FakeTransport(Transport):
         self.wifi_update_frequency: dict | None = None
         super().__init__()
         self.last_mcu_command: str | None = None
+        self.device_id = "PBL-1234"
+        self.wifi_credentials: dict | None = None
+        self.pstate = ""
         self.password = password
         self._clock = count(1.0)
         self._is_connected = False
@@ -104,6 +107,10 @@ class FakeTransport(Transport):
             "PB.GetState": self._get_state,
             "RPC.List": self._list_rpcs,
             "PBL.GetLoaderVersion": self._get_loader_version,
+            "PB.RenameDevice": self._rename_device,
+            "PB.SetWifiCredentials": self._set_wifi_credentials,
+            "PB.DebugPState": self._debug_pstate,
+            "Wifi.Scan": self._scan_wifi,
         }
         resp = {"id": cmd["id"]}
         try:
@@ -182,6 +189,57 @@ class FakeTransport(Transport):
     def _get_state(self, params: dict) -> dict:
         self._check_password(params)
         return {"sc_11": STATE_HEX, "sc_12": TEMPS_HEX}
+
+    def _rename_device(self, params: dict) -> dict:
+        """Keeps the prefix and rejects rather than trims, as the firmware does.
+
+        The firmware splits on the first `-`, keeps everything up to and
+        including it, and appends the name -- so the reply is a whole device
+        id, not the name it was given. An empty name, or one with a leading
+        or trailing space, falls through to its `Invalid parameters` error.
+        """
+        self._check_password(params)
+        name = params.get("name")
+        if not isinstance(name, str):
+            raise TypeError("Invalid parameters")
+        if not name or name[0] == " " or name[-1] == " ":
+            raise ValueError("Invalid parameters")
+        prefix = self.device_id[: self.device_id.index("-") + 1]
+        self.device_id = prefix + name
+        return {"newName": self.device_id}
+
+    def _set_wifi_credentials(self, params: dict) -> None:
+        """Decodes the password under the WiFi key, as the firmware does.
+
+        A separate key from the grill password's, so decoding with the wrong
+        one produces bytes rather than an error -- which is why the test
+        asserts the round trip rather than that a call was made.
+        """
+        self._check_password(params)
+        if not isinstance(params.get("ssid"), str) or not isinstance(
+            params.get("pass"), str
+        ):
+            raise TypeError("Invalid parameters")
+        self.wifi_credentials = {
+            "ssid": params["ssid"],
+            "pass": decode(bytes.fromhex(params["pass"]), key=WIFI_KEY).decode(),
+        }
+
+    def _debug_pstate(self, params: dict) -> dict:
+        self._check_password(params)
+        return {"pState": self.pstate}
+
+    def _scan_wifi(self, params: dict) -> list:
+        """A bare array, in the shape Mongoose documents. Unauthenticated."""
+        return [
+            {
+                "ssid": "Kitchen",
+                "bssid": "12:34:56:78:90:ab",
+                "auth": 3,
+                "channel": 6,
+                "rssi": -58,
+            }
+        ]
 
 
 def make_cmd(slug: str) -> Mock:
@@ -991,3 +1049,104 @@ async def test_get_uptime_does_not_cache_a_reply_it_cannot_read():
         conn, "send_command", AsyncMock(return_value={"time": 500.0})
     ):
         assert await pitboss.get_uptime() == 500.0
+
+
+async def test_rename_device_keeps_the_prefix(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """The reply is a whole device id, not the name that was sent."""
+    assert await pitboss.rename_device("Patio") == "PBL-Patio"
+    assert conn.device_id == "PBL-Patio"
+
+
+@pytest.mark.parametrize("name", ["", " Patio", "Patio "])
+async def test_rename_device_rejects_rather_than_trims(pitboss: api.PitBoss, name: str):
+    """The firmware does not trim; it falls through to its error path."""
+    with pytest.raises(RPCError):
+        await pitboss.rename_device(name)
+
+
+async def test_rename_device_requires_the_password():
+    conn = FakeTransport("thepassword")
+    pitboss = api.PitBoss(conn, "PBV4PS2", "wrongpassword")
+    await pitboss.start()
+    with pytest.raises(Unauthorized):
+        await pitboss.rename_device("Patio")
+    assert conn.device_id == "PBL-1234"
+
+
+async def test_set_wifi_credentials_obfuscates_the_password(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """Round trip, because the WiFi key is not the grill password's key.
+
+    Decoding with the wrong key yields bytes rather than raising, so
+    asserting the value that comes back out is what pins the key.
+    """
+    await pitboss.set_wifi_credentials("Kitchen", "hunter2")
+    assert conn.wifi_credentials == {"ssid": "Kitchen", "pass": "hunter2"}
+
+
+async def test_set_wifi_credentials_does_not_send_the_password_in_the_clear(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    sent: dict = {}
+    original = conn._send_prepared_command
+
+    async def capture(cmd: dict) -> None:
+        sent.update(cmd)
+        await original(cmd)
+
+    with mock.patch.object(conn, "_send_prepared_command", capture):
+        await pitboss.set_wifi_credentials("Kitchen", "hunter2")
+    assert "hunter2" not in json.dumps(sent)
+
+
+async def test_set_wifi_credentials_is_not_the_config_service_key(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """Encoding under the grill password key must not decode as the WiFi one."""
+    await pitboss.set_wifi_credentials("Kitchen", "hunter2")
+    assert conn.wifi_credentials is not None
+    wrong = decode(bytes.fromhex(encode(b"hunter2").hex()), key=WIFI_KEY)
+    assert wrong != b"hunter2"
+
+
+async def test_debug_pstate(pitboss: api.PitBoss, conn: FakeTransport):
+    conn.pstate = "paired"
+    assert await pitboss.debug_pstate() == "paired"
+
+
+async def test_debug_pstate_is_empty_when_the_cloud_never_set_it(pitboss: api.PitBoss):
+    """Nothing on the grill writes it, so a never-paired grill answers empty."""
+    assert await pitboss.debug_pstate() == ""
+
+
+async def test_debug_pstate_requires_the_password():
+    conn = FakeTransport("thepassword")
+    pitboss = api.PitBoss(conn, "PBV4PS2", "wrongpassword")
+    await pitboss.start()
+    with pytest.raises(Unauthorized):
+        await pitboss.debug_pstate()
+
+
+async def test_scan_wifi(pitboss: api.PitBoss):
+    """A bare array, returned as sent rather than remapped."""
+    assert await pitboss.scan_wifi() == [
+        {
+            "ssid": "Kitchen",
+            "bssid": "12:34:56:78:90:ab",
+            "auth": 3,
+            "channel": 6,
+            "rssi": -58,
+        }
+    ]
+
+
+async def test_scan_wifi_when_the_grill_does_not_serve_it():
+    """Must not hand back a non-list, the same trap `RPC.List` had."""
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    with mock.patch.object(conn, "send_command", AsyncMock(return_value=None)):
+        assert await pitboss.scan_wifi() == []

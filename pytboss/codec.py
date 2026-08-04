@@ -4,6 +4,16 @@ from math import floor
 from random import randint
 
 KEY = [0x8F, 0x80, 0x19, 0xCF, 0x77, 0x6C, 0xFE, 0xB7]
+"""Key the firmware uses for the grill password."""
+
+WIFI_KEY = [0x8F, 0x80, 0x27, 0xCF, 0x41, 0x6C, 0x45, 0xB7]
+"""Key the firmware uses for the WiFi password, in `PB.SetWifiCredentials`.
+
+Deliberately a second key rather than a reuse of `KEY`: the two differ in
+bytes 2, 4, 6 and 7, and the firmware passes each only to its own handler.
+Neither is time-varied -- only `timed_key()` folds the uptime in.
+"""
+
 PADDING_LEN = 16
 
 

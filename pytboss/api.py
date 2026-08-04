@@ -9,7 +9,7 @@ from math import floor
 from time import monotonic
 from typing import Any
 
-from .codec import encode, timed_key
+from .codec import WIFI_KEY, encode, timed_key
 from .config import Config
 from .exceptions import UnsupportedOperation
 from .fs import FileSystem
@@ -647,3 +647,102 @@ class PitBoss:
         if isinstance(result, dict):
             return result.get("loaderVersion")
         return None
+
+    async def scan_wifi(self) -> list[dict]:
+        """Returns the WiFi networks the grill can see.
+
+        A Mongoose core service rather than anything Dansons wrote, so it is
+        not in the grill application and its shape comes from `Mongoose's own
+        documentation
+        <https://mongoose-os.com/docs/mongoose-os/api/rpc/rpc-service-wifi.md>`_:
+        a bare array taking no parameters, each entry carrying `ssid`,
+        `bssid`, `auth`, `channel` and `rssi`. Returned as sent rather than
+        remapped, since nothing here has seen a grill answer it.
+
+        `auth` is an enum -- 0 open, 1 WEP, 2 WPA-PSK, 3 WPA2-PSK, 4
+        WPA/WPA2-PSK, 5 WPA2-Enterprise. Note it is `auth` here and `authMode`
+        in the JS `Wifi.scan()` callback, which is a different API describing
+        the same networks.
+
+        Empty when the grill does not serve it. `list_rpcs()` reports whether
+        it does without a round trip that errors -- worth checking first,
+        because an empty list otherwise reads the same as a grill that saw no
+        networks.
+
+        Unauthenticated, and a read: it changes nothing about the grill's own
+        connection.
+        """
+        result = await self._conn.send_command("Wifi.Scan", {})
+        return result if isinstance(result, list) else []
+
+    async def rename_device(self, name: str) -> str:
+        """Renames the grill, returning its new device id.
+
+        Only the part after the first `-` is yours to set: the firmware keeps
+        everything up to and including that separator and appends `name`, so
+        a grill with the id `PBL-1234` renamed to `Patio` becomes
+        `PBL-Patio`. The returned value is that whole id, not `name`.
+
+        The firmware rejects an empty name, and one with a leading or
+        trailing space, with an `Invalid parameters` error -- it does not
+        trim. Anything else it accepts.
+
+        Cosmetic: a grill is identified by its device id elsewhere, and this
+        changes that id, so anything holding the old one has to be updated.
+
+        :param name: The name to give the grill.
+        :raise pytboss.exceptions.RPCError: If the firmware rejects the name.
+        """
+        result = as_dict(
+            await self._conn.send_command(
+                "PB.RenameDevice", await self._authenticate({"name": name})
+            )
+        )
+        return result.get("newName", "")
+
+    async def set_wifi_credentials(self, ssid: str, password: str) -> RPCResult:
+        """Puts the grill on a WiFi network.
+
+        The password travels obfuscated with the codec this library already
+        uses for the grill password, under a key of its own. That is the only
+        thing this offers over `Config.set_wifi_credentials()`, which reaches
+        the same `wifi.sta` settings through Mongoose's own config service and
+        sends the password as plain text in the RPC payload.
+
+        Neither saves: the firmware writes the config without committing it,
+        so call `Config.save_config()` if the change should survive a reboot.
+
+        Take the usual care -- a wrong SSID or password puts the grill on a
+        network it cannot reach, and recovering it means the panel.
+
+        :param ssid: The network to join.
+        :param password: The network's password.
+        """
+        return await self._conn.send_command(
+            "PB.SetWifiCredentials",
+            await self._authenticate(
+                {
+                    "ssid": ssid,
+                    "pass": encode(password.encode("utf-8"), key=WIFI_KEY).hex(),
+                }
+            ),
+        )
+
+    async def debug_pstate(self) -> str:
+        """Returns the pairing state the cloud last set on this grill.
+
+        Opaque to the grill: it is written only by a `setPState` frame on the
+        outbound cloud socket and never by the grill itself, which then echoes
+        it back on every status push and here. So it reports what the vendor's
+        service last said, and is empty on a grill that has never been paired
+        -- or reached over Bluetooth or the local transport, where nothing
+        writes it.
+
+        Diagnostic only. Nothing in this library acts on it.
+        """
+        result = as_dict(
+            await self._conn.send_command(
+                "PB.DebugPState", await self._authenticate({})
+            )
+        )
+        return result.get("pState", "")
