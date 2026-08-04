@@ -528,3 +528,36 @@ async def test_connect_maps_a_bare_timeout_to_the_documented_error(host):
     ):
         await conn.connect()
     assert not conn.is_connected()
+
+
+async def test_fire_and_forget_on_a_dead_transport_says_so(host):
+    """The three transports must agree on what a doomed send does.
+
+    BLE and WSS raise `NotConnectedError` synchronously from
+    `send_command_without_answer`; here the guard lived inside the
+    background task, where `_send_and_forget` swallowed it -- so
+    `PitBoss.reboot()` over HTTP reported success on a transport that was
+    never connected, or had been disconnected.
+    """
+    conn = HttpConnection(host)
+
+    # Never connected.
+    with pytest.raises(NotConnectedError):
+        await conn.send_command_without_answer("Sys.Reboot", {})
+
+    # Connected, then explicitly disconnected.
+    await conn.connect()
+    await conn.disconnect()
+    with pytest.raises(NotConnectedError):
+        await conn.send_command_without_answer("Sys.Reboot", {})
+
+
+async def test_fire_and_forget_still_swallows_the_expected_silence(rpc, host):
+    """A board that reboots before answering stays a clean ending."""
+    conn = HttpConnection(host)
+    await conn.connect()
+    rpc.status = 500  # the in-flight request fails; nobody is waiting
+    await conn.send_command_without_answer("Sys.Reboot", {})
+    for task in list(conn._pending):
+        await asyncio.gather(task, return_exceptions=True)
+    await conn.disconnect()
