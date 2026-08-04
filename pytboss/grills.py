@@ -290,6 +290,35 @@ def _live_code(js: str | None) -> str:
     return re.sub(r"//.*", "", re.sub(r"/\*.*?\*/", "", js, flags=re.DOTALL))
 
 
+def _min_frame_bytes(js: str | None) -> int | None:
+    """The byte count the routine's own guard requires, or None if it has no guard.
+
+    Every routine opens with `if (parts < N) return null` intending to reject
+    a frame too short to read -- but `parts` is the Array, and `Array < N`
+    coerces to `NaN < N`, always false, so the guard never fires. A truncated
+    frame then indexes past the end (every `parts[i]` is `undefined`), and the
+    routine returns a fully-populated, entirely-falsy state rather than
+    nothing. `parts` is the hex split into byte pairs, so the intended
+    threshold is `N` bytes; recovered here and enforced in `parse_*`, since
+    `grills.json` is generated and must not be hand-edited (REVIEW.md)."""
+    m = re.search(r"\bparts(?:\.length)?\s*<\s*(\d+)", _live_code(js))
+    return int(m.group(1)) if m else None
+
+
+def _is_truncated(message: str, js: str | None) -> bool:
+    """Whether `message` is shorter than the routine needs to read.
+
+    The vendor's dead `parts < N` guard, made to work: the routine splits the
+    hex into byte pairs, so a message carrying fewer than `N` bytes has it
+    reading past the end. A frame at or above the threshold is left alone.
+    """
+    min_bytes = _min_frame_bytes(js)
+    if min_bytes is None:
+        return False
+    # `parseHexMessage` steps by two chars, so the byte count is `ceil(len/2)`.
+    return (len(message) + 1) // 2 < min_bytes
+
+
 @dataclass(frozen=True)
 class ControlBoard:
     """Specifications for a control board connected via UART."""
@@ -367,6 +396,8 @@ class ControlBoard:
         """
         if not self._status_js_func:
             raise NotImplementedError
+        if _is_truncated(message, self._status_js_func):
+            return None
         return _drop_fields(
             self._evaljs(self._status_js_func, message),
             DROPPED_STATUS_FIELDS.get(self.name, frozenset()),
@@ -381,6 +412,8 @@ class ControlBoard:
         """
         if not self._temperatures_js_func:
             raise NotImplementedError
+        if _is_truncated(message, self._temperatures_js_func):
+            return None
         return _drop_fields(
             self._evaljs(self._temperatures_js_func, message),
             DROPPED_TEMPERATURE_FIELDS.get(self.name, frozenset()),
