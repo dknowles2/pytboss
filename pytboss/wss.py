@@ -62,6 +62,10 @@ class WebSocketConnection(Transport):
         self._stopping = Event()
         self._keep_running = False
         self._connect_task: Task | None = None
+        # Whether the cancellation about to arrive is ours. `_keep_running`
+        # cannot answer that: the wind-down clears it before cancelling, so
+        # during a disconnect it reads False whoever did the cancelling.
+        self._handshake_cancelled = False
         # Serializes connect/disconnect. Opening a socket is an await, so two
         # callers otherwise both pass the wind-down check, both open one, and
         # the second assignment orphans the first -- along with its task,
@@ -113,6 +117,7 @@ class WebSocketConnection(Transport):
         # cancelled, so the `_fail_pending_commands()` below its read loop
         # still runs and in-flight commands fail now instead of timing out.
         if self._connect_task is not None:
+            self._handshake_cancelled = True
             self._connect_task.cancel()
         if self._sock is not None and not self._sock.closed:
             await self._sock.close()
@@ -163,10 +168,10 @@ class WebSocketConnection(Transport):
                     self._connect_task = self._loop.create_task(self._ws_connect())
                     self._sock = await self._connect_task
                 except asyncio.CancelledError:
-                    if self._keep_running:
-                        # Cancelled from outside rather than by a wind-down.
-                        # Swallowing it here would turn a real cancellation
-                        # into a silent disconnect.
+                    if not self._handshake_cancelled:
+                        # Not ours: a caller's timeout, or a shutdown.
+                        # Swallowing it would hand back a clean return to
+                        # someone who asked for a bound and did not get one.
                         raise
                     break
                 except GrillUnavailable as ex:
@@ -178,6 +183,10 @@ class WebSocketConnection(Transport):
                     continue
                 finally:
                     self._connect_task = None
+                    # Cleared here rather than in the handler, so a cancel
+                    # that never landed -- the handshake finished first --
+                    # cannot make the next one look like ours.
+                    self._handshake_cancelled = False
                 if not self._keep_running:
                     # The handshake won the race against the wind-down that
                     # tried to cancel it. Without this the socket it just

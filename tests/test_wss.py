@@ -1,4 +1,5 @@
 import asyncio
+import time
 from asyncio import Event, Queue, create_task, sleep, timeout
 from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, call, patch
@@ -89,8 +90,13 @@ class MockCallback(Event):
 
 
 @fixture
-async def session() -> ClientSession:
-    return ClientSession()
+async def session() -> AsyncGenerator[ClientSession, None]:
+    # Closed here rather than left to whoever takes it: `conn` happens to
+    # close it with `async with`, so a test taking `session` alone leaked
+    # one, and an "Unclosed client session" on every run is how a real leak
+    # goes unnoticed later.
+    async with ClientSession() as client_session:
+        yield client_session
 
 
 @fixture
@@ -508,8 +514,13 @@ async def test_disconnect_does_not_wait_out_a_handshake(
     conn._subscribe_task = conn._loop.create_task(conn._subscribe())
     await started.wait()
 
-    async with timeout(2):
+    started_stopping = time.monotonic()
+    async with timeout(5):
         await conn.disconnect()
+    # Asserted on the clock, not only by the timeout above: a version that
+    # waits out the handshake absorbs that timeout and returns normally, so
+    # the bound alone cannot tell the two apart.
+    assert time.monotonic() - started_stopping < 1
     assert conn.is_connected() is False
 
 
@@ -572,3 +583,36 @@ async def test_disconnect_still_fails_commands_in_flight(
         async with timeout(3):
             with raises(NotConnectedError):
                 await task
+
+
+async def test_a_cancellation_we_did_not_ask_for_is_not_swallowed(
+    session: ClientSession,
+) -> None:
+    """`_keep_running` cannot say who cancelled.
+
+    The wind-down clears it before cancelling, so during a disconnect it
+    reads False whoever delivered the cancellation -- and a caller's timeout
+    landing in that window would be turned into a clean return, telling
+    someone who asked for a bound that everything went fine.
+    """
+    conn = wss.WebSocketConnection("_grill_id_", session=session)
+    started = Event()
+
+    async def never_finishes():
+        started.set()
+        await sleep(30)
+        raise AssertionError("unreachable")
+
+    conn._ws_connect = never_finishes  # type: ignore[method-assign]
+    conn._keep_running = True
+    conn._sock = None
+    task = conn._loop.create_task(conn._subscribe())
+    await started.wait()
+
+    # A wind-down has flipped the flag, but the cancellation below is not
+    # the one it delivers.
+    conn._keep_running = False
+    task.cancel()
+
+    with raises(asyncio.CancelledError):
+        await task
