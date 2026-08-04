@@ -211,7 +211,15 @@ class PitBoss:
             # TODO: Run callbacks concurrently
             # TODO: Send copies of state so subscribers can't modify it
             for callback in callbacks:
-                await _invoke(callback, self._state)
+                try:
+                    await _invoke(callback, self._state)
+                except Exception:
+                    # Isolated per subscriber: without this the first one to
+                    # raise skips every subscriber registered after it for
+                    # that update, and the exception escapes into the
+                    # transport's dispatch -- on BLE, an unhandled task
+                    # traceback in bleak's notification handler.
+                    _LOGGER.exception("Error in state subscriber")
 
     async def _on_vdata_received(self, payload: str | dict):
         # Both, because the transports differ in what they can hand over.
@@ -236,7 +244,11 @@ class PitBoss:
             # TODO: Run callbacks concurrently
             # TODO: Send copies of state so subscribers can't modify it
             for callback in callbacks:
-                await _invoke(callback, vdata)
+                try:
+                    await _invoke(callback, vdata)
+                except Exception:
+                    # Isolated per subscriber, as in `_on_state_received`.
+                    _LOGGER.exception("Error in vdata subscriber")
 
     async def _authenticate(self, params: dict) -> dict:
         """Return `params` with the encoded password added.

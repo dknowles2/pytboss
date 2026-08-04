@@ -1358,3 +1358,48 @@ async def test_state_arriving_before_start_is_ignored():
     await pitboss.subscribe_state(received.append)
     await conn.send_state(STATE_HEX)  # after start(): parsed as ever
     assert received and received[0]["moduleIsOn"] is True
+
+
+async def test_one_raising_state_subscriber_does_not_starve_the_rest():
+    """A subscriber that raises must not skip the ones registered after it.
+
+    The fan-out had no per-callback isolation, so the first to raise skipped
+    every later subscriber for that update and the exception escaped into
+    the transport's dispatch.
+    """
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    seen = []
+
+    async def bad(state):
+        seen.append("bad")
+        raise RuntimeError("subscriber blew up")
+
+    async def good(state):
+        seen.append("good")
+
+    await pitboss.subscribe_state(bad)
+    await pitboss.subscribe_state(good)
+
+    await conn.send_state(STATE_HEX)  # must not raise out
+
+    assert seen == ["bad", "good"]  # the raiser did not starve the rest
+
+
+async def test_one_raising_vdata_subscriber_does_not_starve_the_rest():
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    seen = []
+
+    async def bad(vdata):
+        seen.append("bad")
+        raise RuntimeError("boom")
+
+    await pitboss.subscribe_vdata(bad)
+    await pitboss.subscribe_vdata(lambda v: seen.append("good"))
+
+    await pitboss._on_vdata_received({"p1T": 165})
+
+    assert seen == ["bad", "good"]
