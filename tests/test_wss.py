@@ -1,3 +1,5 @@
+import asyncio
+import time
 from asyncio import Event, Queue, create_task, sleep, timeout
 from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, call, patch
@@ -88,8 +90,13 @@ class MockCallback(Event):
 
 
 @fixture
-async def session() -> ClientSession:
-    return ClientSession()
+async def session() -> AsyncGenerator[ClientSession, None]:
+    # Closed here rather than left to whoever takes it: `conn` happens to
+    # close it with `async with`, so a test taking `session` alone leaked
+    # one, and an "Unclosed client session" on every run is how a real leak
+    # goes unnoticed later.
+    async with ClientSession() as client_session:
+        yield client_session
 
 
 @fixture
@@ -458,3 +465,198 @@ async def test_disconnect_clears_the_subscribed_flag(fake_server: TestServer):
         await conn.disconnect()
 
         assert not conn._subscribed.is_set()
+
+
+async def test_concurrent_connects_leave_one_live_socket(
+    session: ClientSession,
+) -> None:
+    """Both callers pass the wind-down check while the task is still None.
+
+    Unserialized, both open a socket and the second assignment orphans the
+    first along with its task, so `disconnect()` can no longer reach it and
+    the session to the relay stays open for the life of the process.
+    """
+    sockets: list[WebSocketResponse] = []
+
+    async def handler(request: Request):
+        ws = WebSocketResponse()
+        await ws.prepare(request)
+        sockets.append(ws)
+        async for _ in ws:
+            pass
+        return ws
+
+    app = Application()
+    app.add_routes([get("/to/_grill_id_", handler)])
+    async with TestServer(app) as fake_server, session:
+        conn = make_conn(fake_server, session)
+        await asyncio.gather(conn.connect(), conn.connect())
+        await conn.disconnect()
+
+    assert [ws for ws in sockets if not ws.closed] == []
+
+
+async def test_disconnect_does_not_wait_out_a_handshake(
+    session: ClientSession,
+) -> None:
+    """`ws_connect` is the one await neither flag reaches."""
+    conn = wss.WebSocketConnection("_grill_id_", session=session)
+    started = Event()
+
+    async def never_finishes():
+        started.set()
+        await sleep(30)
+        raise AssertionError("unreachable")
+
+    conn._ws_connect = never_finishes  # type: ignore[method-assign]
+    conn._keep_running = True
+    conn._sock = None
+    conn._subscribe_task = conn._loop.create_task(conn._subscribe())
+    await started.wait()
+
+    started_stopping = time.monotonic()
+    async with timeout(5):
+        await conn.disconnect()
+    # Asserted on the clock, not only by the timeout above: a version that
+    # waits out the handshake absorbs that timeout and returns normally, so
+    # the bound alone cannot tell the two apart.
+    assert time.monotonic() - started_stopping < 1
+    assert conn.is_connected() is False
+
+
+async def test_a_handshake_that_beats_the_wind_down_is_not_served(
+    session: ClientSession,
+) -> None:
+    """The cancel usually wins the race, but it does not have to.
+
+    Driven directly rather than raced: the loop is entered with the stop
+    already asked for, which is the state the losing cancel leaves behind.
+    """
+    conn = wss.WebSocketConnection("_grill_id_", session=session)
+    sock = AsyncMock()
+    sock.closed = False
+
+    async def hands_over_a_socket_after_the_stop():
+        # The order arrives mid-handshake and the cancel loses the race, so
+        # the loop is handed a live socket it was told not to want.
+        conn._keep_running = False
+        return sock
+
+    conn._ws_connect = hands_over_a_socket_after_the_stop  # type: ignore[method-assign]
+    conn._keep_running = True
+    conn._sock = None
+
+    await conn._subscribe()
+
+    sock.close.assert_awaited_once()
+    assert conn._sock is None
+
+
+async def test_stopping_from_a_dispatched_callback_says_so(
+    session: ClientSession,
+) -> None:
+    """Awaiting the subscribe task from inside itself never returns.
+
+    asyncio raises here on its own, but only once the await is attempted and
+    with a message about a task awaiting itself. Naming the actual mistake
+    saves the reader working back to it.
+    """
+    conn = wss.WebSocketConnection("_grill_id_", session=session)
+    conn._subscribe_task = asyncio.current_task()
+
+    with raises(RuntimeError, match="Cannot stop this transport"):
+        await conn._stop_subscribing()
+
+
+async def test_disconnect_still_fails_commands_in_flight(
+    conn: wss.WebSocketConnection,
+) -> None:
+    """The reason the subscribe task is awaited rather than cancelled.
+
+    Cancelling it would skip `_fail_pending_commands()` below the read loop,
+    and every in-flight command would wait out its whole timeout instead.
+    """
+    async with conn:
+        task = create_task(conn.send_command("PB.GetState", {}, timeout=30))
+        await sleep(0.1)  # let it reach the wire
+        await conn.disconnect()
+        async with timeout(3):
+            with raises(NotConnectedError):
+                await task
+
+
+async def test_a_cancellation_we_did_not_ask_for_is_not_swallowed(
+    session: ClientSession,
+) -> None:
+    """`_keep_running` cannot say who cancelled.
+
+    The wind-down clears it before cancelling, so during a disconnect it
+    reads False whoever delivered the cancellation -- and a caller's timeout
+    landing in that window would be turned into a clean return, telling
+    someone who asked for a bound that everything went fine.
+    """
+    conn = wss.WebSocketConnection("_grill_id_", session=session)
+    started = Event()
+
+    async def never_finishes():
+        started.set()
+        await sleep(30)
+        raise AssertionError("unreachable")
+
+    conn._ws_connect = never_finishes  # type: ignore[method-assign]
+    conn._keep_running = True
+    conn._sock = None
+    task = conn._loop.create_task(conn._subscribe())
+    await started.wait()
+
+    # A wind-down has flipped the flag, but the cancellation below is not
+    # the one it delivers.
+    conn._keep_running = False
+    task.cancel()
+
+    with raises(asyncio.CancelledError):
+        await task
+
+
+async def test_a_callback_disconnect_does_not_deadlock_an_outside_one(
+    conn: wss.WebSocketConnection,
+    state_payloads: Queue,
+) -> None:
+    """The reentrancy guard has to run before the lifecycle lock is taken.
+
+    Past the lock, a subscriber calling `disconnect()` waits on the lock
+    while the lock's holder awaits the very subscribe task that is
+    dispatching that subscriber. Neither side can proceed, and unlike the
+    self-await this guard replaced, nothing raises: the hang is permanent.
+    """
+    in_callback = Event()
+    release = Event()
+    callback_saw: list[BaseException] = []
+
+    async def on_state(
+        status_payload: str | None, temperatures_payload: str | None = None
+    ) -> None:
+        in_callback.set()
+        await release.wait()
+        try:
+            await conn.disconnect()
+        except RuntimeError as ex:
+            callback_saw.append(ex)
+
+    conn.set_state_callback(on_state)
+    await conn.connect()
+    await state_payloads.put({"status": ["FE0B00"]})
+    async with timeout(3):
+        await in_callback.wait()
+
+    # An outside disconnect() -- a config entry unloading -- takes the lock
+    # and awaits the subscribe task, which is parked in the callback above.
+    outside = create_task(conn.disconnect())
+    await sleep(0.1)
+    release.set()
+
+    async with timeout(3):
+        await outside
+    assert len(callback_saw) == 1
+    with raises(RuntimeError, match="Cannot stop this transport"):
+        raise callback_saw[0]
