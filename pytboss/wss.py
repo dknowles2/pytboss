@@ -173,6 +173,18 @@ class WebSocketConnection(Transport):
             # the lines below -- clearing state, and in `disconnect()`'s
             # case closing an owned session -- never ran.
             await self._subscribe_task
+        except asyncio.CancelledError:
+            # The subscribe task ended *cancelled* -- an outside cancellation
+            # (a shutdown sweep, a test harness reaping tasks), not our own
+            # caller being cancelled. `except Exception` does not catch this,
+            # so it used to escape `disconnect()` into a caller that never
+            # asked to be cancelled, and skipped the dispatch cancel and the
+            # owned-session close below. Distinguished from a cancellation
+            # aimed at *this* task, which must still be honoured.
+            task = asyncio.current_task()
+            if task is not None and task.cancelling() > 0:
+                raise
+            _LOGGER.debug("Subscribe task was cancelled")
         except Exception:
             _LOGGER.exception("Subscribe task ended with an unhandled error")
         finally:
