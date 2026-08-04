@@ -568,3 +568,40 @@ def test_every_board_accepts_a_frame_at_its_length_threshold():
                 continue
             assert not grills_lib._is_truncated("f" * (2 * n), js)  # at threshold: ok
             assert grills_lib._is_truncated("f" * (2 * n - 2), js)  # one byte short
+
+
+def test_a_disconnected_probe_reads_none_not_minus_18_on_converting_boards():
+    """`ftoc(null)` returned -18 for a disconnected probe on the ftoc boards.
+
+    `convertTemperature` maps the 960 sentinel to null; ftoc guards
+    `undefined` and `960` but not `null`, so `Math.floor((null - 32) / 1.8)`
+    = -18 (JS coerces null to 0). A Celsius grill reported -18 C for every
+    unplugged probe instead of None.
+    """
+    sentinel_frame = "FE0C" + "090600" * 20 + "00"  # every field reads 960
+    for name in ("PBA", "LFS", "PBE", "PBL3", "PBM", "PBM2", "PBT", "PBV", "PBV2"):
+        cb = next(
+            g.control_board
+            for g in grills_lib.get_grills()
+            if g.control_board.name == name
+        )
+        out = cb.parse_temperatures(sentinel_frame)
+        assert out is not None and not out["isFahrenheit"]  # the Celsius path ran
+        assert -18 not in out.values(), (
+            f"{name}: {[k for k, v in out.items() if v == -18]}"
+        )
+
+
+def test_a_real_temperature_still_converts_after_the_sentinel_fix():
+    """The fix must touch only the sentinel, not real readings."""
+    cb = next(
+        g.control_board
+        for g in grills_lib.get_grills()
+        if g.control_board.name == "PBA"
+    )
+    # p1Temp at offset 8 reads 225 (F); the rest are the 960 sentinel.
+    frame = "FE0C" + "000000000000020205" + "090600" * 6 + "00"
+    out = cb.parse_temperatures(frame)
+    assert out is not None
+    assert out["p1Temp"] == 107  # 225 F -> 107 C, unchanged by the fix
+    assert out["p2Temp"] is None  # the sentinel, now None rather than -18

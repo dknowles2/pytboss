@@ -137,11 +137,23 @@ parse(dukpy['message']);
 
 _FN_RE = re.compile(r"(.+ ?= ?)(\(.[^\)]+\))( ?=>)?(.+)")
 
+# The converting boards' `ftoc` helper short-circuits the disconnected-probe
+# sentinel with `typeof temp === "undefined" || temp === 960`, returning the
+# value unchanged -- but `convertTemperature` (in the template) has already
+# mapped 960 to `null`, and the guard does not cover `null`. So `ftoc(null)`
+# falls through to `Math.floor((null - 32) / 1.8)`, and JS coerces `null` to
+# 0: a disconnected probe reads -18 (degrees C) instead of None. Every
+# `=== 960` in the shipped routines is that guard (nothing else compares to
+# the sentinel), so extending it to `null` restores the intended None without
+# touching `grills.json`, which is generated (REVIEW.md).
+_FTOC_SENTINEL_RE = re.compile(r"(\w+)\s*===\s*960\b")
+
 
 def _scrub_js(s: str | None) -> str | None:
     if s is None:
         return s
     s = _FN_RE.sub(r"\1 function \2\4", s)
+    s = _FTOC_SENTINEL_RE.sub(r"\1 === 960 || \1 === null", s)
     s = s.replace("let ", "var ")
     s = s.replace("const ", "var ")
     return s
