@@ -764,3 +764,83 @@ async def test_a_failed_start_notify_releases_the_connection(
     mock_bleak_client.disconnect.assert_awaited_once()
     assert conn._ble_client is None
     assert conn.is_connected() is False
+
+
+async def test_a_drop_mid_send_raises_the_contract_error():
+    """`_ble_client` is checked outside the lock and was used inside it.
+
+    `_on_disconnected` clears it, and every await between chunks is a
+    window -- a drop after the length header raised `AttributeError` on
+    `None` instead of the `NotConnectedError` the transport contract
+    promises.
+    """
+    conn = ble.BleConnection.__new__(ble.BleConnection)
+    conn._lock = asyncio.Lock()
+    client = mock.AsyncMock()
+
+    # Cleared before the send starts: the documented error.
+    conn._ble_client = None
+    with raises(NotConnectedError):
+        await conn._send_prepared_command({"id": 1, "method": "M", "params": {}})
+
+    # The window itself: the disconnect callback fires after the length
+    # header goes out. The client bound under the lock finishes the send it
+    # started instead of dereferencing `None` on the next chunk.
+    conn._ble_client = client
+
+    async def write_and_drop(*args, **kwargs):
+        conn._ble_client = None
+
+    client.write_gatt_char = mock.AsyncMock(side_effect=write_and_drop)
+    await conn._send_prepared_command({"id": 1, "method": "M", "params": {}})
+    assert client.write_gatt_char.await_count > 1  # header plus payload chunks
+
+    # A drop the backend notices surfaces as bleak's own error on a dead
+    # client -- part of the send contract -- never as `AttributeError`.
+    conn._ble_client = client
+    client.write_gatt_char = mock.AsyncMock(
+        side_effect=[None, bleak.exc.BleakError("disconnected")]
+    )
+    with raises(bleak.exc.BleakError):
+        await conn._send_prepared_command({"id": 1, "method": "M", "params": {}})
+
+
+async def test_a_drop_mid_reply_abandons_the_read_cleanly():
+    """The receive path runs inside bleak's notification dispatch.
+
+    An exception there surfaces as an unhandled-task traceback rather than
+    reaching any caller -- a drop between chunks raised `AttributeError` on
+    `None`. Now the read is abandoned the way a truncated response already
+    is; `_on_disconnected` separately fails the command in flight.
+    """
+    conn = ble.BleConnection.__new__(ble.BleConnection)
+    conn._lock = asyncio.Lock()
+    client = mock.AsyncMock()
+
+    # The stale-check window: cleared after the notification arrived but
+    # before the lock was taken. Nothing to read from; return, not raise.
+    conn._ble_client = None
+    await conn._on_rpc_data_received(None, bytearray(b"\x00\x00\x00\x05"))
+
+    # A drop that surfaces as bleak's error mid-read is abandoned the way a
+    # truncated response already is.
+    conn._ble_client = client
+    client.read_gatt_char = mock.AsyncMock(
+        side_effect=[b"x", bleak.exc.BleakError("disconnected")]
+    )
+    await conn._on_rpc_data_received(None, bytearray(b"\x00\x00\x00\x05"))
+
+    # The window itself: `_on_disconnected` clears `_ble_client` between
+    # chunks. The client bound under the lock finishes the read it started
+    # instead of dereferencing `None` on the next chunk.
+    conn._rpc_futures = {}
+    conn._ble_client = client
+    reply = b'{"id": 9}'
+    chunks = iter([reply[:4], reply[4:]])
+
+    async def clear_mid_read(*args, **kwargs):
+        conn._ble_client = None
+        return next(chunks)
+
+    client.read_gatt_char = mock.AsyncMock(side_effect=clear_mid_read)
+    await conn._on_rpc_data_received(None, bytearray(len(reply).to_bytes(4, "big")))
