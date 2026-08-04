@@ -515,3 +515,23 @@ def test_boards_without_the_unit_flag_ignore_it():
     """PBL's routine takes one parameter; the extra flag must be harmless."""
     cmd = grills_lib.get_grill("PB1600PS1").control_board.commands["set-temperature"]
     assert cmd(110, False) == cmd(110)
+
+
+def test_frozen_types_are_hashable():
+    """`frozen=True` advertises hashability; the container fields broke it.
+
+    The generated `__hash__` hashed every field, and `commands`/`json` are
+    dicts, `temp_increments` a list -- so `hash(grill)` raised `TypeError`
+    and deduplicating models via a set, the obvious thing to do with a
+    frozen type, failed at runtime.
+    """
+    grills = list(grills_lib.get_grills())
+    deduped = set(grills)
+    assert len(deduped) == len(grills)  # every model hashes, none collide away
+
+    g1 = grills_lib.get_grill("PB1600PS1")
+    g2 = grills_lib.get_grill("PB1600PS1")
+    assert g1 == g2
+    assert hash(g1) == hash(g2)  # the eq/hash contract
+    assert len({g1, g2}) == 1
+    assert hash(g1.control_board) == hash(g2.control_board)

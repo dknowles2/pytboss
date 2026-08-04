@@ -297,8 +297,13 @@ class ControlBoard:
     name: str
     """Name of the control board."""
 
-    commands: dict[str, Command]
-    """Controller commands indexed by their slug."""
+    commands: dict[str, Command] = field(hash=False)
+    """Controller commands indexed by their slug.
+
+    Excluded from the hash (dicts are unhashable), so `frozen=True` delivers
+    the hashability it advertises. Equality still compares every field, and
+    equal boards agree on the hashable subset, so the `a == b` implies
+    `hash(a) == hash(b)` contract holds."""
 
     _status_js_func: str | None
     """JavaScript function body that parses a status reply."""
@@ -413,13 +418,18 @@ class Grill:
     meat_probes: int = 0
     """The number of meat probes available on the grill."""
 
-    temp_increments: list[int] | None = field(default_factory=list)
-    """Supported temperature increments, in Fahrenheit."""
+    temp_increments: list[int] | None = field(default_factory=list, hash=False)
+    """Supported temperature increments, in Fahrenheit.
 
-    json: dict[str, Any] = field(default_factory=dict)
+    This and the two container fields below are excluded from the hash
+    (lists and dicts are unhashable), so `frozen=True` delivers the
+    hashability it advertises -- `set(get_grills())` raised `TypeError`.
+    Equality still compares every field."""
+
+    json: dict[str, Any] = field(default_factory=dict, hash=False)
     """The raw JSON returned by the PitBoss API."""
 
-    celsius_temp_increments: list[int] | None = field(default_factory=list)
+    celsius_temp_increments: list[int] | None = field(default_factory=list, hash=False)
     """Supported temperature increments in Celsius, where the grill declares
     its own list. Most do not; theirs is derived from `temp_increments`.
 
