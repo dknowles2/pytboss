@@ -730,3 +730,30 @@ async def test_a_dead_subscribe_task_does_not_poison_disconnect(
         assert conn._subscribe_task is None
         assert owned_session.closed
         await conn.disconnect()  # and a second call stays clean
+
+
+async def test_a_temperatures_only_push_reaches_the_callback_as_temperatures(
+    conn: wss.WebSocketConnection, state_payloads: Queue
+) -> None:
+    """The status array is built conditionally; `["FE0C..."]` is producible.
+
+    `sendMCUCommand` blanks both frames on every command and they refill one
+    packet at a time, so a push right after a user-issued command can carry
+    only the temperatures frame. Positional unpacking handed it over as the
+    *status* payload, where every board's status routine requires an FE0B
+    prefix and returns nothing -- the temperatures were silently dropped.
+    """
+    temps_frame = "FE0C0107000105"
+    state_callback = MockCallback(2)
+    conn.set_state_callback(state_callback)
+    async with conn:
+        await state_payloads.put({"status": [temps_frame]})
+        await state_payloads.put({"status": ["FE0B00", temps_frame]})
+        async with timeout(5):
+            await state_callback.wait()
+    state_callback.assert_has_awaits(
+        [
+            call(None, temps_frame),  # routed by its own prefix
+            call("FE0B00", temps_frame),  # the two-frame case is untouched
+        ]
+    )
