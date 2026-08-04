@@ -288,7 +288,24 @@ class WebSocketConnection(Transport):
                 await self._vdata_callback(vdata)
             if not self._state_callback:
                 return
-            await self._state_callback(*payload["status"])
+            frames = payload["status"]
+            if (
+                len(frames) == 1
+                and isinstance(frames[0], str)
+                and (frames[0][:4] == "FE0C")
+            ):
+                # The firmware builds this array conditionally -- a frame is
+                # pushed only if it is non-empty, and `sendMCUCommand` blanks
+                # both frames on every command, refilled one packet at a
+                # time. So a push carrying only the temperatures frame is
+                # producible, right in the window after a user-issued
+                # command, and positional unpacking would hand it over as
+                # the *status* payload -- where every board's status routine
+                # requires an FE0B prefix and returns nothing. Routed by the
+                # frame's own prefix instead, the way `ble` already does.
+                await self._state_callback(None, frames[0])
+                return
+            await self._state_callback(*frames)
             return
 
         if "id" in payload:
