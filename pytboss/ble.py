@@ -15,6 +15,7 @@ from uuid import UUID
 
 import bleak_retry_connector
 from bleak import BleakClient, BleakGATTCharacteristic, BLEDevice
+from bleak.exc import BleakError
 from bleak_retry_connector import BleakClientWithServiceCache
 
 from .exceptions import NotConnectedError
@@ -218,12 +219,18 @@ class BleConnection(Transport):
             raise NotConnectedError("Not connected")
         payload = json.dumps(cmd)
         async with self._lock:
-            await self._ble_client.write_gatt_char(
-                CHAR_RPC_TX_CTL, _encode_len(len(payload))
-            )
+            # Re-read under the lock: `_on_disconnected` clears `_ble_client`,
+            # so the check above can be stale by the time the writes happen --
+            # every `await` between chunks is a window. Bound once so a drop
+            # mid-payload surfaces as bleak's own error on a dead client
+            # rather than `AttributeError` on `None`.
+            client = self._ble_client
+            if client is None:
+                raise NotConnectedError("Not connected")
+            await client.write_gatt_char(CHAR_RPC_TX_CTL, _encode_len(len(payload)))
             for i in range(0, len(payload), 20):
                 chunk = bytearray(payload[i : i + 20].encode("utf-8"))
-                await self._ble_client.write_gatt_char(CHAR_RPC_DATA, chunk)
+                await client.write_gatt_char(CHAR_RPC_DATA, chunk)
 
     async def _on_rpc_data_received(
         self, unused_char: BleakGATTCharacteristic, data: bytearray
@@ -244,8 +251,30 @@ class BleConnection(Transport):
             return
         resp = bytearray()
         async with self._lock:
+            # Re-read under the lock, as in `_send_prepared_command`: a
+            # disconnect between chunks clears `_ble_client`, and this
+            # callback runs inside bleak's notification dispatch, where an
+            # `AttributeError` surfaces as an unhandled-task traceback
+            # rather than reaching any caller. A `return` matches the
+            # truncated-response handling below; `_on_disconnected`
+            # separately fails the commands in flight.
+            client = self._ble_client
+            if client is None:
+                return
             while len(resp) < resp_len:
-                chunk = await self._ble_client.read_gatt_char(CHAR_RPC_DATA)
+                try:
+                    chunk = await client.read_gatt_char(CHAR_RPC_DATA)
+                except BleakError:
+                    # The connection dropped mid-reply. Abandoning it matches
+                    # the truncated-response handling below; the caller's
+                    # command is failed by `_on_disconnected`.
+                    _LOGGER.warning(
+                        "Abandoning RPC response after a disconnect: "
+                        "got %d of %d bytes",
+                        len(resp),
+                        resp_len,
+                    )
+                    return
                 if not chunk:
                     # Nothing left to read, but the announced length says
                     # otherwise. Without this the loop spins on an empty read
