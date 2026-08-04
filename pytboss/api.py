@@ -675,6 +675,68 @@ class PitBoss:
         result = await self._conn.send_command("Wifi.Scan", {})
         return result if isinstance(result, list) else []
 
+    async def start_wifi_scan(self) -> dict:
+        """Asks the loader to begin scanning for WiFi networks.
+
+        Answers `{"scanning": bool, "results": list | None}` immediately
+        rather than waiting. A scan already in flight is left alone and its
+        state returned, so calling this twice does not restart anything.
+
+        The loader serves this, not the grill application, and does not check
+        the password. Prefer `scan_wifi_networks()` unless you want to drive
+        the polling yourself -- `get_wifi_scan_status()` hands the results
+        back only once.
+        """
+        return as_dict(await self._conn.send_command("PBL.StartWifiScan", {}))
+
+    async def get_wifi_scan_status(self) -> dict:
+        """Returns the state of the scan `start_wifi_scan()` began.
+
+        **Reading the results consumes them.** The loader clears its stored
+        results as it returns them, so the next call answers `None` again
+        even though the scan completed. Whatever calls this owns the only
+        copy.
+
+        `{"scanning": True, "results": None}` while it runs, then
+        `{"scanning": False, "results": [...]}` exactly once.
+
+        Each entry carries `ssid`, `bssid`, `authMode`, `channel` and `rssi`
+        -- `authMode`, because the loader goes through Mongoose's JS
+        `Wifi.scan()`, where `scan_wifi()` calls the `Wifi.Scan` RPC and gets
+        the same field named `auth`. Same grill, same networks, two spellings.
+        """
+        return as_dict(await self._conn.send_command("PBL.GetWifiScanStatus", {}))
+
+    async def scan_wifi_networks(
+        self, *, timeout: float = 15.0, poll_interval: float = 1.0
+    ) -> list[dict]:
+        """Runs the loader's scan to completion and returns what it found.
+
+        The two-call dance in one place, so the single destructive read of
+        `get_wifi_scan_status()` happens once, here, rather than in every
+        caller that polls.
+
+        Empty if the scan finds nothing, if the grill serves no loader, or if
+        `timeout` elapses first -- none of which are distinguishable in the
+        reply, so this does not pretend to tell them apart.
+
+        :param timeout: Seconds to keep polling before giving up.
+        :param poll_interval: Seconds between polls.
+        """
+        await self.start_wifi_scan()
+        deadline = monotonic() + timeout
+        while monotonic() < deadline:
+            await asyncio.sleep(poll_interval)
+            status = await self.get_wifi_scan_status()
+            results = status.get("results")
+            if isinstance(results, list):
+                return results
+            if not status.get("scanning"):
+                # Not running and nothing held: either it never started or a
+                # previous caller already consumed the results.
+                return []
+        return []
+
     async def rename_device(self, name: str) -> str:
         """Renames the grill, returning its new device id.
 

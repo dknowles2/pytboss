@@ -2,7 +2,7 @@ import asyncio
 import json
 from collections.abc import Generator
 from itertools import count
-from typing import Any
+from typing import Any, ClassVar
 from unittest import mock
 from unittest.mock import AsyncMock, Mock
 
@@ -70,6 +70,9 @@ class FakeTransport(Transport):
         self.device_id = "PBL-1234"
         self.wifi_credentials: dict | None = None
         self.pstate = ""
+        self.wifi_scan_polls_until_done = 1
+        self._wifi_scan: dict = {"scanning": False, "results": None}
+        self._wifi_scan_polls = 0
         self.password = password
         self._clock = count(1.0)
         self._is_connected = False
@@ -111,6 +114,8 @@ class FakeTransport(Transport):
             "PB.SetWifiCredentials": self._set_wifi_credentials,
             "PB.DebugPState": self._debug_pstate,
             "Wifi.Scan": self._scan_wifi,
+            "PBL.StartWifiScan": self._start_wifi_scan,
+            "PBL.GetWifiScanStatus": self._get_wifi_scan_status,
         }
         resp = {"id": cmd["id"]}
         try:
@@ -228,6 +233,41 @@ class FakeTransport(Transport):
     def _debug_pstate(self, params: dict) -> dict:
         self._check_password(params)
         return {"pState": self.pstate}
+
+    LOADER_NETWORKS: ClassVar[list[dict]] = [
+        {
+            "ssid": "Kitchen",
+            "bssid": "12:34:56:78:90:ab",
+            # `authMode`, not `auth`: the loader goes through the JS
+            # `Wifi.scan()` rather than the `Wifi.Scan` RPC.
+            "authMode": 3,
+            "channel": 6,
+            "rssi": -58,
+        }
+    ]
+
+    def _start_wifi_scan(self, params: dict) -> dict:
+        """Unauthenticated, and leaves a scan already running alone."""
+        if self._wifi_scan["scanning"]:
+            return dict(self._wifi_scan)
+        self._wifi_scan = {"scanning": True, "results": None}
+        self._wifi_scan_polls = 0
+        return dict(self._wifi_scan)
+
+    def _get_wifi_scan_status(self, params: dict) -> dict:
+        """Destructive read, as the firmware is: it clears what it returns."""
+        if self._wifi_scan["scanning"]:
+            self._wifi_scan_polls += 1
+            if self._wifi_scan_polls >= self.wifi_scan_polls_until_done:
+                self._wifi_scan = {
+                    "scanning": False,
+                    "results": list(self.LOADER_NETWORKS),
+                }
+        if self._wifi_scan["results"] is not None:
+            copy = dict(self._wifi_scan)
+            self._wifi_scan["results"] = None
+            return copy
+        return dict(self._wifi_scan)
 
     def _scan_wifi(self, params: dict) -> list:
         """A bare array, in the shape Mongoose documents. Unauthenticated."""
@@ -1150,3 +1190,79 @@ async def test_scan_wifi_when_the_grill_does_not_serve_it():
     await pitboss.start()
     with mock.patch.object(conn, "send_command", AsyncMock(return_value=None)):
         assert await pitboss.scan_wifi() == []
+
+
+async def test_start_wifi_scan_reports_it_began(pitboss: api.PitBoss):
+    assert await pitboss.start_wifi_scan() == {"scanning": True, "results": None}
+
+
+async def test_start_wifi_scan_does_not_restart_one_in_flight(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    conn.wifi_scan_polls_until_done = 99
+    await pitboss.start_wifi_scan()
+    await pitboss.get_wifi_scan_status()
+    assert conn._wifi_scan_polls == 1
+
+    await pitboss.start_wifi_scan()
+    assert conn._wifi_scan_polls == 1
+
+
+async def test_get_wifi_scan_status_hands_the_results_back_only_once(
+    pitboss: api.PitBoss,
+):
+    """The firmware clears its stored results as it returns them."""
+    await pitboss.start_wifi_scan()
+    first = await pitboss.get_wifi_scan_status()
+    assert first["results"] == FakeTransport.LOADER_NETWORKS
+
+    second = await pitboss.get_wifi_scan_status()
+    assert second["results"] is None
+
+
+async def test_the_loader_names_the_auth_field_differently(pitboss: api.PitBoss):
+    """`authMode` from the loader, `auth` from the `Wifi.Scan` RPC."""
+    await pitboss.start_wifi_scan()
+    status = await pitboss.get_wifi_scan_status()
+    assert "authMode" in status["results"][0]
+    assert "auth" not in status["results"][0]
+
+    assert "auth" in (await pitboss.scan_wifi())[0]
+
+
+async def test_scan_wifi_networks_drives_the_whole_dance(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    conn.wifi_scan_polls_until_done = 3
+    got = await pitboss.scan_wifi_networks(poll_interval=0)
+    assert got == FakeTransport.LOADER_NETWORKS
+    assert conn._wifi_scan_polls == 3
+
+
+async def test_scan_wifi_networks_gives_up_at_the_timeout(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """A scan that never finishes must not poll forever."""
+    conn.wifi_scan_polls_until_done = 10**6
+    assert await pitboss.scan_wifi_networks(timeout=0.05, poll_interval=0.01) == []
+
+
+async def test_scan_wifi_networks_starts_a_fresh_scan_each_time(pitboss: api.PitBoss):
+    """A consumed result must not make the next call come back empty."""
+    await pitboss.start_wifi_scan()
+    await pitboss.get_wifi_scan_status()  # consumes them
+    assert await pitboss.scan_wifi_networks(poll_interval=0) == (
+        FakeTransport.LOADER_NETWORKS
+    )
+
+
+async def test_scan_wifi_networks_stops_when_the_grill_is_not_scanning():
+    """Not scanning and holding nothing: no point polling to the timeout."""
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    idle = AsyncMock(return_value={"scanning": False, "results": None})
+    with mock.patch.object(conn, "send_command", idle):
+        assert await pitboss.scan_wifi_networks(poll_interval=0) == []
+    # start + a single status poll, rather than polling to the timeout.
+    assert idle.await_count == 2
