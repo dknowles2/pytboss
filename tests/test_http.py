@@ -439,3 +439,92 @@ async def test_http_401_arrives_as_unauthorized(host, rpc):
             await conn.send_command("PB.GetState", {})
     finally:
         await conn.disconnect()
+
+
+async def test_is_connected_stops_lying_when_the_grill_goes_silent():
+    """A grill that answered once and then went quiet must read as gone.
+
+    At the default configuration the RPC deadline fires before aiohttp's, so
+    the request is cancelled rather than timing out inside the `except` that
+    clears `_connected` -- and `is_connected()` kept answering `True`,
+    indefinitely, for a grill that stopped answering.
+    """
+    calls = 0
+
+    async def handler(request: web.Request) -> web.Response:
+        nonlocal calls
+        calls += 1
+        cmd = await request.json()
+        if calls == 1:
+            return web.json_response(
+                {"id": cmd["id"], "result": {}}, content_type="text/plain"
+            )
+        await asyncio.sleep(30)
+        raise AssertionError("unreachable")
+
+    app = web.Application()
+    app.router.add_post("/rpc", handler)
+    server = TestServer(app)
+    await server.start_server()
+    try:
+        # aiohttp's deadline is high so the RPC one below beats it, the same
+        # order the defaults produce (30.0 vs 30.0, ceil-rounded up).
+        conn = HttpConnection(f"{server.host}:{server.port}", timeout=5)
+        await conn.connect()
+        assert conn.is_connected()
+
+        with pytest.raises(TimeoutError):
+            await conn.send_command("PB.GetState", {}, timeout=0.1)
+
+        assert not conn.is_connected()
+        await conn.disconnect()
+    finally:
+        await server.close()
+
+
+async def test_a_cancelled_connect_rolls_back():
+    """A config flow timing out around `connect()` cancels it.
+
+    `except Exception` does not catch `CancelledError`, so the rollback was
+    skipped entirely: the transport kept claiming to be connected and the
+    owned session it had just opened leaked, once per retry.
+    """
+
+    async def never_answers(request: web.Request) -> web.Response:
+        await asyncio.sleep(30)
+        raise AssertionError("unreachable")
+
+    app = web.Application()
+    app.router.add_post("/rpc", never_answers)
+    server = TestServer(app)
+    await server.start_server()
+    try:
+        conn = HttpConnection(f"{server.host}:{server.port}")
+        task = asyncio.create_task(conn.connect())
+        await asyncio.sleep(0.2)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+        assert not conn.is_connected()
+        assert conn._session is None  # the owned session was closed, not leaked
+    finally:
+        await server.close()
+
+
+async def test_connect_maps_a_bare_timeout_to_the_documented_error(host):
+    """`connect()` promises `NotConnectedError` when nothing answers.
+
+    At `send_command`'s own default deadline the RPC timeout beats aiohttp's,
+    so the unreachable-grill mapping in `_send_prepared_command` never runs
+    and the caller got a bare `TimeoutError` instead.
+    """
+    conn = HttpConnection(host)
+    with (
+        mock.patch.object(
+            conn, "send_command", mock.AsyncMock(side_effect=TimeoutError)
+        ),
+        pytest.raises(NotConnectedError),
+    ):
+        await conn.connect()
+    assert not conn.is_connected()

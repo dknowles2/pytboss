@@ -105,10 +105,24 @@ class HttpConnection(Transport):
         self._connected = True
         try:
             await self.send_command("RPC.Ping", {})
-        except Exception:
+        except BaseException as ex:
+            # `BaseException`, not `Exception`: a caller-imposed cancellation
+            # -- a config flow timing out around `connect()` -- otherwise
+            # skips this rollback entirely, leaving the transport claiming to
+            # be connected and the owned session it just opened leaking, once
+            # per retry.
             self._started = False
             self._connected = False
             await self._close_session()
+            if isinstance(ex, TimeoutError):
+                # At `send_command`'s own default deadline the RPC timeout
+                # fires before aiohttp's, so the unreachable-grill mapping in
+                # `_send_prepared_command` never runs. Map it here too, or
+                # this method answers a silent grill with a bare
+                # `TimeoutError` instead of the error it documents.
+                raise NotConnectedError(
+                    f"Could not reach {self._url}: no answer"
+                ) from ex
             raise
 
     async def disconnect(self) -> None:
@@ -224,6 +238,14 @@ class HttpConnection(Transport):
             # which is not a `ClientError`. Silence is the common case.
             self._connected = False
             raise NotConnectedError(f"Could not reach {self._url}: {ex}") from ex
+        except asyncio.CancelledError:
+            # The caller's RPC deadline (`Transport.send_command`'s
+            # `asyncio.timeout`) fired while the request was in flight. At
+            # the default configuration that deadline beats aiohttp's, so
+            # without this the branch above never runs and `is_connected()`
+            # keeps answering `True` for a grill that stopped answering.
+            self._connected = False
+            raise
         _LOGGER.debug("<-- %s", payload)
         if not isinstance(payload, dict):
             raise RPCError(f"Expected a JSON object, got {type(payload).__name__}")
