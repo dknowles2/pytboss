@@ -176,6 +176,12 @@ class BleConnection(Transport):
             # `NotConnectedError` every other transport raises.
             self._ble_client = None
         self._is_connected = False
+        # Not left to bleak's disconnected callback: when `disconnect()`
+        # itself raised above, or on a backend that does not fire the
+        # callback for a locally-initiated disconnect, nothing else fails
+        # the commands in flight and their callers wait out the full
+        # timeout. Idempotent with the callback path.
+        await self._fail_pending_commands()
 
     async def reset_device(self, ble_device: BLEDevice):
         """Resets the BLE device used for transport.

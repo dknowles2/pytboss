@@ -844,3 +844,38 @@ async def test_a_drop_mid_reply_abandons_the_read_cleanly():
 
     client.read_gatt_char = mock.AsyncMock(side_effect=clear_mid_read)
     await conn._on_rpc_data_received(None, bytearray(len(reply).to_bytes(4, "big")))
+
+
+async def test_disconnect_fails_the_commands_in_flight():
+    """`disconnect()` must not leave callers waiting out their timeout.
+
+    Failing the in-flight commands was left entirely to bleak's
+    disconnected callback -- but when `client.disconnect()` itself raises
+    (caught and logged above), or on a backend that does not fire the
+    callback for a locally-initiated disconnect, nothing else fails them
+    and every caller waits the full 30s to learn nothing.
+    """
+    conn = ble.BleConnection.__new__(ble.BleConnection)
+    conn._lock = asyncio.Lock()
+    conn._lifecycle_lock = asyncio.Lock()
+    conn._rpc_futures = {}
+    conn._last_command_id = 0
+    conn._loop = asyncio.get_running_loop()
+    conn._is_connected = True
+    conn._reconnecting = False
+    client = mock.AsyncMock()
+    # The nastier half: even the disconnect itself fails, so the
+    # disconnected callback certainly never fires.
+    client.disconnect = mock.AsyncMock(
+        side_effect=bleak.exc.BleakError("backend refused")
+    )
+    conn._ble_client = client
+
+    cmd = asyncio.create_task(conn.send_command("PB.GetState", {}, timeout=30))
+    await asyncio.sleep(0.05)  # let it reach the wire and register its future
+
+    await conn.disconnect()
+
+    async with asyncio.timeout(3):
+        with raises(NotConnectedError):
+            await cmd
