@@ -757,3 +757,44 @@ async def test_a_temperatures_only_push_reaches_the_callback_as_temperatures(
             call("FE0B00", temps_frame),  # the two-frame case is untouched
         ]
     )
+
+
+async def test_a_failed_connect_does_not_leak_the_owned_session() -> None:
+    """`http.connect()` rolls back on failure; this one left its session open.
+
+    A config flow constructing a fresh transport per attempt leaked one
+    `ClientSession` per retry, each printing aiohttp's "Unclosed client
+    session" when abandoned.
+    """
+    conn = wss.WebSocketConnection("_grill_id_", base_url="ws://127.0.0.1:9")
+    with raises(GrillUnavailable):
+        await conn.connect()
+    assert conn._session is None  # closed and released, not leaked
+
+
+async def test_disconnect_interrupts_a_connect_stuck_in_its_handshake() -> None:
+    """`connect()` holds the lifecycle lock across its handshake.
+
+    The reconnect loop's handshake was made cancellable, but `connect()`'s
+    own was not -- and `disconnect()` blocks on the lock `connect()` is
+    holding, so it waited out aiohttp's session timeout (minutes) behind a
+    handshake to a host that never answers.
+    """
+    conn = wss.WebSocketConnection("_grill_id_", base_url="ws://127.0.0.1:9")
+    hang = Event()
+
+    async def hung_handshake():
+        await hang.wait()
+        raise AssertionError("unreachable")
+
+    with patch.object(conn, "_ws_connect", hung_handshake):
+        connect_task = create_task(conn.connect())
+        await sleep(0.1)  # let it take the lock and park in the handshake
+
+        async with timeout(3):
+            await conn.disconnect()
+
+        with raises(NotConnectedError, match="disconnect"):
+            async with timeout(3):
+                await connect_task
+    hang.set()

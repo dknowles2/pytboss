@@ -93,10 +93,34 @@ class WebSocketConnection(Transport):
             if not self._session_owned:
                 raise NotConnectedError("The session given to this transport is closed")
             self._session = ClientSession(loop=self._loop)
-        self._sock = await self._ws_connect()
-        self._keep_running = True
-        self._stopping.clear()
-        self._subscribe_task = self._loop.create_task(self._subscribe())
+        # Run as a task for the same reason the reconnect loop runs its own:
+        # no flag reaches a handshake in flight. `disconnect()` cancels
+        # `_connect_task` *before* taking the lifecycle lock -- the lock this
+        # call is holding -- so a caller is not parked behind a stalled
+        # handshake for aiohttp's full session timeout.
+        self._connect_task = self._loop.create_task(self._ws_connect())
+        try:
+            self._sock = await self._connect_task
+            self._keep_running = True
+            self._stopping.clear()
+            self._subscribe_task = self._loop.create_task(self._subscribe())
+        except BaseException as ex:
+            # The rollback `http.connect()` already has: a failed or
+            # cancelled connect must not leak the session this call opened.
+            # A config flow constructing a fresh transport per attempt
+            # otherwise leaks one per retry.
+            if self._session_owned and self._session is not None:
+                if not self._session.closed:
+                    await self._session.close()
+                self._session = None
+            if isinstance(ex, asyncio.CancelledError) and self._handshake_cancelled:
+                raise NotConnectedError(
+                    "disconnect() was called while connecting"
+                ) from ex
+            raise
+        finally:
+            self._connect_task = None
+            self._handshake_cancelled = False
         await self._subscribed.wait()
 
     def _check_not_reentrant(self) -> None:
@@ -152,6 +176,12 @@ class WebSocketConnection(Transport):
         for the background reconnect/subscribe task to finish.
         """
         self._check_not_reentrant()
+        # Cancelled before taking the lock: a `connect()` parked in its
+        # handshake is HOLDING the lock, so waiting for it first means
+        # waiting out aiohttp's session timeout before this could act.
+        if (handshake := self._connect_task) is not None:
+            self._handshake_cancelled = True
+            handshake.cancel()
         async with self._lifecycle_lock:
             await self._disconnect_locked()
 
