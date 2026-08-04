@@ -57,11 +57,13 @@ class TestCommand:
 
 
 class TestController:
-    def parse_status(self):
+    # `test_` prefixes, or pytest collects nothing from this class: both
+    # bodies passed for as long as they existed, but neither ever ran.
+    def test_parse_status(self):
         ctrl = grills_lib.ControlBoard("PBx", {}, "return {'foo': message}", None)
         assert ctrl.parse_status("bar") == {"foo": "bar"}
 
-    def parse_temperatures(self):
+    def test_parse_temperatures(self):
         ctrl = grills_lib.ControlBoard("PBx", {}, "", "return {'foo': message}")
         assert ctrl.parse_temperatures("bar") == {"foo": "bar"}
 
