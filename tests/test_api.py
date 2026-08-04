@@ -1244,3 +1244,24 @@ async def test_scan_wifi_networks_stops_when_the_grill_is_not_scanning():
         assert await pitboss.scan_wifi_networks(poll_interval=0) == []
     # start + a single status poll, rather than polling to the timeout.
     assert idle.await_count == 2
+
+
+async def test_on_vdata_received_strips_the_password():
+    """The push path leaks what `get_virtual_data()` carefully removes.
+
+    An authenticated `PB.SetVirtualData` hands its whole params object to the
+    firmware, which stores it verbatim and pushes it back -- on the BLE debug
+    log and as `data` on the websocket status frame. Every subscriber was
+    handed the encoded password, and the encoding is not protection: the key
+    is `timed_key(uptime)` and this library implements both ends.
+    """
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+    received = []
+    await pitboss.subscribe_vdata(received.append)
+
+    await pitboss._on_vdata_received({"p1T": 165, "psw": "a1b2c3deadbeef"})
+    await pitboss._on_vdata_received('{"p2T": 170, "psw": "a1b2c3deadbeef"}')
+
+    assert received == [{"p1T": 165}, {"p2T": 170}]

@@ -210,6 +210,16 @@ class PitBoss:
         # text the firmware printed; `wss` receives it as a member of an
         # already-parsed status frame, so it arrives decoded.
         vdata = json.loads(payload) if isinstance(payload, str) else payload
+        if isinstance(vdata, dict) and "psw" in vdata:
+            # The same strip `get_virtual_data()` applies, for the same
+            # reason: an authenticated write leaves the encoded password in
+            # the firmware's scratchpad, and the firmware pushes that object
+            # back verbatim -- on the BLE debug log and as `data` on the
+            # websocket status frame. Without this, every subscriber is
+            # handed the password, and anything that logs or persists vdata
+            # records it. The encoding is not protection: the key is
+            # `timed_key(uptime)` and this library implements both ends.
+            vdata = {k: v for k, v in vdata.items() if k != "psw"}
         _LOGGER.debug("VData received: %s", vdata)
         async with self._lock:
             callbacks = list(self._vdata_callbacks)
@@ -563,10 +573,11 @@ class PitBoss:
         verbatim, so an authenticated write leaves the encoded password in the
         scratchpad and it would otherwise be handed back as if it were data.
 
-        This is the only thing that removes it, rather than a belt-and-braces
-        measure. Firmware 0.6.0 attempts the same strip and misses -- it
-        clears `vData.pws` while `checkPassword` reads `params.psw` -- and the
-        eight earlier mJS versions do not attempt it at all.
+        Nothing upstream removes it, so this is not a belt-and-braces
+        measure: firmware 0.6.0 attempts the same strip and misses -- it
+        clears `vData.pws` while `checkPassword` reads `params.psw` -- and
+        the eight earlier mJS versions do not attempt it at all.
+        `_on_vdata_received` applies the same strip on the push path.
 
         :meta private:
         """
