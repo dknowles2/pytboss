@@ -108,7 +108,7 @@ async def conn(
         yield make_conn(fake_server, session)
 
 
-def make_conn(fake_server: BaseTestServer, session: ClientSession):
+def make_conn(fake_server: BaseTestServer, session: ClientSession | None):
     return wss.WebSocketConnection(
         "_grill_id_",
         session=session,
@@ -660,3 +660,73 @@ async def test_a_callback_disconnect_does_not_deadlock_an_outside_one(
     assert len(callback_saw) == 1
     with raises(RuntimeError, match="Cannot stop this transport"):
         raise callback_saw[0]
+
+
+@patch.object(wss.WebSocketConnection, "_backoff_wait")
+async def test_reconnect_survives_the_grill_vanishing_from_the_network(
+    mock_wait: AsyncMock,
+    conn: wss.WebSocketConnection,
+) -> None:
+    """An unreachable relay raises `ClientConnectorError`, not a handshake error.
+
+    Mapping only `WSServerHandshakeError` let the common case -- the network
+    going away entirely -- escape the reconnect loop's
+    `except GrillUnavailable` and end the automatic reconnection this class
+    promises, silently.
+    """
+    await conn.connect()
+    task = conn._subscribe_task
+    assert task is not None
+
+    # The grill drops off the network: the stream ends, and every reconnect
+    # now targets a port nothing is listening on.
+    conn._url = "ws://127.0.0.1:9/to/_grill_id_"
+    assert conn._sock is not None
+    await conn._sock.close()
+
+    for _ in range(100):
+        await sleep(0.05)
+        if mock_wait.await_count >= 2:
+            break
+
+    assert not task.done(), (
+        f"reconnect loop died: {task.exception()!r}"
+        if task.done() and task.exception()
+        else "reconnect loop ended"
+    )
+    assert mock_wait.await_count >= 2  # it is genuinely retrying
+    await conn.disconnect()
+
+
+async def test_a_dead_subscribe_task_does_not_poison_disconnect(
+    fake_server: TestServer,
+) -> None:
+    """`disconnect()` must complete even when the subscribe task has died.
+
+    Re-raising the dead task's error made every later `disconnect()` fail
+    the same way, forever, and the owned session below the await was never
+    closed.
+    """
+    async with fake_server:
+        conn = make_conn(fake_server, session=None)
+        await conn.connect()
+        task = conn._subscribe_task
+        assert task is not None
+        owned_session = conn._session
+        assert owned_session is not None
+
+        # An error the reconnect mapping cannot anticipate kills the task.
+        with patch.object(
+            conn, "_ws_connect", AsyncMock(side_effect=RuntimeError("boom"))
+        ):
+            assert conn._sock is not None
+            await conn._sock.close()
+            async with timeout(5):
+                with raises(RuntimeError):
+                    await task
+
+            await conn.disconnect()
+
+        assert conn._subscribe_task is None
+        assert owned_session.closed
+        await conn.disconnect()  # and a second call stays clean

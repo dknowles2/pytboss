@@ -8,10 +8,10 @@ from typing import Any
 from uuid import uuid4
 
 from aiohttp import (
+    ClientError,
     ClientSession,
     ClientWebSocketResponse,
     WSMsgType,
-    WSServerHandshakeError,
 )
 
 from .exceptions import GrillUnavailable, NotConnectedError
@@ -130,11 +130,19 @@ class WebSocketConnection(Transport):
             self._connect_task.cancel()
         if self._sock is not None and not self._sock.closed:
             await self._sock.close()
-        await self._subscribe_task
-        self._subscribe_task = None
-        # The event means "the loop is reading". Left set, the next
-        # `connect()` returns before that is true again.
-        self._subscribed.clear()
+        try:
+            # A task that died re-raises here. Letting that propagate made
+            # `disconnect()` fail the same way on every call, forever, and
+            # the lines below -- clearing state, and in `disconnect()`'s
+            # case closing an owned session -- never ran.
+            await self._subscribe_task
+        except Exception:
+            _LOGGER.exception("Subscribe task ended with an unhandled error")
+        finally:
+            self._subscribe_task = None
+            # The event means "the loop is reading". Left set, the next
+            # `connect()` returns before that is true again.
+            self._subscribed.clear()
 
     async def disconnect(self) -> None:
         """Stops the connection to the device.
@@ -163,7 +171,13 @@ class WebSocketConnection(Transport):
             raise NotConnectedError("Not connected")
         try:
             return await self._session.ws_connect(self._url)
-        except WSServerHandshakeError as ex:
+        except (ClientError, OSError, TimeoutError) as ex:
+            # Everything the network can do here means the same thing: the
+            # grill cannot be reached right now. Mapping only the handshake
+            # error left `ClientConnectorError` -- what an offline relay or a
+            # dropped network actually raises -- escaping the reconnect
+            # loop's `except GrillUnavailable`, ending the automatic
+            # reconnection this class promises.
             _LOGGER.debug("Failed to connect: %s", ex)
             raise GrillUnavailable(str(ex)) from ex
 
