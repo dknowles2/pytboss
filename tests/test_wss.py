@@ -263,9 +263,9 @@ async def test_state_callback_may_send_commands(
 ) -> None:
     """The receive loop must not hold the send lock while dispatching.
 
-    Awaiting the *response* inside a callback can never complete -- the
-    response is read by the very loop the callback is blocking -- but the
-    send itself must go through rather than deadlock the stream forever.
+    The send must go through rather than deadlock the stream. (Awaiting a
+    full round trip from a callback works too, now that callbacks run on
+    their own task -- pinned separately below.)
     """
     done = Event()
 
@@ -334,6 +334,21 @@ async def test_status_no_state_callback(conn: wss.WebSocketConnection) -> None:
     await conn._handle_message({"status": ["state"]})
 
 
+async def deliver_queued_callbacks(conn: wss.WebSocketConnection) -> None:
+    """Run the dispatcher over whatever `_handle_message` queued.
+
+    Direct `_handle_message` tests have no running dispatch task; callbacks
+    are delivered from one, not from the read loop.
+    """
+    task = create_task(conn._dispatch_callbacks())
+    try:
+        async with timeout(2):
+            await conn._callback_queue.join()
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+
+
 async def test_vdata_arrives_on_the_status_push(
     conn: wss.WebSocketConnection,
 ) -> None:
@@ -351,6 +366,7 @@ async def test_vdata_arrives_on_the_status_push(
     await conn._handle_message(
         {"id": -1, "src": "PBx", "status": ["FE0B00"], "data": {"p1T": 165}}
     )
+    await deliver_queued_callbacks(conn)
 
     vdata_callback.assert_awaited_once_with({"p1T": 165})
     state_callback.assert_awaited_once_with("FE0B00")
@@ -374,6 +390,7 @@ async def test_vdata_with_no_callback_registered(
     state_callback = AsyncMock()
     conn.set_state_callback(state_callback)
     await conn._handle_message({"status": ["FE0B00"], "data": {"p1T": 165}})
+    await deliver_queued_callbacks(conn)
     state_callback.assert_awaited_once_with("FE0B00")
 
 
@@ -618,30 +635,23 @@ async def test_a_cancellation_we_did_not_ask_for_is_not_swallowed(
         await task
 
 
-async def test_a_callback_disconnect_does_not_deadlock_an_outside_one(
+async def test_an_outside_disconnect_is_not_blocked_by_a_parked_callback(
     conn: wss.WebSocketConnection,
     state_payloads: Queue,
 ) -> None:
-    """The reentrancy guard has to run before the lifecycle lock is taken.
+    """A slow subscriber must not hold up `disconnect()`.
 
-    Past the lock, a subscriber calling `disconnect()` waits on the lock
-    while the lock's holder awaits the very subscribe task that is
-    dispatching that subscriber. Neither side can proceed, and unlike the
-    self-await this guard replaced, nothing raises: the hang is permanent.
+    Callbacks run on the dispatch task, not the read loop, so the wind-down
+    no longer waits behind user code: the subscribe task ends promptly and
+    the parked callback is cancelled with the dispatch task.
     """
     in_callback = Event()
-    release = Event()
-    callback_saw: list[BaseException] = []
 
     async def on_state(
         status_payload: str | None, temperatures_payload: str | None = None
     ) -> None:
         in_callback.set()
-        await release.wait()
-        try:
-            await conn.disconnect()
-        except RuntimeError as ex:
-            callback_saw.append(ex)
+        await sleep(3600)  # a subscriber that never comes back
 
     conn.set_state_callback(on_state)
     await conn.connect()
@@ -649,17 +659,44 @@ async def test_a_callback_disconnect_does_not_deadlock_an_outside_one(
     async with timeout(3):
         await in_callback.wait()
 
-    # An outside disconnect() -- a config entry unloading -- takes the lock
-    # and awaits the subscribe task, which is parked in the callback above.
-    outside = create_task(conn.disconnect())
-    await sleep(0.1)
-    release.set()
-
     async with timeout(3):
-        await outside
+        await conn.disconnect()
+
+
+async def test_a_callback_calling_disconnect_is_told_no(
+    conn: wss.WebSocketConnection,
+    state_payloads: Queue,
+) -> None:
+    """The reentrancy guard covers the dispatch task too.
+
+    `disconnect()` cancels the dispatch task during wind-down; from inside a
+    callback that is a lifecycle call cancelling its own caller, so it is
+    refused the same way it is from the read loop.
+    """
+    callback_saw: list[BaseException] = []
+    done = Event()
+
+    async def on_state(
+        status_payload: str | None, temperatures_payload: str | None = None
+    ) -> None:
+        if done.is_set():
+            return
+        try:
+            await conn.disconnect()
+        except RuntimeError as ex:
+            callback_saw.append(ex)
+        done.set()
+
+    conn.set_state_callback(on_state)
+    await conn.connect()
+    await state_payloads.put({"status": ["FE0B00"]})
+    async with timeout(3):
+        await done.wait()
+
     assert len(callback_saw) == 1
     with raises(RuntimeError, match="Cannot stop this transport"):
         raise callback_saw[0]
+    await conn.disconnect()  # from outside, it works as ever
 
 
 @patch.object(wss.WebSocketConnection, "_backoff_wait")
@@ -798,3 +835,41 @@ async def test_disconnect_interrupts_a_connect_stuck_in_its_handshake() -> None:
             async with timeout(3):
                 await connect_task
     hang.set()
+
+
+async def test_a_callback_can_await_a_full_round_trip(
+    conn: wss.WebSocketConnection,
+    state_payloads: Queue,
+    command_payloads: Queue,
+) -> None:
+    """An RPC issued from a state callback must complete, promptly.
+
+    Callbacks used to be awaited by the read loop itself, so a callback
+    awaiting a command waited on a reply that only the loop it was blocking
+    could deliver: the command burned its whole timeout with the answer
+    sitting unread in the socket, and every state update queued behind it.
+    """
+    import time
+
+    outcome: dict = {}
+    done = Event()
+
+    async def on_state(
+        status_payload: str | None, temperatures_payload: str | None = None
+    ) -> None:
+        if done.is_set():
+            return
+        start = time.monotonic()
+        outcome["result"] = await conn.send_command("RPC.Ping", {}, timeout=5)
+        outcome["elapsed"] = time.monotonic() - start
+        done.set()
+
+    conn.set_state_callback(on_state)
+    async with conn:
+        await command_payloads.put({"app_id": "_app_id_", "id": 1, "result": "pong"})
+        await state_payloads.put({"status": ["FE0B00"]})
+        async with timeout(4):
+            await done.wait()
+
+    assert outcome["result"] == "pong"
+    assert outcome["elapsed"] < 2  # answered, not waited out

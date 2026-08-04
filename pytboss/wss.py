@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from asyncio import AbstractEventLoop, Event, Lock, Task
+from asyncio import AbstractEventLoop, Event, Lock, Queue, Task
 from contextlib import suppress
 from typing import Any
 from uuid import uuid4
@@ -58,6 +58,14 @@ class WebSocketConnection(Transport):
         self._url = f"{base_url}/to/{grill_id}"
         self._app_id = app_id or str(uuid4()).split("-")[-1]
         self._subscribe_task: Task | None = None
+        # Callbacks are delivered from their own task, fed by this queue, so
+        # the read loop never awaits user code. A callback that issues an
+        # RPC otherwise waits on a reply only the read loop it is blocking
+        # can deliver -- burning the command's whole timeout -- and every
+        # state update queues behind it. Rebuilt on each connect so a stale
+        # frame from a previous session is never delivered into a new one.
+        self._callback_queue: Queue[tuple[str, Any]] = Queue()
+        self._dispatch_task: Task | None = None
         self._subscribed = Event()
         self._stopping = Event()
         self._keep_running = False
@@ -103,7 +111,9 @@ class WebSocketConnection(Transport):
             self._sock = await self._connect_task
             self._keep_running = True
             self._stopping.clear()
+            self._callback_queue = Queue()
             self._subscribe_task = self._loop.create_task(self._subscribe())
+            self._dispatch_task = self._loop.create_task(self._dispatch_callbacks())
         except BaseException as ex:
             # The rollback `http.connect()` already has: a failed or
             # cancelled connect must not leak the session this call opened.
@@ -132,7 +142,10 @@ class WebSocketConnection(Transport):
         lock awaits the very subscribe task this caller is running on -- a
         deadlock the guard exists to prevent, not cause.
         """
-        if self._subscribe_task is asyncio.current_task():
+        current = asyncio.current_task()
+        if current is not None and (
+            current is self._subscribe_task or current is self._dispatch_task
+        ):
             raise RuntimeError(
                 "Cannot stop this transport from a callback it is dispatching"
             )
@@ -167,6 +180,14 @@ class WebSocketConnection(Transport):
             # The event means "the loop is reading". Left set, the next
             # `connect()` returns before that is true again.
             self._subscribed.clear()
+        if self._dispatch_task is not None:
+            # Cancelled rather than drained: draining means awaiting user
+            # callbacks, and a stuck callback would turn `disconnect()` into
+            # exactly the hang this task exists to prevent.
+            self._dispatch_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._dispatch_task
+            self._dispatch_task = None
 
     async def disconnect(self) -> None:
         """Stops the connection to the device.
@@ -296,6 +317,31 @@ class WebSocketConnection(Transport):
             async with asyncio.timeout(backoff):
                 await self._stopping.wait()
 
+    async def _dispatch_callbacks(self) -> None:
+        """Deliver state and vdata payloads from the read loop's queue.
+
+        On its own task so the read loop never awaits user code. A callback
+        that issues an RPC otherwise waits on a reply that only the read
+        loop it is blocking can deliver -- the command burns its whole
+        timeout with the answer sitting unread in the socket, and every
+        state update queues behind it. A single consumer keeps delivery in
+        arrival order. Cancelled by the wind-down; one failing callback is
+        logged and must not starve the rest.
+        """
+        while True:
+            kind, payload = await self._callback_queue.get()
+            try:
+                if kind == "status":
+                    if self._state_callback:
+                        await self._state_callback(*payload)
+                elif self._vdata_callback:
+                    await self._vdata_callback(payload)
+            except Exception:
+                _LOGGER.exception("Error in %s callback for: %s", kind, payload)
+            finally:
+                # So `join()` can observe delivery, not just consumption.
+                self._callback_queue.task_done()
+
     async def _handle_message(self, payload: dict[str, Any]) -> None:
         if "app_id" in payload and payload["app_id"] != self._app_id:
             _LOGGER.debug(
@@ -315,7 +361,7 @@ class WebSocketConnection(Transport):
             #
             # so it has to be picked up here, before returning.
             if (vdata := payload.get("data")) is not None and self._vdata_callback:
-                await self._vdata_callback(vdata)
+                self._callback_queue.put_nowait(("vdata", vdata))
             if not self._state_callback:
                 return
             frames = payload["status"]
@@ -333,9 +379,9 @@ class WebSocketConnection(Transport):
                 # the *status* payload -- where every board's status routine
                 # requires an FE0B prefix and returns nothing. Routed by the
                 # frame's own prefix instead, the way `ble` already does.
-                await self._state_callback(None, frames[0])
+                self._callback_queue.put_nowait(("status", (None, frames[0])))
                 return
-            await self._state_callback(*frames)
+            self._callback_queue.put_nowait(("status", tuple(frames)))
             return
 
         if "id" in payload:
