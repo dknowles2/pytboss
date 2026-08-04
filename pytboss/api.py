@@ -174,6 +174,15 @@ class PitBoss:
             status_payload,
             temperatures_payload,
         )
+        if not hasattr(self, "spec"):
+            # The callback is registered in `__init__` but the spec only
+            # exists once `start()` has resolved it -- and a transport can
+            # already be connected and receiving before then: Home Assistant
+            # connects through `reset_device` during discovery and calls
+            # `start()` later. A frame in that window has nothing to parse
+            # it; the next push arrives seconds after `start()` completes.
+            _LOGGER.debug("Ignoring state received before start()")
+            return
         state = StateDict()
         if status_payload and (
             new_state := self.spec.control_board.parse_status(status_payload)
