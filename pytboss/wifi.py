@@ -1,6 +1,7 @@
 """Client library for Mongoose OS WiFi RPCs."""
 
-from .transport import Transport
+from .exceptions import RPCError
+from .transport import METHOD_NOT_FOUND_CODE, Transport
 
 
 class WiFi:
@@ -36,13 +37,20 @@ class WiFi:
         Mongoose's JS `Wifi.scan()` instead. Same device, same networks, two
         spellings.
 
-        Empty when the device does not serve it. `PitBoss.list_rpcs()` reports
-        whether it does without a round trip that errors -- worth checking
-        first, since an empty list otherwise reads the same as seeing no
-        networks.
+        Empty when the device does not serve it -- an empty list reads the
+        same as seeing no networks, so `PitBoss.list_rpcs()` is the way to
+        tell those apart when it matters.
 
         Unauthenticated, and a read: it changes nothing about the device's own
         connection.
         """
-        result = await self._conn.send_command("Wifi.Scan", {})
+        try:
+            result = await self._conn.send_command("Wifi.Scan", {})
+        except RPCError as ex:
+            if ex.code == METHOD_NOT_FOUND_CODE:
+                # The documented empty. Without this, "the device does not
+                # serve it" raised instead of answering what the docstring
+                # promises.
+                return []
+            raise
         return result if isinstance(result, list) else []
