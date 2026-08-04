@@ -1170,28 +1170,6 @@ async def test_debug_pstate_requires_the_password():
         await pitboss.debug_pstate()
 
 
-async def test_scan_wifi(pitboss: api.PitBoss):
-    """A bare array, returned as sent rather than remapped."""
-    assert await pitboss.scan_wifi() == [
-        {
-            "ssid": "Kitchen",
-            "bssid": "12:34:56:78:90:ab",
-            "auth": 3,
-            "channel": 6,
-            "rssi": -58,
-        }
-    ]
-
-
-async def test_scan_wifi_when_the_grill_does_not_serve_it():
-    """Must not hand back a non-list, the same trap `RPC.List` had."""
-    conn = FakeTransport()
-    pitboss = api.PitBoss(conn, "PBV4PS2")
-    await pitboss.start()
-    with mock.patch.object(conn, "send_command", AsyncMock(return_value=None)):
-        assert await pitboss.scan_wifi() == []
-
-
 async def test_start_wifi_scan_reports_it_began(pitboss: api.PitBoss):
     assert await pitboss.start_wifi_scan() == {"scanning": True, "results": None}
 
@@ -1227,7 +1205,7 @@ async def test_the_loader_names_the_auth_field_differently(pitboss: api.PitBoss)
     assert "authMode" in status["results"][0]
     assert "auth" not in status["results"][0]
 
-    assert "auth" in (await pitboss.scan_wifi())[0]
+    assert "auth" in (await pitboss.wifi.scan())[0]
 
 
 async def test_scan_wifi_networks_drives_the_whole_dance(

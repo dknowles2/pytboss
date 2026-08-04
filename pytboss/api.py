@@ -16,6 +16,7 @@ from .fs import FileSystem
 from .grills import Grill, StateDict, get_grill
 from .ota import OTA
 from .transport import RPCResult, Transport, as_dict
+from .wifi import WiFi
 
 _UPTIME_TTL = 60.0
 """Seconds before the cached uptime is re-read rather than extrapolated.
@@ -78,6 +79,9 @@ class PitBoss:
     ota: OTA
     """Over-the-air firmware update operations."""
 
+    wifi: WiFi
+    """WiFi operations."""
+
     def __init__(
         self,
         conn: Transport,
@@ -101,6 +105,7 @@ class PitBoss:
         self.fs = FileSystem(conn)
         self.config = Config(conn)
         self.ota = OTA(conn)
+        self.wifi = WiFi(conn)
         self._grill_model = grill_model
         self._control_board = control_board
         self._conn = conn
@@ -648,33 +653,6 @@ class PitBoss:
             return result.get("loaderVersion")
         return None
 
-    async def scan_wifi(self) -> list[dict]:
-        """Returns the WiFi networks the grill can see.
-
-        A Mongoose core service rather than anything Dansons wrote, so it is
-        not in the grill application and its shape comes from `Mongoose's own
-        documentation
-        <https://mongoose-os.com/docs/mongoose-os/api/rpc/rpc-service-wifi.md>`_:
-        a bare array taking no parameters, each entry carrying `ssid`,
-        `bssid`, `auth`, `channel` and `rssi`. Returned as sent rather than
-        remapped, since nothing here has seen a grill answer it.
-
-        `auth` is an enum -- 0 open, 1 WEP, 2 WPA-PSK, 3 WPA2-PSK, 4
-        WPA/WPA2-PSK, 5 WPA2-Enterprise. Note it is `auth` here and `authMode`
-        in the JS `Wifi.scan()` callback, which is a different API describing
-        the same networks.
-
-        Empty when the grill does not serve it. `list_rpcs()` reports whether
-        it does without a round trip that errors -- worth checking first,
-        because an empty list otherwise reads the same as a grill that saw no
-        networks.
-
-        Unauthenticated, and a read: it changes nothing about the grill's own
-        connection.
-        """
-        result = await self._conn.send_command("Wifi.Scan", {})
-        return result if isinstance(result, list) else []
-
     async def start_wifi_scan(self) -> dict:
         """Asks the loader to begin scanning for WiFi networks.
 
@@ -702,8 +680,9 @@ class PitBoss:
 
         Each entry carries `ssid`, `bssid`, `authMode`, `channel` and `rssi`
         -- `authMode`, because the loader goes through Mongoose's JS
-        `Wifi.scan()`, where `scan_wifi()` calls the `Wifi.Scan` RPC and gets
-        the same field named `auth`. Same grill, same networks, two spellings.
+        `Wifi.scan()`, where `PitBoss.wifi.scan()` calls the `Wifi.Scan` RPC and
+        gets the same field named `auth`. Same grill, same networks, two
+        spellings.
         """
         return as_dict(await self._conn.send_command("PBL.GetWifiScanStatus", {}))
 
