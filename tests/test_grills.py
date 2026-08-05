@@ -607,24 +607,43 @@ def test_a_real_temperature_still_converts_after_the_sentinel_fix():
     assert out["p2Temp"] is None  # the sentinel, now None rather than -18
 
 
-def _celsius_temps_frame() -> str:
-    """A 30-byte FE0C frame reading a real value at grill+smoker, in Celsius."""
+def _celsius_temps_frame(fahrenheit: int = 212) -> str:
+    """A 30-byte FE0C frame reading `fahrenheit` at grill+smoker, in Celsius.
+
+    The reading is carried one decimal digit per byte, so only three-digit
+    values are expressible here -- which is every temperature these fields
+    report.
+    """
     parts = ["00"] * 30
     parts[0], parts[1] = "FE", "0C"
     for off in (20, 26):  # smokerActTemp, grillTemp
-        parts[off], parts[off + 1], parts[off + 2] = "02", "01", "02"  # 212 F
+        parts[off], parts[off + 1], parts[off + 2] = (
+            f"0{digit}" for digit in f"{fahrenheit:03d}"
+        )
     parts[29] = "00"  # isFahrenheit = false
     return "".join(parts)
 
 
-def test_smoker_temp_is_converted_to_celsius_like_its_siblings():
+@pytest.mark.parametrize(
+    "fahrenheit,celsius",
+    [
+        # Exactly divisible, so it cannot tell floor from round apart.
+        (212, 100),
+        # 181/1.8 = 100.55: the board's ftoc floors it to 100, `round` would
+        # give 101. Without this case the conversion could be reimplemented
+        # with `round` and the suite would not notice -- and smokerActTemp
+        # would sit one degree from the grillTemp it is supposed to match.
+        (213, 100),
+    ],
+)
+def test_smoker_temp_is_converted_to_celsius_like_its_siblings(fahrenheit, celsius):
     """PBA/PBE/PBT convert every temp field except p4Temp and smokerActTemp.
 
     Those two were left in Fahrenheit while the rest of the same reply was
     converted -- two temperatures in one frame in different units. On a
     Celsius grill smokerActTemp read ~2x too high.
     """
-    frame = _celsius_temps_frame()
+    frame = _celsius_temps_frame(fahrenheit)
     for name in ("PBA", "PBE", "PBT"):
         cb = next(
             g.control_board
@@ -635,8 +654,8 @@ def test_smoker_temp_is_converted_to_celsius_like_its_siblings():
         assert out is not None and out["isFahrenheit"] is False
         # grillTemp (converted by the board) and smokerActTemp (converted here)
         # must now agree -- both 212 F -> 100 C.
-        assert out["grillTemp"] == 100
-        assert out["smokerActTemp"] == 100
+        assert out["grillTemp"] == celsius
+        assert out["smokerActTemp"] == celsius
 
 
 def test_a_fahrenheit_frame_leaves_the_missed_fields_untouched():
