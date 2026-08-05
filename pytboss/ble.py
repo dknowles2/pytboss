@@ -333,7 +333,11 @@ class BleConnection(Transport):
                     temperatures_payload = payload
             await self._state_callback(status_payload, temperatures_payload)
         elif head == "<==PBD:" and self._vdata_callback:
-            # TODO: I think we want to decode this?
+            # Handed over as the text the firmware printed, not parsed. The
+            # websocket transport receives virtual data already decoded, as a
+            # member of a status frame, so `PitBoss._on_vdata_received` accepts
+            # both and parses only when it is handed a string. Decoding here
+            # too would leave that with nothing to distinguish the two.
             await self._vdata_callback(payload)
 
 

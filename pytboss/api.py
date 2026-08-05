@@ -68,7 +68,12 @@ async def _invoke(callback: Callable[[Any], Awaitable[None] | None], arg: Any) -
 
 
 class PitBoss:
-    """API for interacting with PitBoss grills over Bluetooth LE."""
+    """API for interacting with PitBoss grills.
+
+    Transport-agnostic: the `Transport` passed to the constructor decides
+    whether the grill is reached over Bluetooth LE, the Dansons WebSocket
+    relay, or HTTP on the local network.
+    """
 
     fs: FileSystem
     """Filesystem operations."""
