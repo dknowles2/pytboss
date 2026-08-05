@@ -254,13 +254,7 @@ class TestGetGrills:
                 temp = want[key]
                 if js.converts_to_celsius():
                     temp = f_to_c(want[key])
-                try:
-                    assert status[key] == temp, f"{key}: {status[key]} != {temp}"  # type: ignore[literal-required]
-                except AssertionError:
-                    if key in ("p4Temp", "smokerActTemp"):
-                        # Some grills don't convert these fields for some reason.
-                        continue
-                    raise
+                assert status[key] == temp, f"{key}: {status[key]} != {temp}"  # type: ignore[literal-required]
 
     @pytest.mark.parametrize("grill", all_variants(), ids=idfn)
     def test_parse_state(self, grill: grills_lib.Grill):
@@ -378,13 +372,7 @@ class TestGetGrills:
                 temp = want[key]
                 if js.converts_to_celsius():
                     temp = f_to_c(want[key])
-                try:
-                    assert status[key] == temp, f"{key}: {status[key]} != {temp}"  # type: ignore[literal-required]
-                except AssertionError:
-                    if key in ("p4Temp", "smokerActTemp"):
-                        # Some grills don't convert these fields for some reason.
-                        continue
-                    raise
+                assert status[key] == temp, f"{key}: {status[key]} != {temp}"  # type: ignore[literal-required]
 
 
 class TestGetGrill:
@@ -656,6 +644,31 @@ def test_smoker_temp_is_converted_to_celsius_like_its_siblings(fahrenheit, celsi
         # must now agree -- both 212 F -> 100 C.
         assert out["grillTemp"] == celsius
         assert out["smokerActTemp"] == celsius
+
+
+def test_pbva_does_not_report_the_setpoint_as_probe_4():
+    """PBVA's p4Temp duplicates grillSetTemp's offset; the board has two probes.
+
+    The routine reads both fields from bytes 14-16 of the FE0C frame, so
+    p4Temp reported the grill setpoint as a probe reading -- and since the
+    conversion block also skips it, on a Celsius grill the bogus reading
+    stayed in Fahrenheit next to a converted grillSetTemp. PBVA's models are
+    in `UNSUPPORTED_MODELS`, so the exhaustive per-variant tests never visit
+    this board; only `get_grill` reaches it.
+    """
+    cb = grills_lib.get_grill("PBV30DS").control_board
+    # Digit-per-byte: setpoint 250 F at 14-16, grill 225 F at 17-19,
+    # isFahrenheit at 20.
+    frame = "FE0C" + "00" * 12 + "020500" + "020205" + "01" + "FF"
+    out = cb.parse_temperatures(frame)
+    assert out is not None
+    assert "p4Temp" not in out
+    assert out["grillSetTemp"] == 250
+
+    celsius = cb.parse_temperatures(frame[:-4] + "00" + "FF")
+    assert celsius is not None
+    assert "p4Temp" not in celsius
+    assert celsius["grillSetTemp"] == 120  # 250 F, via the board's own table
 
 
 def test_a_fahrenheit_frame_leaves_the_missed_fields_untouched():

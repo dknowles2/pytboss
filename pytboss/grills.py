@@ -91,6 +91,14 @@ DROPPED_STATUS_FIELDS = {
 DROPPED_TEMPERATURE_FIELDS = {
     "LBL": frozenset({"smokerActTemp"}),
     "LFS": frozenset({"smokerActTemp"}),
+    # PBVA's p4Temp reads no bytes of its own either: it duplicates
+    # grillSetTemp's offset in the FE0C frame, on a board whose models carry
+    # two meat probes -- so it reports the grill setpoint as a probe reading.
+    # The routine's conversion block also skips it, so on a Celsius grill the
+    # bogus reading additionally stays in Fahrenheit. Its status routine
+    # already emits no p4Temp (the whole temperature block there is commented
+    # out).
+    "PBVA": frozenset({"p4Temp"}),
 }
 
 # Fields these boards' temperature routine populates but forgets to run
