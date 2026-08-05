@@ -446,6 +446,37 @@ class ControlBoard:
         """
         return "ftoc" in _live_code(self._status_js_func)
 
+    def emits(self, field: str) -> bool:
+        """Whether this board's routines can report `field`.
+
+        The boards do not all report the same state: PBM and PBM2 emit no
+        `erL`, most emit no `primeState`, and a few probe fields exist only
+        on some generations. A consumer creating an entity per field needs
+        to know which fields this board can ever produce, or the entity sits
+        permanently unknown.
+
+        True when live code in either parsing routine assigns the key in the
+        object it returns, and the field survives the post-parse drops
+        (`DROPPED_*_FIELDS`). Read off the routines rather than a list of
+        board names, like `converts_temperatures_to_celsius`: a definitions
+        refresh can add or remove a field, and only live code counts. The
+        key-assignment form matters too -- LFS comments `p1Target` out of
+        its status object literal but keeps a live
+        `status.p1Target = ftoc(status.p1Target)`, which converts undefined
+        and reports nothing.
+
+        "Can report", not "always reports": some fields are conditional,
+        like `grillSetTemp` appearing only while the grill holds a setpoint.
+        """
+        key = re.compile(rf"\b{re.escape(field)}\s*:")
+        if field not in DROPPED_STATUS_FIELDS.get(
+            self.name, frozenset()
+        ) and key.search(_live_code(self._status_js_func)):
+            return True
+        return field not in DROPPED_TEMPERATURE_FIELDS.get(
+            self.name, frozenset()
+        ) and bool(key.search(_live_code(self._temperatures_js_func)))
+
     def parse_status(self, message: str) -> StateDict | None:
         """Parses a status message.
 

@@ -411,6 +411,53 @@ def test_converts_to_celsius_is_per_routine():
     assert board.converts_status_to_celsius is False
 
 
+def _board(name: str) -> grills_lib.ControlBoard:
+    return next(
+        g.control_board for g in grills_lib.get_grills() if g.control_board.name == name
+    )
+
+
+def test_emits_reads_the_routines():
+    """A field counts if either routine's live code assigns its key."""
+    board = grills_lib.ControlBoard(
+        "PBx", {}, "return {inStatus: 1};", "return {inTemps: 2};"
+    )
+    assert board.emits("inStatus") is True
+    assert board.emits("inTemps") is True
+    assert board.emits("neither") is False
+
+    commented = grills_lib.ControlBoard(
+        "PBx", {}, "return {/* gone: 1 */};", "// gone: 2"
+    )
+    assert commented.emits("gone") is False
+
+    # LFS's real shape: the literal is commented out, but a live assignment
+    # still names the field -- converting undefined reports nothing.
+    lfs_shape = grills_lib.ControlBoard(
+        "PBx", {}, "var s = {/* p1Target: x */}; s.p1Target = ftoc(s.p1Target);", ""
+    )
+    assert lfs_shape.emits("p1Target") is False
+
+
+def test_emits_on_the_real_boards():
+    """The board differences consumers actually gate on."""
+    assert _board("PBL").emits("erL") is True
+    for name in ("PBM", "PBM2"):  # no erL anywhere in their routines
+        assert _board(name).emits("erL") is False
+
+
+def test_emits_respects_the_dropped_fields():
+    """A field discarded after parsing is never reported, live code or not.
+
+    LBL's routines assign smokerActTemp in both replies, but both drops
+    discard it; grillTemp is dropped from status only and still arrives via
+    the temperatures reply.
+    """
+    board = _board("LBL")
+    assert board.emits("smokerActTemp") is False
+    assert board.emits("grillTemp") is True
+
+
 @contextmanager
 def _count_js_reads():
     """Count reads of dukpy's runtime `.js` assets."""
