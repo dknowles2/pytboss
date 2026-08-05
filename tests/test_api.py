@@ -674,6 +674,35 @@ async def test_state_callback_may_subscribe_another():
     assert late in pitboss._state_callbacks
 
 
+async def test_a_subscriber_added_mid_dispatch_waits_for_the_next_update():
+    """The subscriber list is snapshotted before dispatch begins.
+
+    Without that, appending to the list while it is being iterated hands the
+    in-flight update to a subscriber that was not registered when it landed
+    -- and on the vdata path, one that never saw the state it goes with.
+    """
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PBV4PS2")
+    await pitboss.start()
+
+    seen: list[str] = []
+
+    async def late(state):
+        seen.append("late")
+
+    async def early(state):
+        seen.append("early")
+        if late not in pitboss._state_callbacks:
+            await pitboss.subscribe_state(late)
+
+    await pitboss.subscribe_state(early)
+    await asyncio.wait_for(conn.send_state(STATE_HEX), timeout=5)
+    assert seen == ["early"]
+
+    await asyncio.wait_for(conn.send_state(STATE_HEX), timeout=5)
+    assert seen == ["early", "early", "late"]
+
+
 async def test_state_subscriber_with_async_call_method():
     """`iscoroutinefunction` cannot see through an `async __call__`."""
 
