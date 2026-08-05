@@ -4,7 +4,7 @@ import asyncio
 import inspect
 import json
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from math import floor
 from time import monotonic
 from typing import Any
@@ -201,25 +201,13 @@ class PitBoss:
             return
 
         async with self._lock:
+            # Snapshotted here rather than inside `_dispatch`, because `_lock`
+            # is what guards the subscriber list -- and taken before dispatch
+            # begins, so a subscriber registered by another subscriber joins
+            # from the next update rather than part-way through this one.
             self._state.update(state)
             callbacks = list(self._state_callbacks)
-        # Dispatched outside `_lock`: a subscriber that calls back into the
-        # API (`get_state()` takes the same lock) would otherwise deadlock.
-        # The dedicated lock keeps one update's callbacks from interleaving
-        # with the next one's, which holding `_lock` used to guarantee.
-        async with self._callback_lock:
-            # TODO: Run callbacks concurrently
-            # TODO: Send copies of state so subscribers can't modify it
-            for callback in callbacks:
-                try:
-                    await _invoke(callback, self._state)
-                except Exception:
-                    # Isolated per subscriber: without this the first one to
-                    # raise skips every subscriber registered after it for
-                    # that update, and the exception escapes into the
-                    # transport's dispatch -- on BLE, an unhandled task
-                    # traceback in bleak's notification handler.
-                    _LOGGER.exception("Error in state subscriber")
+        await self._dispatch(callbacks, self._state, "state")
 
     async def _on_vdata_received(self, payload: str | dict):
         # Both, because the transports differ in what they can hand over.
@@ -240,15 +228,39 @@ class PitBoss:
         _LOGGER.debug("VData received: %s", vdata)
         async with self._lock:
             callbacks = list(self._vdata_callbacks)
+        await self._dispatch(callbacks, vdata, "vdata")
+
+    async def _dispatch(
+        self,
+        callbacks: Sequence[Callable[[Any], Awaitable[None] | None]],
+        payload: Any,
+        kind: str,
+    ) -> None:
+        """Hand one update to every subscriber that was registered for it.
+
+        `callbacks` is already a snapshot, taken by the caller under `_lock`
+        alongside whatever it was updating.
+
+        Called outside `_lock`: a subscriber that calls back into the API
+        (`get_state()` takes the same lock) would otherwise deadlock. The
+        dedicated `_callback_lock` keeps one update's callbacks from
+        interleaving with the next one's, which holding `_lock` used to
+        guarantee.
+
+        One failing subscriber must not cost the others their update: without
+        the isolation here, the first to raise skips every subscriber
+        registered after it, and the exception escapes into the transport's
+        dispatch -- on BLE, an unhandled task traceback inside bleak's
+        notification handler.
+        """
+        # TODO: Run callbacks concurrently
+        # TODO: Send copies of the payload so subscribers can't modify it
         async with self._callback_lock:
-            # TODO: Run callbacks concurrently
-            # TODO: Send copies of state so subscribers can't modify it
             for callback in callbacks:
                 try:
-                    await _invoke(callback, vdata)
+                    await _invoke(callback, payload)
                 except Exception:
-                    # Isolated per subscriber, as in `_on_state_received`.
-                    _LOGGER.exception("Error in vdata subscriber")
+                    _LOGGER.exception("Error in %s subscriber", kind)
 
     async def _authenticate(self, params: dict) -> dict:
         """Return `params` with the encoded password added.
