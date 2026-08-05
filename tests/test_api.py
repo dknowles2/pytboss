@@ -567,6 +567,26 @@ async def test_get_uptime_extrapolation_runs_ahead_not_behind():
         assert await pitboss.get_uptime() >= 100.0 + 5.0
 
 
+async def test_get_uptime_extrapolates_when_a_re_read_comes_back_unreadable(
+    pitboss: api.PitBoss, conn: FakeTransport
+):
+    """One unreadable reply must not throw away a good earlier one.
+
+    Falling back to 0.0 here would build `timed_key` from an uptime the
+    grill left behind long ago, and a password-protected grill rejects
+    every command signed with it. The clock has kept running, so the last
+    known uptime plus the elapsed time is a far better answer than nothing.
+    """
+    with freeze_time("2025-06-01 00:00:00") as ft:
+        first = await pitboss.get_uptime()
+        assert first > 0.0
+
+        # The cache goes stale, and the grill answers without a `time`.
+        ft.tick(api._UPTIME_TTL + 30.0)
+        with mock.patch.object(conn, "send_command", AsyncMock(return_value={})):
+            assert await pitboss.get_uptime() == first + api._UPTIME_TTL + 30.0
+
+
 async def test_get_uptime_is_re_read_once_the_cache_is_stale(pitboss: api.PitBoss):
     """The fake grill counts up per read, so a fresh read is far lower."""
     with freeze_time("2025-06-01 00:00:00") as ft:

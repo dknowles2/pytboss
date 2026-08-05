@@ -243,6 +243,26 @@ async def test_malformed_payload_does_not_kill_the_stream(
     state_callback.assert_awaited_once_with("state")
 
 
+async def test_a_frame_of_the_wrong_shape_does_not_kill_the_stream(
+    conn: wss.WebSocketConnection, state_payloads: Queue
+) -> None:
+    """Valid JSON, but `status` is not the list the firmware documents.
+
+    The malformed-payload guard above only covers text that will not parse.
+    This one parses and then blows up inside the handler -- `len()` on an
+    int -- which is a different `except`, and without it one odd push from
+    the relay would take the socket down until the next reconnect.
+    """
+    state_callback = MockCallback(1)
+    conn.set_state_callback(state_callback)
+    async with conn:
+        await state_payloads.put({"status": 5})
+        await state_payloads.put({"status": ["state"]})
+        async with timeout(5):
+            await state_callback.wait()
+    state_callback.assert_awaited_once_with("state")
+
+
 async def test_subscriber_exception_does_not_kill_the_stream(
     conn: wss.WebSocketConnection, state_payloads: Queue
 ) -> None:
