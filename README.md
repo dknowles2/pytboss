@@ -6,10 +6,10 @@ Python 3 library for interacting with Pitboss grills and smokers.
 
 ## Usage
 
-`pytboss` supports two ways of talking to a grill: a direct Bluetooth LE
-connection, or a WebSocket connection to the PitBoss cloud service. Both use
-the same `PitBoss` API once connected — only the `Transport` passed to it
-differs.
+`pytboss` supports three ways of talking to a grill: a direct Bluetooth LE
+connection, a WebSocket connection to the PitBoss cloud service, or an HTTP
+connection to the grill on your own network. All three use the same `PitBoss`
+API once connected — only the `Transport` passed to it differs.
 
 ### Bluetooth LE
 
@@ -82,6 +82,54 @@ async def main():
     await boss.start()
     while True:
         await asyncio.sleep(0.1)
+
+
+asyncio.run(main())
+```
+
+### HTTP (local network)
+
+Mongoose OS serves the same RPC interface at `http://<grill-ip>/rpc` that the
+Dansons relay forwards, so this transport talks to the grill directly, with
+the vendor's cloud out of the path.
+
+**Not every grill answers.** The ESP-IDF firmware line (versioned `16.x`, on
+the PBC2, PBD, PBE, PBL2 and PBT boards) links no HTTP server at all, and
+Mongoose grills serve the endpoint only when `http.enable` is set — per-unit
+configuration that no model or firmware version predicts. Nothing in this
+library turns it on; `connect()` simply fails. Check first over a transport
+that already works:
+
+```python
+from pytboss.exceptions import RPCError
+
+try:
+    http = await boss.config.get_config("http")
+except RPCError:
+    http = {}  # No such section: not a Mongoose grill.
+if http.get("enable"):
+    ...  # An HttpConnection will work against this grill.
+```
+
+**There is no push channel.** HTTP is strictly request/response, so unlike the
+other two transports this one never invokes the state or VData callbacks —
+`subscribe_state()` registers a callback that will not fire. Poll
+`get_state()` instead; it issues a live RPC and updates the same cache the
+rest of the API reads.
+
+```python
+import asyncio
+from pytboss import HttpConnection, PitBoss
+
+
+async def main():
+    host = "192.168.1.50"  # Your grill's address on the network.
+    model = "PBV4PS2"  # Or your model. See below.
+    boss = PitBoss(HttpConnection(host), model)
+    await boss.start()
+    while True:
+        print(await boss.get_state())
+        await asyncio.sleep(10)
 
 
 asyncio.run(main())

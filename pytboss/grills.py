@@ -275,6 +275,11 @@ def _convert_missed_fields(
     `fields` are the ones that block forgets. The arithmetic is `ftoc`'s:
     `floor((f - 32) / 1.8)`. The sentinel is already `None` by here, so only
     real readings are touched.
+
+    Unlike `_drop_fields`, this edits `state` in place and returns the same
+    object. Safe where it is called, because `_drop_fields` runs first and
+    hands over a dict nobody else holds -- but it is not safe to call on a
+    parse result directly.
     """
     if state is None or state.get("isFahrenheit") is not False:
         return state
