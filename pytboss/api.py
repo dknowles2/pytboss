@@ -412,6 +412,26 @@ class PitBoss:
         actually working to.
 
         Probes with no target set are absent rather than present as `None`.
+
+        On a grill working in Celsius, a board-reported target can come back
+        one degree below what was asked for -- 63 set, 62 read -- and that is
+        correct rather than a rounding bug to fix here. The board stores
+        Fahrenheit whatever the panel is set to, and the vendor's own status
+        routine converts back with `floor((F - 32) / 1.8)`; pytboss runs that
+        routine verbatim rather than reimplementing it, so the value matches
+        what the vendor's app shows for the same grill. 46 of the 116 Celsius
+        targets between 5 and 120 land a degree low this way.
+
+        There is no lever on either side. The set command hands the board the
+        raw number -- the payload is byte-identical whichever unit the grill
+        is in, so the firmware does the conversion, not us -- and changing the
+        decode would mean disagreeing with the vendor's own reading of the
+        same frame.
+
+        The virtual data path above is lossless by comparison: `_to_fahrenheit`
+        and `_from_fahrenheit` both round, so a value written and read back
+        through the store survives. Probes 3 and 4 therefore do not drift on
+        any model, and probes 1 and 2 do wherever the board reports them.
         """
         fahrenheit = self._is_fahrenheit()
         targets: dict[int, int] = {}
