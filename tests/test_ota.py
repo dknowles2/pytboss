@@ -109,6 +109,10 @@ async def test_get_boot_state_when_a_rollback_is_pending(mock_conn):
     }
     ota = OTA(mock_conn)
     result = await ota.get_boot_state()
+    # Without this the test is a tautology: `get_boot_state` passes the
+    # reply straight through, and the mock answers any method name -- so it
+    # passed with the RPC renamed to something that does not exist.
+    mock_conn.send_command.assert_awaited_once_with("OTA.GetBootState", {})
     assert result["is_committed"] is False
     assert result["commit_timeout"] == 300
 

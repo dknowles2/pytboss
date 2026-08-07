@@ -154,7 +154,13 @@ async def test_json_content_type_is_also_accepted(host, rpc):
     conn = HttpConnection(host)
     await conn.connect()
     try:
-        assert await conn.send_command("PB.GetState", {}) is not None
+        # The same literal the text/plain case asserts -- the claim is that
+        # the body decodes identically, which `is not None` would not have
+        # caught it failing to do.
+        assert await conn.send_command("PB.GetState", {}) == {
+            "sc_11": "FE0B",
+            "sc_12": "FE0C",
+        }
     finally:
         await conn.disconnect()
 
