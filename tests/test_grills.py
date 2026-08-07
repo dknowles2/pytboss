@@ -8,6 +8,7 @@ import pytest
 from dukpy import JSRuntimeError
 
 from pytboss import grills as grills_lib
+from pytboss import testing
 from pytboss.exceptions import InvalidGrill
 
 TEMPERATURE_FIELDS = (
@@ -231,31 +232,14 @@ class TestGetGrills:
     def test_parse_temperatures(self, grill: grills_lib.Grill):
         assert grill.control_board._temperatures_js_func is not None
         js = JSFunc(grill.control_board._temperatures_js_func)
-        msg = Message()
-        # A dropped field reads bytes that don't hold it, so the frame reserves
-        # none for it.
         dropped = grills_lib.DROPPED_TEMPERATURE_FIELDS.get(
             grill.control_board.name, frozenset()
         )
-
-        # WARNING! THE ORDER HERE MATTERS!
-        msg.add("prefix", "FE0C")
-        msg.add("p1Target", "010901")
-        if js.has_key("p2Target"):
-            msg.add("p2Target", "010902")
-        msg.add("p1Temp", "010601")
-        msg.add("p2Temp", "010602")
-        msg.add("p3Temp", "010603")
-        if js.has_key("p4Temp"):
-            msg.add("p4Temp", "010604")
-        if js.has_key("smokerActTemp") and "smokerActTemp" not in dropped:
-            msg.add("smokerActTemp", "020100")
-        msg.add("grillSetTemp", "020205")
-        msg.add("grillTemp", "020105")
-        msg.add("isFahrenheit", "01")
-        msg.add("suffix", "FF")
-
-        temps = grill.control_board.parse_temperatures(str(msg))
+        # The layout lives in `pytboss.testing` so there is one copy of it --
+        # the helper consumers build their own state with is the one proved
+        # right here. What to *expect* back stays this test's business.
+        frame = testing.temperatures_frame(grill)
+        temps = grill.control_board.parse_temperatures(frame)
         want = {
             "p1Temp": 161,
             "p2Temp": 162,
@@ -276,11 +260,12 @@ class TestGetGrills:
         with debug_js(js):
             assert temps == dict(want)
 
-            msg["isFahrenheit"] = "00"
-            status = grill.control_board.parse_temperatures(str(msg))
+            status = grill.control_board.parse_temperatures(
+                testing.temperatures_frame(grill, isFahrenheit=False)
+            )
             assert status is not None
             for key in TEMPERATURE_FIELDS:
-                if key not in msg or key not in want:
+                if key not in want:
                     continue
 
                 temp = want[key]
@@ -290,57 +275,12 @@ class TestGetGrills:
 
     @pytest.mark.parametrize("grill", all_variants(), ids=idfn)
     def test_parse_state(self, grill: grills_lib.Grill):
-        msg = Message()
         assert grill.control_board._status_js_func is not None
         js = JSFunc(grill.control_board._status_js_func)
-        # A dropped field reads bytes that don't hold it, so the frame reserves
-        # none for it.
-        dropped = grills_lib.DROPPED_STATUS_FIELDS.get(
-            grill.control_board.name, frozenset()
-        )
-
-        # WARNING! THE ORDER HERE MATTERS!
-        msg.add("prefix", "FE0B")
-        msg.add("p1Target", "010901")
-        if js.has_key("p2Target", ignore_comments=False):
-            msg.add("p2Target", "010902")
-        msg.add("p1Temp", "010601")
-        msg.add("p2Temp", "010602")
-        msg.add("p3Temp", "010603")
-        if js.has_key("p4Temp", ignore_comments=False):
-            msg.add("p4Temp", "010604")
-        if (
-            js.has_key("smokerActTemp", ignore_comments=False)
-            and "smokerActTemp" not in dropped
-        ):
-            msg.add("smokerActTemp", "020200")
-        msg.add("grillTemp", "020205")
-        msg.add("condGrillTemp", "01")
-        msg.add("moduleIsOn", "01")
-        msg.add("err1", "00")
-        msg.add("err2", "00")
-        msg.add("err3", "00")
-        msg.add("highTempErr", "00")
-        msg.add("fanErr", "00")
-        msg.add("hotErr", "00")
-        msg.add("motorErr", "00")
-        msg.add("noPellets", "00")
-        if js.has_key("erL", ignore_comments=False):
-            msg.add("erL", "00")
-        msg.add("fanState", "00")
-        msg.add("hotState", "00")
-        msg.add("motorState", "00")
-        msg.add("lightState", "00")
-        if js.has_key("primeState", ignore_comments=False):
-            msg.add("primeState", "00")
-        msg.add("isFahrenheit", "01")
-        msg.add("recipeStep", "01")
-        msg.add("recipeHours", "04")
-        msg.add("recipeMinutes", "0C")
-        msg.add("recipeSeconds", "3B")
-        msg.add("suffix", "FF")
-
-        status = grill.control_board.parse_status(str(msg))
+        # See `test_parse_temperatures`: one copy of the layout, in the
+        # helper consumers use, proved right by the expectations below.
+        frame = testing.status_frame(grill)
+        status = grill.control_board.parse_status(frame)
         want = {
             "moduleIsOn": True,
             "err1": False,
@@ -378,28 +318,31 @@ class TestGetGrills:
         with debug_js(js):
             assert status == dict(want)
 
-            msg["condGrillTemp"] = "02"
-            status = grill.control_board.parse_status(str(msg))
+            status = grill.control_board.parse_status(
+                testing.status_frame(grill, condGrillTemp="02")
+            )
             assert status is not None
             assert "grillSetTemp" not in status
 
             error_keys = ["err1", "err2", "err3"]
             error_keys += ["highTempErr", "fanErr", "hotErr", "motorErr"]
             error_keys += ["noPellets", "erL"]
-            for key in error_keys:
-                if key in msg:
-                    msg[key] = "01"
-            status = grill.control_board.parse_status(str(msg))
+            status = grill.control_board.parse_status(
+                testing.status_frame(
+                    grill, **{k: True for k in error_keys if js.has_key(k, False)}
+                )
+            )
             assert status is not None
             for key in error_keys:
-                if key in msg:
+                if key in status:
                     assert status[key]  # type: ignore[literal-required]
 
-            msg["isFahrenheit"] = "00"
-            status = grill.control_board.parse_status(str(msg))
+            status = grill.control_board.parse_status(
+                testing.status_frame(grill, isFahrenheit=False)
+            )
             assert status is not None
             for key in TEMPERATURE_FIELDS:
-                if key not in msg or key not in want:
+                if key not in want:
                     continue
                 temp = want[key]
                 if js.converts_to_celsius():
