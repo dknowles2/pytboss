@@ -1147,16 +1147,16 @@ async def test_on_vdata_received_accepts_a_decoded_object():
 
 
 @pytest.mark.parametrize(
-    "reply",
+    "reply,want",
     [
-        {},
-        {"sc_11": "", "sc_12": ""},
-        {"sc_11": STATE_HEX},
-        {"sc_12": TEMPS_HEX},
+        ({}, {}),
+        ({"sc_11": "", "sc_12": ""}, {}),
+        ({"sc_11": STATE_HEX}, STATE_DICT),
+        ({"sc_12": TEMPS_HEX}, TEMPS_DICT),
     ],
     ids=["empty", "blanked", "status_only", "temperatures_only"],
 )
-async def test_get_state_survives_a_partial_reply(reply):
+async def test_get_state_survives_a_partial_reply(reply, want):
     """The firmware blanks both frames while a command is in flight.
 
     `sendMCUCommand` clears `lastStatus.sc_11` and `sc_12` before it writes to
@@ -1168,7 +1168,10 @@ async def test_get_state_survives_a_partial_reply(reply):
     await pitboss.start()
     with mock.patch.object(conn, "send_command", AsyncMock(return_value=reply)):
         state = await pitboss.get_state()
-    assert isinstance(state, dict)
+    # The half that *is* present still parses. `isinstance(state, dict)` held
+    # even with both parse branches removed and an empty StateDict returned,
+    # so it proved only that nothing raised.
+    assert state == want
 
 
 async def test_get_uptime_does_not_cache_a_reply_it_cannot_read():

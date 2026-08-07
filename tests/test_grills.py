@@ -174,12 +174,44 @@ def all_variants() -> list[grills_lib.Grill]:
 
 class TestGetGrills:
     def test_plain(self):
+        """The three things this does, rather than that it returned rows.
+
+        `assert len(grills) > 0` held whether or not any of them still
+        worked -- it is the shape REVIEW.md warns about, and it was the only
+        test for the library's main entry point.
+        """
         grills = list(grills_lib.get_grills())
         assert len(grills) > 0
 
+        # Models sold on two board generations appear once per board in the
+        # definitions; without a `control_board` each is yielded once, so a
+        # caller listing every supported model sees no duplicates.
+        names = [g.name for g in grills]
+        assert len(names) == len(set(names))
+
+        # Names the definitions carry but that cannot be driven.
+        for unsupported in grills_lib.UNSUPPORTED_MODELS:
+            assert unsupported not in names
+
+        # A board with no status-parsing routine cannot report anything, so
+        # its models are not offered at all.
+        assert all(g.control_board._status_js_func for g in grills)
+
     def test_with_control_board(self):
+        """That the filter filters, which is all this function does here.
+
+        The previous assertion -- that some grills came back -- passed with
+        the argument ignored entirely.
+        """
         grills = list(grills_lib.get_grills("PBL"))
         assert len(grills) > 0
+        assert {g.control_board.name for g in grills} == {"PBL"}
+
+        # And that it is a real narrowing rather than everything: another
+        # board's models are a different, non-empty set.
+        other = list(grills_lib.get_grills("PBM"))
+        assert other
+        assert {g.name for g in other}.isdisjoint({g.name for g in grills})
 
     @pytest.mark.parametrize("grill", all_variants(), ids=idfn)
     def test_js_commands(self, grill: grills_lib.Grill):
