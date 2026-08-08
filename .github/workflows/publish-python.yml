@@ -10,20 +10,33 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    # Trusted publishing: PyPI mints a token good for fifteen minutes against
+    # this repository and this workflow file, so there is no long-lived
+    # credential in the repository secrets to leak or rotate. The environment
+    # is what the trusted publisher is keyed on, alongside the filename, and
+    # is where an approval gate would go if we ever want one.
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pytboss
+
+    permissions:
+      # The only permission this needs, and the one that makes it work: it
+      # lets the job ask GitHub for the OIDC token it trades with PyPI.
+      id-token: write
+
     steps:
       - uses: actions/checkout@v7
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
           python-version: '3.x'
-      - name: Install dependencies
+      - name: Build
         run: |
           python -m pip install --upgrade pip
-          pip install setuptools wheel twine build
-      - name: Build and publish
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
+          pip install build
           python -m build
-          twine upload dist/*
+      # Deliberately no `password:`. Passing one turns trusted publishing off
+      # and takes the attestations with it -- they are only generated for a
+      # secretless upload.
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@release/v1
