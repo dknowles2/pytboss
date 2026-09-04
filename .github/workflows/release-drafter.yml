@@ -5,10 +5,53 @@ name: Release Drafter
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   update_release_draft:
     runs-on: ubuntu-latest
+    permissions:
+      # Release Drafter creates/updates the draft release.
+      contents: write
+      pull-requests: read
     steps:
+      # Tags are the input to the version calculation below, and a shallow
+      # clone does not carry them.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Release Drafter resolves $RESOLVED_VERSION by semver-bumping the last
+      # tag, which has no notion of the calendar: on the first release of a new
+      # month it would draft 2026.8.7 rather than 2026.9.0. Compute the CalVer
+      # here and hand it to the action, which uses an explicit `version` input
+      # in preference to its own resolver.
+      #
+      # Dates are UTC, matching the runner, so a release cut late in the last
+      # evening of a month in a western timezone lands in the next month.
+      - name: Compute CalVer
+        id: calver
+        run: |
+          set -euo pipefail
+          prefix="$(date -u +%Y).$(date -u +%-m)"
+          # Tags are unpadded (2026.8.6, not 2026.08.06), so sort numerically
+          # on the patch field rather than lexically -- otherwise .10 would
+          # sort below .9.
+          patch="$(git tag --list "${prefix}.*" \
+            | awk -F. '$1 "." $2 == "'"${prefix}"'" {print $3}' \
+            | sort -n | tail -n1)"
+          if [ -z "${patch}" ]; then
+            # First release of this month: reset the patch field.
+            version="${prefix}.0"
+          else
+            version="${prefix}.$((patch + 1))"
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Next version: ${version}"
+
       - uses: release-drafter/release-drafter@v7.7.0
+        with:
+          version: ${{ steps.calver.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
