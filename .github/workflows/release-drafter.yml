@@ -50,7 +50,7 @@ jobs:
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "Next version: ${version}"
 
-      - uses: release-drafter/release-drafter@v7.7.0
+      - uses: release-drafter/release-drafter@v7.9.0
         with:
           version: ${{ steps.calver.outputs.version }}
         env:
