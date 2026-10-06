@@ -1019,6 +1019,7 @@ dev = [
     { name = "pytest-aiohttp" },
     { name = "pytest-asyncio" },
     { name = "ruff" },
+    { name = "virtualenv" },
 ]
 test = [
     { name = "freezegun" },
@@ -1047,6 +1048,7 @@ dev = [
     { name = "pytest-aiohttp", specifier = "==1.1.1" },
     { name = "pytest-asyncio", specifier = "==1.4.0" },
     { name = "ruff", specifier = "==0.16.10" },
+    { name = "virtualenv", specifier = "==21.14.5" },
 ]
 test = [
     { name = "freezegun", specifier = "==1.5.5" },

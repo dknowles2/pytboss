@@ -66,4 +66,8 @@ test = [
 dev = [
     {include-group = "test"},
     "pre-commit==4.6.2",
+    # Transitive dependency of pre-commit, pinned here only so Dependabot
+    # tracks it as a direct dependency: it cannot bump transitive packages
+    # that exist only in uv.lock. See dependabot/dependabot-core#16449.
+    "virtualenv==21.14.5",
 ]
