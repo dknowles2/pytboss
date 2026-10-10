@@ -104,71 +104,152 @@ def _trim_board(board: dict[str, Any]) -> dict[str, Any]:
     )
 
 
-async def get_grill_details(
-    session: ClientSession, grill_id: int, attempts: int = 3
-) -> dict[str, Any]:
-    """Fetches one grill definition, or an empty dict if the API can't serve it.
+# Re-logins allowed across one whole sweep, rather than per request. A stale
+# or rotated session shows up as a sporadic 401 part way through the sweep, and
+# a fresh login recovers it, but an account whose credentials really are
+# rejected must not be allowed to re-login once per ID for 149 IDs.
+MAX_RELOGINS = 3
 
-    The ID space has gaps, and the API is inconsistent about how it reports
-    them: most return 404, but some return a persistent 500 (67 and 128 at the
-    time of writing, verified over repeated requests). It also hangs up on the
-    occasional request part way through a full sweep. None of these should
-    abort the whole run, so connection drops and server errors are retried, and
-    an ID that still won't load is skipped like a 404.
+# Sent on the login request only. The sweep deliberately does not carry it: it
+# selects the vendor's storefront country, and the definitions this script
+# writes out should not depend on it.
+_LOGIN_HEADERS = {"x-country": "US"}
 
-    Client errors other than 404 are raised: a 401 means the credentials are
-    wrong, and retrying or skipping would quietly produce a partial catalogue.
+
+class GrillApi:
+    """Fetches grill definitions, re-authenticating when a session goes stale.
+
+    Auth headers are held here and passed per request rather than baked into
+    the `ClientSession`'s defaults, so a mid-sweep re-login can swap them for
+    fresh ones. Retrying a 401 against the same stale headers would only get
+    another 401.
     """
-    _LOGGER.info("Fetching grill details for grill_id: %s", grill_id)
-    for attempt in range(1, attempts + 1):
-        try:
-            resp = await session.get(f"{API_URL}/grills/{grill_id}")
-            resp.raise_for_status()
-            resp_json = await resp.json()
-        except ClientResponseError as ex:
-            if ex.status == 404:
-                _LOGGER.warning("Unknown grill ID: %s", grill_id)
-                return {}
-            if ex.status < 500:
-                raise
-            if attempt == attempts:
-                _LOGGER.warning(
-                    "Skipping grill ID %s: server returned %s on all %s attempts",
-                    grill_id,
-                    ex.status,
-                    attempts,
+
+    def __init__(
+        self,
+        session: ClientSession,
+        username: str,
+        password: str,
+        max_relogins: int = MAX_RELOGINS,
+    ) -> None:
+        self._session = session
+        self._username = username
+        self._password = password
+        self._relogins_left = max_relogins
+        self._headers: dict[str, str] = {}
+
+    async def _login(self) -> dict[str, str]:
+        """Authenticates on a session of its own, returning auth headers."""
+        async with ClientSession(headers=_LOGIN_HEADERS) as session:
+            return await async_login(session, self._username, self._password)
+
+    async def login(self) -> None:
+        """Authenticates before the sweep starts.
+
+        A failure here is the genuine bad-credentials case and is left to
+        propagate: nothing has been fetched yet, so there is no partial
+        catalogue to protect, and the run should say plainly that the stored
+        credentials were rejected.
+        """
+        self._headers = await self._login()
+
+    async def _relogin(self) -> bool:
+        """Swaps in fresh auth headers, if the run has re-logins left.
+
+        Returns False once the budget is spent, which makes the 401 that
+        prompted it fatal. A re-login that is itself rejected raises: the
+        credentials have genuinely stopped working mid-run.
+        """
+        if self._relogins_left <= 0:
+            _LOGGER.error(
+                "Still unauthorized after %s re-logins; giving up", MAX_RELOGINS
+            )
+            return False
+        self._relogins_left -= 1
+        _LOGGER.warning(
+            "API returned 401; re-authenticating (%s re-logins left afterwards)",
+            self._relogins_left,
+        )
+        self._headers = await self._login()
+        return True
+
+    async def get_grill_details(
+        self, grill_id: int, attempts: int = 3
+    ) -> dict[str, Any]:
+        """Fetches one grill definition, or an empty dict if the API can't serve it.
+
+        The ID space has gaps, and the API is inconsistent about how it reports
+        them: most return 404, but some return a persistent 500 (67 and 128 at
+        the time of writing, verified over repeated requests). It also hangs up
+        on the occasional request part way through a full sweep. None of these
+        should abort the whole run, so connection drops and server errors are
+        retried, and an ID that still won't load is skipped like a 404.
+
+        A 401 is retried, but only behind a fresh `async_login()`: the vendor
+        expires or rotates sessions mid-sweep, and a single blip used to cost a
+        whole week's refresh. It is never skipped the way a 404 is -- a 401 the
+        re-login budget can't clear aborts the run, because committing a
+        catalogue that is missing whatever the API refused to serve is worse
+        than refreshing nothing.
+
+        Client errors other than 401 and 404 are raised unchanged.
+        """
+        _LOGGER.info("Fetching grill details for grill_id: %s", grill_id)
+        for attempt in range(1, attempts + 1):
+            try:
+                resp = await self._session.get(
+                    f"{API_URL}/grills/{grill_id}", headers=self._headers
                 )
-                return {}
-            _LOGGER.warning("Server error %s for grill_id %s", ex.status, grill_id)
-        except (ClientConnectionError, TimeoutError) as ex:
-            if attempt == attempts:
-                raise
-            _LOGGER.warning("Connection dropped for grill_id %s: %s", grill_id, ex)
-        else:
-            if resp_json["status"] != "success":
-                raise Error(resp_json["message"])
-            return resp_json["data"]["grill"]
+                resp.raise_for_status()
+                resp_json = await resp.json()
+            except ClientResponseError as ex:
+                if ex.status == 404:
+                    _LOGGER.warning("Unknown grill ID: %s", grill_id)
+                    return {}
+                if ex.status == 401:
+                    if attempt == attempts or not await self._relogin():
+                        raise
+                elif ex.status < 500:
+                    raise
+                elif attempt == attempts:
+                    _LOGGER.warning(
+                        "Skipping grill ID %s: server returned %s on all %s attempts",
+                        grill_id,
+                        ex.status,
+                        attempts,
+                    )
+                    return {}
+                else:
+                    _LOGGER.warning(
+                        "Server error %s for grill_id %s", ex.status, grill_id
+                    )
+            except (ClientConnectionError, TimeoutError) as ex:
+                if attempt == attempts:
+                    raise
+                _LOGGER.warning("Connection dropped for grill_id %s: %s", grill_id, ex)
+            else:
+                if resp_json["status"] != "success":
+                    raise Error(resp_json["message"])
+                return resp_json["data"]["grill"]
 
-        delay = 2**attempt
-        _LOGGER.info("Retrying grill_id %s in %ss", grill_id, delay)
-        await sleep(delay)
+            delay = 2**attempt
+            _LOGGER.info("Retrying grill_id %s in %ss", grill_id, delay)
+            await sleep(delay)
 
-    raise Error(f"Could not fetch grill_id {grill_id}")
+        raise Error(f"Could not fetch grill_id {grill_id}")
 
 
 async def main():
     cfg = ConfigParser()
     cfg.read(str(Path.home() / ".pitboss"))
-    async with ClientSession(headers={"x-country": "US"}) as session:
-        auth_headers = await async_login(
-            session, cfg["pitboss"]["username"], cfg["pitboss"]["password"]
-        )
     grills = {}
     skipped = []
-    async with ClientSession(headers=auth_headers) as session:
+    async with ClientSession() as session:
+        api = GrillApi(session, cfg["pitboss"]["username"], cfg["pitboss"]["password"])
+        await api.login()
         for i in range(1, 150):
             try:
-                grill = await get_grill_details(session, i)
+                grill = await api.get_grill_details(i)
                 if not grill:
                     skipped.append(i)
                     continue

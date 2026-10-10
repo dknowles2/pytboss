@@ -80,6 +80,13 @@ and opens a PR.
 - Fields the typed classes don't name are still reachable through the untyped
   `Grill.json`. Before dropping one, grep **both repos** — `image_url` looks
   like storefront data but `scripts/update_readme.py` reads it.
+- A **401 mid-sweep is a stale session, not bad credentials**. The vendor
+  expires or rotates sessions, and five of twelve weekly runs aborted on one.
+  `GrillApi` re-logins and retries, bounded by `MAX_RELOGINS` across the whole
+  run. Two halves of that have to stay: a 401 on the initial login still fails
+  the run (the real bad-credentials case), and a 401 the budget can't clear
+  still fails it rather than being skipped like a 404 — a catalogue missing
+  whatever the API refused to serve is worse than refreshing nothing.
 
 Review the automated PR rather than rubber-stamping it. Newly added models
 sometimes ship parsing routines that fail the suite, which is why the PR body
