@@ -704,3 +704,79 @@ def test_a_fahrenheit_frame_leaves_the_missed_fields_untouched():
     out = cb.parse_temperatures(frame)
     assert out is not None and out["isFahrenheit"] is True
     assert out["smokerActTemp"] == 212  # left in Fahrenheit, as it should be
+
+
+def test_an_overridden_model_reports_its_board_s_real_setpoints():
+    """pytboss#633: the catalogue's list for PB1100PSC2 is not the board's.
+
+    The vendor reports the ten-value list 58 mostly-PBC/PBV models share.
+    Stepping the real board gives nineteen -- what its PBL siblings already
+    declare -- so ten of its setpoints were unreachable through
+    `set_grill_temperature()`, which snaps to the declared list before
+    sending.
+    """
+    grill = grills_lib.get_grill("PB1100PSC2")
+    assert grill.temp_increments == [
+        180,
+        190,
+        200,
+        210,
+        220,
+        230,
+        240,
+        250,
+        260,
+        270,
+        280,
+        290,
+        300,
+        325,
+        350,
+        375,
+        400,
+        450,
+        500,
+    ]
+
+    # The same list its siblings on this board carry, rather than a number
+    # invented here.
+    assert grill.temp_increments == grills_lib.get_grill("PB1150PS2").temp_increments
+
+    # 475F, which the catalogue claims, is not one of them.
+    assert 475 not in grill.temp_increments
+
+    # The raw vendor entry is passed through untouched: `grills.json` is
+    # generated, and `Grill.json` is what callers reach an unnamed field
+    # through.
+    assert grill.json["temp_increment"] == "180/200/225/250/300/350/400/450/475/500"
+
+
+def test_an_override_is_copied_rather_than_shared():
+    """Each `Grill` gets its own list, so no caller can edit the table."""
+    first = grills_lib.get_grill("PB1100PSC2")
+    assert first.temp_increments is not None
+    first.temp_increments.append(999)
+
+    second = grills_lib.get_grill("PB1100PSC2")
+    assert second.temp_increments is not None
+    assert 999 not in second.temp_increments
+
+
+def test_models_without_an_override_still_read_the_catalogue():
+    """The override is a per-model exception, not a new code path for all."""
+    assert "PB1100PSC3" not in grills_lib.TEMP_INCREMENT_OVERRIDES
+    grill = grills_lib.get_grill("PB1100PSC3")
+    assert grill.temp_increments == [
+        int(t) for t in grill.json["temp_increment"].split("/")
+    ]
+
+
+@pytest.mark.parametrize("name", sorted(grills_lib.TEMP_INCREMENT_OVERRIDES))
+def test_every_override_names_a_real_model_and_stays_in_its_range(name: str):
+    """A typo'd key would simply never apply, silently."""
+    grill = grills_lib.get_grill(name)
+    increments = grills_lib.TEMP_INCREMENT_OVERRIDES[name]
+    assert grill.temp_increments == list(increments)
+    assert list(increments) == sorted(increments)
+    assert increments[0] == grill.min_temp
+    assert increments[-1] == grill.max_temp
