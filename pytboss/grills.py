@@ -114,30 +114,31 @@ UNCONVERTED_FAHRENHEIT_FIELDS = {
     "PBT": frozenset({"p4Temp", "smokerActTemp"}),
 }
 
-# Setpoint lists the vendor's catalogue reports for a model that its control
-# board does not actually honour, keyed by model name and replacing
-# `temp_increment` at parse time.
+# Setpoint lists that replace the catalogue's `temp_increment` at parse time,
+# keyed by model name. The board ignores setpoints that are not on its own
+# list, and `set_grill_temperature()` snaps onto the list declared here, so a
+# wrong list either hides real setpoints or sends ones the board drops.
 #
-# The board ignores a setpoint that is not on its own list, and
-# `PitBoss.set_grill_temperature()` snaps the requested value onto the list
-# declared here before sending -- so a wrong list makes real setpoints
-# unreachable rather than merely mislabelled.
+# `PB1100PSC2` is catalogued as `180/200/225/250/300/350/400/450/475/500`, but
+# a real board steps through nineteen (pytboss#633): 10F from 180 to 300, then
+# 325/350/375/400/450/500, the list its `PBL` siblings `PB850PS2`, `PB1150PS2`
+# and `PB1600PS1` already declare.
 #
-# `PB1100PSC2` is reported as `180/200/225/250/300/350/400/450/475/500`: the
-# ten-value list 58 models share, nearly all of them on the older `PBC` and
-# `PBV` boards. Stepping the real board through its setpoints gives nineteen
-# (pytboss#633), which is what its three `PBL` siblings -- `PB850PS2`,
-# `PB1150PS2`, `PB1600PS1` -- already declare: 10F from 180 to 300, then
-# 325/350/375/400/450/500. 475F, which the catalogue claims, does not exist on
-# it. The hardware-confirmed model is corrected; `PB1100PSC3`, the only other
-# `PBL` model still carrying the ten-value list, is left alone until someone
-# steps one through, because overriding a board that really is coarse would
-# send setpoints it discards outright -- worse than snapping to a valid but
-# coarse value.
+# Both lists are real. A January 2021 firmware update for the Pro Series PID
+# controllers changed the steps to 10F up to 300F and dropped 225F and 475F;
+# controllers had to be sent in or replaced. The override takes the updated
+# list, the only one anyone has verified, so a PB1100PSC2 still on the original
+# firmware gets too fine a list and drops the setpoints it lacks. Keying on
+# firmware instead is not possible: `get_firmware_version()` reports the WiFi
+# module's version, not the controller MCU's, and no RPC exposes the board's
+# step table.
 #
-# Corrected on the way in rather than in the data: `grills.json` is generated
-# weekly and must not be hand-edited (REVIEW.md), and `from_dict` is where that
-# file says to reinterpret a value.
+# `PB1100PSC3`, the only other `PBL` model on the ten-value list, is left alone
+# for lack of a report, not because its board is known to be coarse.
+#
+# Overridden here rather than in the data: `grills.json` is generated weekly
+# and must not be hand-edited (REVIEW.md), and `from_dict` is where it says to
+# reinterpret a value.
 TEMP_INCREMENT_OVERRIDES = {
     "PB1100PSC2": (
         180,
