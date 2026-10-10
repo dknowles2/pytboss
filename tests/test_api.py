@@ -1455,3 +1455,37 @@ async def test_one_raising_vdata_subscriber_does_not_starve_the_rest():
     await pitboss._on_vdata_received({"p1T": 165})
 
     assert seen == ["bad", "good"]
+
+
+async def test_pb1100psc2_reaches_the_setpoints_its_board_really_has():
+    """pytboss#633, end to end on the real spec rather than a fixture.
+
+    The catalogue's ten-value list made ten of the board's Celsius setpoints
+    unreachable: a request for one snapped to a neighbour, and the integration
+    then showed a target the user never asked for.
+    """
+    conn = FakeTransport()
+    pitboss = api.PitBoss(conn, "PB1100PSC2")
+    await pitboss.start()
+
+    # The nineteen setpoints stepped through on the controller in Celsius
+    # mode, which the board derives by flooring its Fahrenheit list.
+    assert pitboss.accepted_setpoints(fahrenheit=False) == [
+        82, 87, 93, 98, 104, 110, 115, 121, 126, 132,
+        137, 143, 148, 162, 176, 190, 204, 232, 260,
+    ]  # fmt: skip
+
+    # 104C is one of them. Against the catalogue's ten-value list, which
+    # floors to 82/93/107/121/148/176/204/232/246/260, it snapped to 107C --
+    # not a setpoint the board has, so the board snapped again, to 110C, and
+    # the integration reported a target nobody asked for.
+    pitboss._state["isFahrenheit"] = False
+    with mock.patch.object(api.PitBoss, "_send_hex_command", autospec=True) as send_hex:
+        await pitboss.set_grill_temperature(104)
+
+    cmd = pitboss.spec.control_board.commands["set-temperature"]
+    send_hex.assert_called_once_with(pitboss, cmd(104, False))
+    # PBL's routine takes one parameter and sends the number as given, so the
+    # board snaps against its own Celsius list -- which is why the derived
+    # list above has to match it.
+    assert cmd(104, False) == cmd(104)

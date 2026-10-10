@@ -114,6 +114,57 @@ UNCONVERTED_FAHRENHEIT_FIELDS = {
     "PBT": frozenset({"p4Temp", "smokerActTemp"}),
 }
 
+# Setpoint lists the vendor's catalogue reports for a model that its control
+# board does not actually honour, keyed by model name and replacing
+# `temp_increment` at parse time.
+#
+# The board ignores a setpoint that is not on its own list, and
+# `PitBoss.set_grill_temperature()` snaps the requested value onto the list
+# declared here before sending -- so a wrong list makes real setpoints
+# unreachable rather than merely mislabelled.
+#
+# `PB1100PSC2` is reported as `180/200/225/250/300/350/400/450/475/500`: the
+# ten-value list 58 models share, nearly all of them on the older `PBC` and
+# `PBV` boards. Stepping the real board through its setpoints gives nineteen
+# (pytboss#633), which is what its three `PBL` siblings -- `PB850PS2`,
+# `PB1150PS2`, `PB1600PS1` -- already declare: 10F from 180 to 300, then
+# 325/350/375/400/450/500. 475F, which the catalogue claims, does not exist on
+# it. The hardware-confirmed model is corrected; `PB1100PSC3`, the only other
+# `PBL` model still carrying the ten-value list, is left alone until someone
+# steps one through, because overriding a board that really is coarse would
+# send setpoints it discards outright -- worse than snapping to a valid but
+# coarse value.
+#
+# Corrected on the way in rather than in the data: `grills.json` is generated
+# weekly and must not be hand-edited (REVIEW.md), and `from_dict` is where that
+# file says to reinterpret a value.
+TEMP_INCREMENT_OVERRIDES = {
+    "PB1100PSC2": (
+        180,
+        190,
+        200,
+        210,
+        220,
+        230,
+        240,
+        250,
+        260,
+        270,
+        280,
+        290,
+        300,
+        325,
+        350,
+        375,
+        400,
+        450,
+        500,
+    ),
+}
+"""Tuples rather than lists: the value is copied into every `Grill` built for
+the model, and a shared list would let one caller's in-place edit rewrite the
+table for all later ones."""
+
 # Typos in the vendor's command slugs, mapped to the canonical slug.
 _COMMAND_SLUG_OVERRIDES = {
     "set-prove-1-temperature": "set-probe-1-temperature",
@@ -593,7 +644,11 @@ class Grill:
             min_temp=min_temp,
             max_temp=max_temp,
             meat_probes=grill_dict["meat_probes"],
-            temp_increments=[int(t) for t in grill_dict["temp_increment"].split("/")],
+            temp_increments=(
+                list(override)
+                if (override := TEMP_INCREMENT_OVERRIDES.get(grill_dict["name"]))
+                else [int(t) for t in grill_dict["temp_increment"].split("/")]
+            ),
             celsius_temp_increments=[
                 int(t)
                 for t in (grill_dict.get("celsius_temp_increment") or "").split("/")
