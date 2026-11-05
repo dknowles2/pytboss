@@ -39,6 +39,7 @@
           "slug": "turn-primer-motor-on"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "LBL",
       "platform_id": 1,
@@ -80,6 +81,7 @@
           "slug": "turn-primer-motor-on"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "LFS",
       "platform_id": 1,
@@ -137,6 +139,7 @@
           "slug": "set-probe-2-temperature"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBA",
       "platform_id": 5,
@@ -194,6 +197,7 @@
           "slug": "set-probe-2-temperature"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBB",
       "platform_id": 2,
@@ -243,6 +247,7 @@
           "slug": "turn-primer-motor-on"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBC",
       "platform_id": 1,
@@ -292,6 +297,7 @@
           "slug": "turn-primer-motor-on"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBC2",
       "platform_id": 8,
@@ -341,6 +347,7 @@
           "slug": "set-probe-2-temperature"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBD",
       "platform_id": 3,
@@ -390,6 +397,7 @@
           "slug": "set-probe-2-temperature"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBE",
       "platform_id": 8,
@@ -439,6 +447,7 @@
           "slug": "turn-primer-motor-on"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBG",
       "platform_id": 5,
@@ -492,6 +501,7 @@
           "slug": "turn-primer-motor-on"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBL",
       "platform_id": 5,
@@ -545,6 +555,7 @@
           "slug": "turn-primer-motor-on"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBL2",
       "platform_id": 7,
@@ -598,6 +609,7 @@
           "slug": "turn-primer-motor-on"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBL3",
       "platform_id": 8,
@@ -639,6 +651,7 @@
           "slug": "set-fahrenheit"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBM",
       "platform_id": 1,
@@ -680,6 +693,7 @@
           "slug": "set-fahrenheit"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBM2",
       "platform_id": 8,
@@ -733,6 +747,7 @@
           "slug": "turn-primer-motor-on"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBP",
       "platform_id": 1,
@@ -790,6 +805,7 @@
           "slug": "set-probe-2-temperature"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBT",
       "platform_id": 8,
@@ -839,6 +855,7 @@
           "slug": "turn-primer-motor-on"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBV",
       "platform_id": 5,
@@ -872,6 +889,7 @@
           "slug": "set-fahrenheit"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBV2",
       "platform_id": 8,
@@ -913,6 +931,7 @@
           "slug": "turn-off"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBVA",
       "platform_id": 8,
@@ -946,6 +965,7 @@
           "slug": "set-probe-2-temperature"
         }
       ],
+      "device_status_bytecode": null,
       "device_status_function": null,
       "name": "PBX1",
       "platform_id": 4,
